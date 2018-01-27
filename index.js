@@ -1,3 +1,3 @@
 export default {
-  val: 45
+  val: 47
 };

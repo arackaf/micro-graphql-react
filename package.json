@@ -15,6 +15,7 @@
   "jest": {},
   "homepage": "https://github.com/arackaf/micro-graphql-react",
   "devDependencies": {
+    "@std/esm": "0.19.7",
     "babel-jest": "21.2.0",
     "babel-loader": "6.4.1",
     "babel-plugin-transform-class-properties": "6.24.1",
@@ -22,16 +23,22 @@
     "babel-plugin-transform-object-rest-spread": "6.26.0",
     "babel-preset-es2015-webpack": "6.4.3",
     "babel-preset-react": "6.24.1",
+    "del": "^3.0.0",
+    "express": "4.16.2",
+    "express-graphql": "0.6.11",
     "graphql": "0.11.7",
     "graphql-tools": "2.7.2",
     "jest": "21.2.1",
+    "mongo-graphql-starter": "0.6.2",
+    "mongodb": "2.2.31",
     "react": "16.2.0",
     "react-dom": "16.2.0",
     "uglifyjs-webpack-plugin": "1.1.6",
     "webpack": "3.10.0"
   },
   "scripts": {
-    "demo": "webpack -w"
+    "demo": "webpack -w",
+    "server": "node runServer"
   },
   "dependencies": {}
 }
