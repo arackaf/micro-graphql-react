@@ -1,0 +1,32 @@
+{
+  "name": "micro-graphql-react",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arackaf/micro-graphql-react.git"
+  },
+  "author": "Adam Rackis",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arackaf/micro-graphql-react/issues"
+  },
+  "jest": {},
+  "homepage": "https://github.com/arackaf/micro-graphql-react",
+  "devDependencies": {
+    "babel-jest": "21.2.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "6.26.0",
+    "del": "3.0.0",
+    "express": "4.16.1",
+    "express-graphql": "0.6.11",
+    "graphql": "0.11.7",
+    "graphql-tools": "2.7.2",
+    "jest": "21.2.1"
+  },
+  "scripts": {
+  },
+  "dependencies": {
+    "@std/esm": "0.19.7"
+  }
+}
