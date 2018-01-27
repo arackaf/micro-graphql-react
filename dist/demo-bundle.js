@@ -17823,7 +17823,7 @@ module.exports = camelize;
 
 "use strict";
 /* harmony default export */ __webpack_exports__["a"] = ({
-  val: 45
+  val: 47
 });
 
 /***/ })
