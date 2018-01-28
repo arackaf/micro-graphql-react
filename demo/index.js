@@ -31,6 +31,33 @@ class BasicQuery extends Component {
   }
 }
 
+@query(client, props => ({
+  query: `
+    query ALL_BOOKS ($page: Int) {
+      allBooks(PAGE: $page, PAGE_SIZE: 3) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`,
+  variables: {
+    page: props.page
+  }
+}))
+class BasicQueryWithVariables extends Component {
+  render() {
+    let { loading, loaded, data } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
+
 class TestingSandbox1 extends Component {
   state = { page: 1, shown: true };
   render() {
@@ -40,6 +67,7 @@ class TestingSandbox1 extends Component {
         <button onClick={() => this.setState({ page: this.state.page + 1 })}>Next</button>
         <button onClick={() => this.setState({ shown: !this.state.shown })}>toggle</button>
         {this.state.shown ? <BasicQuery page={this.state.page} /> : null}
+        {this.state.shown ? <BasicQueryWithVariables page={this.state.page} /> : null}
       </div>
     );
   }
