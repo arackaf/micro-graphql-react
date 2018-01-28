@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { render } from "react-dom";
-import { Client, query } from "../index";
+import { Client, query } from "../index-local";
 
 const client = new Client({
   endpoint: "/graphql",

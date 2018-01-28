@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import equal from "deep-equal";
 
-export default ((client, queryFn, options) => BaseComponent => {
+export default (client, queryFn, options) => BaseComponent => {
   //TODO: validate
   let currentQuery = null;
   let currentVariables = null;
@@ -17,23 +17,7 @@ export default ((client, queryFn, options) => BaseComponent => {
   };
 
   return class componentName extends Component {
-    constructor(...args) {
-      var _temp;
-
-      return _temp = super(...args), this.state = { loading: false, loaded: false, data: null }, this.handlerError = err => {
-        currentQueryData = null;
-        currentQueryError = err;
-        this.setCurrentState();
-      }, this.setCurrentState = () => {
-        this.setState({
-          loading: false,
-          loaded: true,
-          data: currentQueryData,
-          error: currentQueryError
-        });
-      }, _temp;
-    }
-
+    state = { loading: false, loaded: false, data: null };
     componentDidMount() {
       let queryPacket = queryFn(this.props);
       if (isDirty(queryPacket)) {
@@ -55,22 +39,38 @@ export default ((client, queryFn, options) => BaseComponent => {
         loading: true,
         loaded: false
       });
-      client.run(query, variables).then(resp => {
-        if (resp.errors) {
-          this.handlerError(resp.errors);
-        } else {
-          currentQuery = query;
-          currentQueryData = resp.data;
-          currentQueryError = null;
-          this.setCurrentState();
-        }
-      }).catch(this.handlerError);
+      client
+        .run(query, variables)
+        .then(resp => {
+          if (resp.errors) {
+            this.handlerError(resp.errors);
+          } else {
+            currentQuery = query;
+            currentQueryData = resp.data;
+            currentQueryError = null;
+            this.setCurrentState();
+          }
+        })
+        .catch(this.handlerError);
     }
+    handlerError = err => {
+      currentQueryData = null;
+      currentQueryError = err;
+      this.setCurrentState();
+    };
 
+    setCurrentState = () => {
+      this.setState({
+        loading: false,
+        loaded: true,
+        data: currentQueryData,
+        error: currentQueryError
+      });
+    };
 
     render() {
       let { loading, loaded, data, error } = this.state;
-      return React.createElement(BaseComponent, { loading, loaded, data, error });
+      return <BaseComponent {...{ loading, loaded, data, error }} />;
     }
   };
-});
+};
