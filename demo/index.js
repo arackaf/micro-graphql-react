@@ -10,7 +10,7 @@ let client = new Client({
 @query(client, props => ({
   query: `
     query ALL_BOOKS {
-      allBooks(PAGE: 1, PAGE_SIZE: 3) {
+      allBooks(PAGE: ${props.page}, PAGE_SIZE: 3) {
         Books {
           _id
           title
@@ -18,7 +18,7 @@ let client = new Client({
       }
     }`
 }))
-class TestingSandbox extends Component {
+class BasicQuery extends Component {
   render() {
     let { loading, loaded, data } = this.props;
     return (
@@ -31,4 +31,17 @@ class TestingSandbox extends Component {
   }
 }
 
-render(<TestingSandbox />, document.getElementById("home"));
+class TestingSandbox1 extends Component {
+  state = { page: 1 };
+  render() {
+    return (
+      <div>
+        <button onClick={() => this.setState({ page: this.state.page - 1 })}>Prev</button>
+        <button onClick={() => this.setState({ page: this.state.page + 1 })}>Next</button>
+        <BasicQuery page={this.state.page} />
+      </div>
+    );
+  }
+}
+
+render(<TestingSandbox1 />, document.getElementById("home1"));
