@@ -32,13 +32,14 @@ class BasicQuery extends Component {
 }
 
 class TestingSandbox1 extends Component {
-  state = { page: 1 };
+  state = { page: 1, shown: true };
   render() {
     return (
       <div>
         <button onClick={() => this.setState({ page: this.state.page - 1 })}>Prev</button>
         <button onClick={() => this.setState({ page: this.state.page + 1 })}>Next</button>
-        <BasicQuery page={this.state.page} />
+        <button onClick={() => this.setState({ shown: !this.state.shown })}>toggle</button>
+        {this.state.shown ? <BasicQuery page={this.state.page} /> : null}
       </div>
     );
   }

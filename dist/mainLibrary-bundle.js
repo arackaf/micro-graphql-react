@@ -258,31 +258,45 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 /* harmony default export */ __webpack_exports__["a"] = ((client, queryFn, options) => BaseComponent => {
   //TODO: validate
+  let currentQuery = null;
+  let currentQueryData = null;
 
   return class componentName extends __WEBPACK_IMPORTED_MODULE_0_react__["Component"] {
     constructor(...args) {
       var _temp;
 
-      return _temp = super(...args), this.state = { loading: false, loaded: false, data: null }, this.currentQuery = null, _temp;
+      return _temp = super(...args), this.state = { loading: false, loaded: false, data: null }, _temp;
     }
 
     componentDidMount() {
       let query = queryFn(this.props);
-      this.executeIfDirty(query.query);
+      if (query.query !== currentQuery) {
+        this.execute(query.query);
+      } else {
+        //TODO: remember error state
+        this.setState({
+          loading: false,
+          loaded: true,
+          data: currentQueryData
+        });
+      }
     }
     componentDidUpdate(prevProps, prevState) {
       let query = queryFn(this.props);
-      this.executeIfDirty(query.query);
+      if (query.query !== currentQuery) {
+        this.execute(query.query);
+      }
     }
-    executeIfDirty(query) {
-      if (query === this.currentQuery) return;
-
-      this.currentQuery = query;
+    execute(query) {
+      currentQuery = query;
       this.setState({
         loading: true,
         loaded: false
       });
-      client.run(this.currentQuery).then(resp => {
+      client.run(query).then(resp => {
+        currentQuery = query;
+        currentQueryData = resp.data;
+
         this.setState({
           loading: false,
           loaded: true,
