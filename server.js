@@ -6,7 +6,7 @@ import { makeExecutableSchema } from "graphql-tools";
 import express from "express";
 
 const app = express();
-const dbPromise = MongoClient.connect("mongodb://localhost:27017/mongo-graphql-starter");
+const dbPromise = MongoClient.connect("mongodb://localhost:27017/mongotest");
 const root = {
   db: dbPromise
 };

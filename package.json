@@ -40,5 +40,7 @@
     "demo": "webpack -w",
     "server": "node runServer"
   },
-  "dependencies": {}
+  "dependencies": {
+    "graphql-query-compress": "^0.9.7"
+  }
 }
