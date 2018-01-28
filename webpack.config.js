@@ -6,8 +6,7 @@ var isProduction = process.env.NODE_ENV === "production" || process.argv.some(ar
 
 module.exports = {
   entry: {
-    demo: "./demo/index.js",
-    mainLibrary: "./index.js"
+    demo: "./demo/index.js"
   },
   output: {
     filename: "[name]-bundle.js",
