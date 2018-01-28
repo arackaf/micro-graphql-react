@@ -58,6 +58,38 @@ class BasicQueryWithVariables extends Component {
   }
 }
 
+@query(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      ${props.page % 2 ? "allBooks" : "allBooksX"}(PAGE: ${props.page}, PAGE_SIZE: 3) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`
+}))
+class BasicQueryWithError extends Component {
+  render() {
+    let { loading, loaded, data, error } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+        {error ? (
+          <div>
+            {error
+              .map(e => e.message)
+              .join(",")
+              .toString()}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+}
+
 class TestingSandbox1 extends Component {
   state = { page: 1, shown: true };
   render() {
@@ -68,6 +100,7 @@ class TestingSandbox1 extends Component {
         <button onClick={() => this.setState({ shown: !this.state.shown })}>toggle</button>
         {this.state.shown ? <BasicQuery page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithVariables page={this.state.page} /> : null}
+        {this.state.shown ? <BasicQueryWithError page={this.state.page} /> : null}
       </div>
     );
   }
