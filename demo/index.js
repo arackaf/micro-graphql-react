@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { render } from "react-dom";
 import { Client, query } from "../index";
 
-let client = new Client({
+const client = new Client({
   endpoint: "/graphql",
   fetchOptions: { credentials: "include" }
 });
@@ -90,6 +90,30 @@ class BasicQueryWithError extends Component {
   }
 }
 
+class BasicQueryUnwrapped extends Component {
+  render() {
+    let { loading, loaded, data } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
+const BasicQueryWrapped = query(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      allBooks(PAGE: ${props.page}, PAGE_SIZE: 3) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`
+}))(BasicQueryUnwrapped);
+
 class TestingSandbox1 extends Component {
   state = { page: 1, shown: true };
   render() {
@@ -101,6 +125,7 @@ class TestingSandbox1 extends Component {
         {this.state.shown ? <BasicQuery page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithVariables page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithError page={this.state.page} /> : null}
+        {this.state.shown ? <BasicQueryWrapped page={this.state.page} /> : null}
       </div>
     );
   }
