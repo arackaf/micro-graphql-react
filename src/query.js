@@ -20,7 +20,7 @@ export default (client, queryFn, options) => BaseComponent => {
     }
   };
 
-  return class componentName extends Component {
+  return class extends Component {
     state = { loading: false, loaded: false, data: null };
     componentDidMount() {
       componentCount++;
