@@ -110,6 +110,20 @@ module.exports = emptyFunction;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+if (false) {
+  module.exports = require('./cjs/react.production.min.js');
+} else {
+  module.exports = __webpack_require__(8);
+}
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -165,7 +179,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 module.exports = invariant;
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -231,20 +245,6 @@ if (true) {
 }
 
 module.exports = warning;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-if (false) {
-  module.exports = require('./cjs/react.production.min.js');
-} else {
-  module.exports = __webpack_require__(8);
-}
-
 
 /***/ }),
 /* 4 */
@@ -381,8 +381,8 @@ module.exports = emptyObject;
 
 
 if (true) {
-  var invariant = __webpack_require__(1);
-  var warning = __webpack_require__(2);
+  var invariant = __webpack_require__(2);
+  var warning = __webpack_require__(3);
   var ReactPropTypesSecret = __webpack_require__(9);
   var loggedTypeFailures = {};
 }
@@ -438,38 +438,63 @@ module.exports = checkPropTypes;
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_dom___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_react_dom__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__index__ = __webpack_require__(24);
-var _class;
+var _dec, _class;
 
 
 
 
 
-const dec = Class => class extends __WEBPACK_IMPORTED_MODULE_0_react__["Component"] {
+let client = new __WEBPACK_IMPORTED_MODULE_2__index__["a" /* Client */]({
+  endpoint: "/graphql",
+  fetchOptions: { credentials: "include" }
+});
+
+let TestingSandbox = (_dec = Object(__WEBPACK_IMPORTED_MODULE_2__index__["b" /* query */])(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      allBooks(PAGE: 1, PAGE_SIZE: 3) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`
+})), _dec(_class = class TestingSandbox extends __WEBPACK_IMPORTED_MODULE_0_react__["Component"] {
   render() {
+    let { loading, loaded, data } = this.props;
     return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
       "div",
       null,
-      __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Class, { val: __WEBPACK_IMPORTED_MODULE_2__index__["a" /* default */].val })
+      loading ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        "div",
+        null,
+        "LOADING"
+      ) : null,
+      loaded ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        "div",
+        null,
+        "LOADED"
+      ) : null,
+      data ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        "ul",
+        null,
+        data.allBooks.Books.map(book => __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          "li",
+          { key: book._id },
+          book.title
+        ))
+      ) : null
     );
   }
-};
+}) || _class);
 
-let Foo = dec(_class = class Foo extends __WEBPACK_IMPORTED_MODULE_0_react__["Component"] {
-  render() {
-    return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-      "div",
-      null,
-      this.props.val
-    );
-  }
-}) || _class;
 
-Object(__WEBPACK_IMPORTED_MODULE_1_react_dom__["render"])(__WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Foo, { val: 1 }), document.getElementById("home"));
+Object(__WEBPACK_IMPORTED_MODULE_1_react_dom__["render"])(__WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(TestingSandbox, null), document.getElementById("home"));
 
 /***/ }),
 /* 8 */
@@ -495,8 +520,8 @@ if (true) {
 
 var _assign = __webpack_require__(4);
 var emptyObject = __webpack_require__(5);
-var invariant = __webpack_require__(1);
-var warning = __webpack_require__(2);
+var invariant = __webpack_require__(2);
+var warning = __webpack_require__(3);
 var emptyFunction = __webpack_require__(0);
 var checkPropTypes = __webpack_require__(6);
 
@@ -1921,9 +1946,9 @@ if (true) {
   (function() {
 'use strict';
 
-var React = __webpack_require__(3);
-var invariant = __webpack_require__(1);
-var warning = __webpack_require__(2);
+var React = __webpack_require__(1);
+var invariant = __webpack_require__(2);
+var warning = __webpack_require__(3);
 var ExecutionEnvironment = __webpack_require__(12);
 var _assign = __webpack_require__(4);
 var emptyFunction = __webpack_require__(0);
@@ -17822,9 +17847,157 @@ module.exports = camelize;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony default export */ __webpack_exports__["a"] = ({
-  val: 47
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__lib_query__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__lib_client__ = __webpack_require__(26);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_0__lib_query__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_1__lib_client__["a"]; });
+
+
+
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+
+
+/* harmony default export */ __webpack_exports__["a"] = ((client, queryFn, options) => BaseComponent => {
+  //TODO: validate
+
+  return class componentName extends __WEBPACK_IMPORTED_MODULE_0_react__["Component"] {
+    constructor(...args) {
+      var _temp;
+
+      return _temp = super(...args), this.state = { loading: false, loaded: false, data: null }, this.currentQuery = null, _temp;
+    }
+
+    componentDidMount() {
+      let query = queryFn(this.props);
+      this.executeIfDirty(query.query);
+    }
+    executeIfDirty(query) {
+      if (query === this.currentQuery) return;
+
+      this.currentQuery = query;
+      this.setState({
+        loading: true,
+        loaded: false
+      });
+      client.run(this.currentQuery).then(resp => {
+        this.setState({
+          loading: false,
+          loaded: true,
+          data: resp.data
+        });
+      }).catch(err => {
+        this.setState({
+          loading: false,
+          loaded: true,
+          data: null,
+          error: err
+        });
+      });
+    }
+
+    render() {
+      let { loading, loaded, data } = this.state;
+      return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(BaseComponent, { loading, loaded, data });
+    }
+  };
 });
+
+/***/ }),
+/* 26 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Client; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_graphql_query_compress__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_graphql_query_compress___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_graphql_query_compress__);
+
+
+let Client = class Client {
+  constructor(props) {
+    Object.assign(this, props);
+  }
+  run(query) {
+    return fetch(`${this.endpoint}?query=${encodeURIComponent(__WEBPACK_IMPORTED_MODULE_0_graphql_query_compress___default()(query))}`, this.fetchOptions || void 0).then(resp => resp.json());
+  }
+};
+
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global) {var require;var require;/*
+**  graphql-query-compress -- Compress a GraphQL Query String
+**  Copyright (c) 2017-2018 Ralf S. Engelschall <rse@engelschall.com>
+**
+**  Permission is hereby granted, free of charge, to any person obtaining
+**  a copy of this software and associated documentation files (the
+**  "Software"), to deal in the Software without restriction, including
+**  without limitation the rights to use, copy, modify, merge, publish,
+**  distribute, sublicense, and/or sell copies of the Software, and to
+**  permit persons to whom the Software is furnished to do so, subject to
+**  the following conditions:
+**
+**  The above copyright notice and this permission notice shall be included
+**  in all copies or substantial portions of the Software.
+**
+**  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+**  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+**  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+**  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+**  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+**  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+**  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+(function(f){if(true){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.GraphQLQueryCompress = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return require(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function (global){
+!function(t){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=t();else if("function"==typeof define&&define.amd)define([],t);else{var e;e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,e.Tokenizr=t()}}(function(){return function t(e,n,i){function r(s,u){if(!n[s]){if(!e[s]){var a="function"==typeof _dereq_&&_dereq_;if(!u&&a)return a(s,!0);if(o)return o(s,!0);var l=new Error("Cannot find module '"+s+"'");throw l.code="MODULE_NOT_FOUND",l}var h=n[s]={exports:{}};e[s][0].call(h.exports,function(t){var n=e[s][1][t];return r(n||t)},h,h.exports,t,e,n,i)}return n[s].exports}for(var o="function"==typeof _dereq_&&_dereq_,s=0;s<i.length;s++)r(i[s]);return r}({1:[function(t,e,n){"use strict";Object.defineProperty(n,"__esModule",{value:!0});var i=function(t,e){var n=t.length,i=e-20;i<0&&(i=0);var r=e+20;r>n&&(r=n);var o=function(t){return t.charCodeAt(0).toString(16).toUpperCase()},s=function(t,e,n){return t.substr(e,n).replace(/\\/g,"\\\\").replace(/\x08/g,"\\b").replace(/\t/g,"\\t").replace(/\n/g,"\\n").replace(/\f/g,"\\f").replace(/\r/g,"\\r").replace(/[\x00-\x07\x0B\x0E\x0F]/g,function(t){return"\\x0"+o(t)}).replace(/[\x10-\x1F\x80-\xFF]/g,function(t){return"\\x"+o(t)}).replace(/[\u0100-\u0FFF]/g,function(t){return"\\u0"+o(t)}).replace(/[\u1000-\uFFFF]/g,function(t){return"\\u"+o(t)})};return{prologTrunc:i>0,prologText:s(t,i,e-i),tokenText:s(t,e,1),epilogText:s(t,e+1,r-(e+1)),epilogTrunc:r<n}};n.default=i},{}],2:[function(t,e,n){"use strict";function i(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(n,"__esModule",{value:!0});var r=function(){function t(t,e){for(var n=0;n<e.length;n++){var i=e[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}}(),o=function(){function t(e,n,r){var o=arguments.length>3&&void 0!==arguments[3]?arguments[3]:0,s=arguments.length>4&&void 0!==arguments[4]?arguments[4]:0,u=arguments.length>5&&void 0!==arguments[5]?arguments[5]:0;i(this,t),this.type=e,this.value=n,this.text=r,this.pos=o,this.line=s,this.column=u}return r(t,[{key:"toString",value:function(){return"<type: "+this.type+", value: "+JSON.stringify(this.value)+", text: "+JSON.stringify(this.text)+", pos: "+this.pos+", line: "+this.line+", column: "+this.column+">"}},{key:"isA",value:function(t,e){return t===this.type&&(2!==arguments.length||e===this.value)}}]),t}();n.default=o},{}],3:[function(t,e,n){"use strict";function i(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function r(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}function o(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}Object.defineProperty(n,"__esModule",{value:!0});var s=function(){function t(t,e){for(var n=0;n<e.length;n++){var i=e[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}}(),u=t("./tokenizr-1-excerpt"),a=function(t){return t&&t.__esModule?t:{default:t}}(u),l=function(t){function e(t,n,o,s,u){i(this,e);var a=r(this,(e.__proto__||Object.getPrototypeOf(e)).call(this,t));return a.name="ParsingError",a.message=t,a.pos=n,a.line=o,a.column=s,a.input=u,a}return o(e,t),s(e,[{key:"toString",value:function(){for(var t=(0,a.default)(this.input,this.pos),e="line "+this.line+" (column "+this.column+"): ",n="",i=0;i<e.length+t.prologText.length;i++)n+=" ";return"Parsing Error: "+this.message+"\n"+e+t.prologText+t.tokenText+t.epilogText+"\n"+n+"^"}}]),e}(Error);n.default=l},{"./tokenizr-1-excerpt":1}],4:[function(t,e,n){"use strict";function i(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(n,"__esModule",{value:!0});var r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},o=function(){function t(t,e){for(var n=0;n<e.length;n++){var i=e[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}}(),s=t("./tokenizr-2-token"),u=function(t){return t&&t.__esModule?t:{default:t}}(s),a=function(){function t(e){i(this,t),this._tokenizr=e,this._data={},this._repeat=!1,this._reject=!1,this._ignore=!1,this._match=null}return o(t,[{key:"data",value:function(t,e){var n=this._data[t];return 2===arguments.length&&(this._data[t]=e),n}},{key:"info",value:function(){return{line:this._tokenizr._line,column:this._tokenizr._column,pos:this._tokenizr._pos,len:this._match[0].length}}},{key:"push",value:function(){return this._tokenizr.push.apply(this._tokenizr,arguments),this}},{key:"pop",value:function(){return this._tokenizr.pop.apply(this._tokenizr,arguments)}},{key:"state",value:function(){return arguments.length>0?(this._tokenizr.state.apply(this._tokenizr,arguments),this):this._tokenizr.state.apply(this._tokenizr,arguments)}},{key:"tag",value:function(){return this._tokenizr.tag.apply(this._tokenizr,arguments),this}},{key:"tagged",value:function(){return this._tokenizr.tagged.apply(this._tokenizr,arguments)}},{key:"untag",value:function(){return this._tokenizr.untag.apply(this._tokenizr,arguments),this}},{key:"repeat",value:function(){return this._tokenizr._log("    REPEAT"),this._repeat=!0,this}},{key:"reject",value:function(){return this._tokenizr._log("    REJECT"),this._reject=!0,this}},{key:"ignore",value:function(){return this._tokenizr._log("    IGNORE"),this._ignore=!0,this}},{key:"accept",value:function(t,e){return arguments.length<2&&(e=this._match[0]),this._tokenizr._log("    ACCEPT: type: "+t+", value: "+JSON.stringify(e)+" ("+(void 0===e?"undefined":r(e))+'), text: "'+this._match[0]+'"'),this._tokenizr._pending.push(new u.default(t,e,this._match[0],this._tokenizr._pos,this._tokenizr._line,this._tokenizr._column)),this}}]),t}();n.default=a},{"./tokenizr-2-token":2}],5:[function(t,e,n){"use strict";function i(t){return t&&t.__esModule?t:{default:t}}function r(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(n,"__esModule",{value:!0});var o="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},s=function(){function t(t,e){for(var n=0;n<e.length;n++){var i=e[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}}(),u=t("./tokenizr-1-excerpt"),a=i(u),l=t("./tokenizr-2-token"),h=i(l),f=t("./tokenizr-3-error"),c=i(f),_=t("./tokenizr-4-context"),p=i(_),g=function(){function t(){r(this,t),this._before=null,this._after=null,this._finish=null,this._rules=[],this._debug=!1,this.reset()}return s(t,[{key:"reset",value:function(){return this._input="",this._len=0,this._eof=!1,this._pos=0,this._line=1,this._column=1,this._state=["default"],this._tag={},this._transaction=[],this._pending=[],this._ctx=new p.default(this),this}},{key:"debug",value:function(t){return this._debug=t,this}},{key:"_log",value:function(t){this._debug&&console.log("tokenizr: "+t)}},{key:"input",value:function(t){if("string"!=typeof t)throw new Error('parameter "input" not a String');return this.reset(),this._input=t,this._len=t.length,this}},{key:"push",value:function(t){if(1!==arguments.length)throw new Error("invalid number of arguments");if("string"!=typeof t)throw new Error('parameter "state" not a String');return this._log("    STATE (PUSH): old: <"+this._state[this._state.length-1]+">, new: <"+t+">"),this._state.push(t),this}},{key:"pop",value:function(){if(0!==arguments.length)throw new Error("invalid number of arguments");if(this._state.length<2)throw new Error("no more custom states to pop");return this._log("    STATE (POP): old: <"+this._state[this._state.length-1]+">, new: <"+this._state[this._state.length-2]+">"),this._state.pop()}},{key:"state",value:function(t){if(1===arguments.length){if("string"!=typeof t)throw new Error('parameter "state" not a String');return this._log("    STATE (SET): old: <"+this._state[this._state.length-1]+">, new: <"+t+">"),this._state[this._state.length-1]=t,this}if(0===arguments.length)return this._state[this._state.length-1];throw new Error("invalid number of arguments")}},{key:"tag",value:function(t){if(1!==arguments.length)throw new Error("invalid number of arguments");if("string"!=typeof t)throw new Error('parameter "tag" not a String');return this._log("    TAG (ADD): "+t),this._tag[t]=!0,this}},{key:"tagged",value:function(t){if(1!==arguments.length)throw new Error("invalid number of arguments");if("string"!=typeof t)throw new Error('parameter "tag" not a String');return!0===this._tag[t]}},{key:"untag",value:function(t){if(1!==arguments.length)throw new Error("invalid number of arguments");if("string"!=typeof t)throw new Error('parameter "tag" not a String');return this._log("    TAG (DEL): "+t),delete this._tag[t],this}},{key:"before",value:function(t){return this._before=t,this}},{key:"after",value:function(t){return this._after=t,this}},{key:"finish",value:function(t){return this._finish=t,this}},{key:"rule",value:function(t,e,n){var i=arguments.length>3&&void 0!==arguments[3]?arguments[3]:"unknown";if(2===arguments.length&&"function"==typeof e){var r=[t,e];e=r[0],n=r[1],t="*"}else if(3===arguments.length&&"function"==typeof e){var s=[t,e,n];e=s[0],n=s[1],i=s[2],t="*"}if("string"!=typeof t)throw new Error('parameter "state" not a String');if(!("object"===(void 0===e?"undefined":o(e))&&e instanceof RegExp))throw new Error('parameter "pattern" not a RegExp');if("function"!=typeof n)throw new Error('parameter "action" not a Function');if("string"!=typeof i)throw new Error('parameter "name" not a String');t=t.split(/\s*,\s*/g).map(function(t){var e=t.split(/\s+/g),n=e.filter(function(t){return null===t.match(/^#/)}),i=e.filter(function(t){return null!==t.match(/^#/)}).map(function(t){return t.replace(/^#/,"")});if(1!==n.length)throw new Error("exactly one state required");return{state:n[0],tags:i}});var u="g";return e.multiline&&(u+="m"),e.ignoreCase&&(u+="i"),e=new RegExp(e.source,u),this._log("rule: configure rule (state: "+t+", pattern: "+e.source+")"),this._rules.push({state:t,pattern:e,action:n,name:i}),this}},{key:"_progress",value:function(t,e){for(var n=this._line,i=this._column,r=this._input,o=t;o<e;o++){var s=r.charAt(o);"\r"===s?this._column=1:"\n"===s?(this._line++,this._column=1):"\t"===s?this._column+=8-this._column%8:this._column++}this._log("    PROGRESS: characters: "+(e-t)+", from: <line "+n+", column "+i+">, to: <line "+this._line+", column "+this._column+">")}},{key:"_tokenize",value:function(){var t=this,e=function(){t._eof||(null!==t._finish&&t._finish.call(t._ctx,t._ctx),t._eof=!0,t._pending.push(new h.default("EOF","","",t._pos,t._line,t._column)))};if(this._pos>=this._len)return void e();for(var n=!0;n;){if(n=!1,this._debug){var i=(0,a.default)(this._input,this._pos),r=Object.keys(this._tag).map(function(t){return"#"+t}).join(" ");this._log("INPUT: state: <"+this._state[this._state.length-1]+">, tags: <"+r+">, text: "+(i.prologTrunc?"...":'"')+i.prologText+"<"+i.tokenText+">"+i.epilogText+(i.epilogTrunc?"...":'"')+", at: <line "+this._line+", column "+this._column+">")}for(var o=0;o<this._rules.length;o++){if(this._debug){var s=this._rules[o].state.map(function(t){var e=t.state;return t.tags.length>0&&(e+=" "+t.tags.map(function(t){return"#"+t}).join(" ")),e}).join(", ");this._log("  RULE: state(s): <"+s+">, pattern: "+this._rules[o].pattern.source)}var u=!1,l=this._rules[o].state.map(function(t){return t.state}),f=l.indexOf("*");if(f<0&&(f=l.indexOf(this._state[this._state.length-1])),f>=0){u=!0;var c=this._rules[o].state[f].tags;c=c.filter(function(e){return!t._tag[e]}),c.length>0&&(u=!1)}if(u){this._rules[o].pattern.lastIndex=this._pos;var _=this._rules[o].pattern.exec(this._input);if(this._rules[o].pattern.lastIndex=this._pos,null!==(_=this._rules[o].pattern.exec(this._input))&&_.index===this._pos){if(this._debug&&this._log("    MATCHED: "+JSON.stringify(_)),this._ctx._match=_,this._ctx._repeat=!1,this._ctx._reject=!1,this._ctx._ignore=!1,null!==this._before&&this._before.call(this._ctx,this._ctx,_,this._rules[o]),this._rules[o].action.call(this._ctx,this._ctx,_),null!==this._after&&this._after.call(this._ctx,this._ctx,_,this._rules[o]),this._ctx._reject)continue;if(this._ctx._repeat){n=!0;break}if(this._ctx._ignore){if(this._progress(this._pos,this._rules[o].pattern.lastIndex),this._pos=this._rules[o].pattern.lastIndex,this._pos>=this._len)return void e();n=!0;break}if(this._pending.length>0)return this._progress(this._pos,this._rules[o].pattern.lastIndex),this._pos=this._rules[o].pattern.lastIndex,void(this._pos>=this._len&&e());throw new Error('action of pattern "'+this._rules[o].pattern.source+'" neither rejected nor accepted any token(s)')}}}}throw this.error("token not recognized")}},{key:"token",value:function(){if(0===this._pending.length&&this._tokenize(),this._pending.length>0){var t=this._pending.shift();return this._transaction.length>0&&this._transaction[0].push(t),this._log("TOKEN: "+t.toString()),t}return null}},{key:"tokens",value:function(){for(var t=[],e=void 0;null!==(e=this.token());)t.push(e);return t}},{key:"peek",value:function(t){void 0===t&&(t=0);for(var e=0;e<this._pending.length+t;e++)this._tokenize();if(t>=this._pending.length)throw new Error("not enough tokens available for peek operation");return this._log("PEEK: "+this._pending[t].toString()),this._pending[t]}},{key:"skip",value:function(t){void 0===t&&(t=1);for(var e=0;e<this._pending.length+t;e++)this._tokenize();if(t>this._pending.length)throw new Error("not enough tokens available for skip operation");for(;t-- >0;)this.token();return this}},{key:"consume",value:function(t,e){for(var n=0;n<this._pending.length+1;n++)this._tokenize();if(0===this._pending.length)throw new Error("not enough tokens available for consume operation");var i=this.token();if(this._log("CONSUME: "+i.toString()),2===arguments.length){if(!i.isA(t,e))throw new c.default("expected: <type: "+t+", value: "+JSON.stringify(e)+" ("+(void 0===e?"undefined":o(e))+")>, found: <type: "+i.type+", value: "+JSON.stringify(i.value)+" ("+o(i.value)+")>",i.pos,i.line,i.column,this._input)}else if(!i.isA(t))throw new c.default("expected: <type: "+t+", value: * (any)>, found: <type: "+i.type+", value: "+JSON.stringify(i.value)+" ("+o(i.value)+")>",i.pos,i.line,i.column,this._input);return i}},{key:"begin",value:function(){return this._log("BEGIN: level "+this._transaction.length),this._transaction.unshift([]),this}},{key:"depth",value:function(){if(0===this._transaction.length)throw new Error("cannot determine depth -- no active transaction");return this._transaction[0].length}},{key:"commit",value:function(){if(0===this._transaction.length)throw new Error("cannot commit transaction -- no active transaction");return this._transaction.shift(),this._log("COMMIT: level "+this._transaction.length),this}},{key:"rollback",value:function(){if(0===this._transaction.length)throw new Error("cannot rollback transaction -- no active transaction");return this._pending=this._transaction[0].concat(this._pending),this._transaction.shift(),this._log("ROLLBACK: level "+this._transaction.length),this}},{key:"alternatives",value:function(){for(var t=null,e=[],n=arguments.length,i=Array(n),r=0;r<n;r++)i[r]=arguments[r];for(var o=0;o<i.length;o++)try{this.begin(),t=i[o].call(this),this.commit();break}catch(t){this._log("EXCEPTION: "+t.toString()),e.push({ex:t,depth:this.depth()}),this.rollback();continue}if(null===t&&e.length>0)throw e=e.sort(function(t,e){return t.depth-e.depth}),e[0].ex;return t}},{key:"error",value:function(t){return new c.default(t,this._pos,this._line,this._column,this._input)}}]),t}();g.Token=h.default,g.ParsingError=c.default,g.ActionContext=p.default,n.default=g},{"./tokenizr-1-excerpt":1,"./tokenizr-2-token":2,"./tokenizr-3-error":3,"./tokenizr-4-context":4}],6:[function(t,e,n){"use strict";var i=t("./tokenizr-5-tokenizer"),r=function(t){return t&&t.__esModule?t:{default:t}}(i);e.exports=r.default},{"./tokenizr-5-tokenizer":5}]},{},[6])(6)});
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{}],2:[function(_dereq_,module,exports){
+"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{default:e}}function compactGraphQLQuery(e){var t=new _tokenizr2.default;t.rule(/#[^\r\n]*(?=\r?\n)/,function(e,t){e.accept("comment")}),t.rule(/"(?:\\"|[^\r\n]+)*"/,function(e,t){e.accept("string")}),t.rule(/$[a-zA-Z_][a-zA-Z0-9_]*/,function(e,t){e.accept("var")}),t.rule(/[a-zA-Z_][a-zA-Z0-9_]*/,function(e,t){e.accept("id")}),t.rule(/[+-]?[0-9]*\.?[0-9]+(?:[eE][+-]?[0-9]+)?/,function(e,t){e.accept("number")}),t.rule(/[ \t\r\n]+/,function(e,t){e.accept("ws"," ")}),t.rule(/[{}]/,function(e,t){e.accept("brace")}),t.rule(/[[\]]/,function(e,t){e.accept("bracket")}),t.rule(/[()]/,function(e,t){e.accept("parenthesis")}),t.rule(/,/,function(e,t){e.accept("comma")}),t.rule(/!/,function(e,t){e.accept("not")}),t.rule(/\.\.\./,function(e,t){e.accept("ellipsis")}),t.rule(/@/,function(e,t){e.accept("at")}),t.rule(/:/,function(e,t){e.accept("colon")}),t.rule(/./,function(e,t){e.accept("any")}),t.input(e);for(var c=t.tokens(),n="",r=/^(?:brace|bracket|parenthesis|comma|colon)$/,u=0;u<c.length;u++)("comment"===c[u].type||"ws"===c[u].type&&(u<c.length-1&&c[u+1].type.match(r)||u>0&&c[u-1].type.match(r)))&&(c.splice(u,1),u--);return c.forEach(function(e){n+=e.value}),n}var _tokenizr=_dereq_("tokenizr"),_tokenizr2=_interopRequireDefault(_tokenizr);module.exports=compactGraphQLQuery;
+},{"tokenizr":1}]},{},[2])(2)
+});
+
+
+//# sourceMappingURL=graphql-query-compress.browser.map
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(28)))
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
 
 /***/ })
 /******/ ]);

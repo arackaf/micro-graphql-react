@@ -1,23 +1,34 @@
 import React, { Component } from "react";
 import { render } from "react-dom";
-import o from "../index";
+import { Client, query } from "../index";
 
-const dec = Class =>
-  class extends Component {
-    render() {
-      return (
-        <div>
-          <Class val={o.val} />
-        </div>
-      );
-    }
-  };
+let client = new Client({
+  endpoint: "/graphql",
+  fetchOptions: { credentials: "include" }
+});
 
-@dec
-class Foo extends Component {
+@query(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      allBooks(PAGE: 1, PAGE_SIZE: 3) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`
+}))
+class TestingSandbox extends Component {
   render() {
-    return <div>{this.props.val}</div>;
+    let { loading, loaded, data } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
   }
 }
 
-render(<Foo val={1} />, document.getElementById("home"));
+render(<TestingSandbox />, document.getElementById("home"));
