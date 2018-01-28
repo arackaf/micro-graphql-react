@@ -114,18 +114,51 @@ const BasicQueryWrapped = query(client, props => ({
     }`
 }))(BasicQueryUnwrapped);
 
+@query(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      allBooks(PAGE: ${props.page}, PAGE_SIZE: 3) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`
+}))
+class BasicQueryConflict extends Component {
+  render() {
+    let { loading, loaded, data } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
+
 class TestingSandbox1 extends Component {
-  state = { page: 1, shown: true };
+  state = { page: 1, shown: true, pageConflict1: 1, pageConflict2: 1 };
   render() {
     return (
       <div>
         <button onClick={() => this.setState({ page: this.state.page - 1 })}>Prev</button>
         <button onClick={() => this.setState({ page: this.state.page + 1 })}>Next</button>
         <button onClick={() => this.setState({ shown: !this.state.shown })}>toggle</button>
+        <button onClick={() => this.setState({ pageConflict1: this.state.pageConflict1 - 1 })}>Prev Conf 1</button>
+        <button onClick={() => this.setState({ pageConflict1: this.state.pageConflict1 + 1 })}>Next Conf 1</button>
+        <button onClick={() => this.setState({ pageConflict2: this.state.pageConflict2 - 1 })}>Prev Conf 2</button>
+        <button onClick={() => this.setState({ pageConflict2: this.state.pageConflict2 + 1 })}>Next Conf 2</button>
+
         {this.state.shown ? <BasicQuery page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithVariables page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithError page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWrapped page={this.state.page} /> : null}
+        <hr />
+
+        {this.state.shown ? <BasicQueryConflict page={this.state.pageConflict1} /> : null}
+        {this.state.shown ? <BasicQueryConflict page={this.state.pageConflict2} /> : null}
       </div>
     );
   }
