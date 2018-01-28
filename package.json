@@ -1,6 +1,6 @@
 {
   "name": "micro-graphql-react",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -43,7 +43,8 @@
   },
   "scripts": {
     "demo": "webpack -w",
-    "server": "node runServer"
+    "server": "node runServer",
+    "deploy": "node build && npm publish"
   },
   "dependencies": {
     "deep-equal": "1.0.1",
