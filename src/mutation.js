@@ -23,7 +23,7 @@ export default (client, mutation) => BaseComponent => {
       let { running, finished } = this.state;
       let packet = { running, finished, runMutation: this.runMutation };
 
-      return <BaseComponent {...packet} />;
+      return <BaseComponent {...packet} {...this.props} />;
     }
   };
 };
