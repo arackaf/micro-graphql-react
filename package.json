@@ -1,6 +1,6 @@
 {
   "name": "micro-graphql-react",
-  "version": "0.0.6",
+  "version": "0.0.6-docupdate1",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -37,7 +37,7 @@
     "mongodb": "2.2.31",
     "react": "16.2.0",
     "react-dom": "16.2.0",
-    "remove": "^0.1.5",
+    "remove": "0.1.5",
     "uglifyjs-webpack-plugin": "1.1.6",
     "webpack": "3.10.0"
   },
