@@ -1,11 +1,37 @@
 import React, { Component } from "react";
 import { render } from "react-dom";
-import { Client, query } from "../index-local";
+import { Client, query, mutation } from "../index-local";
 
 const client = new Client({
   endpoint: "/graphql",
   fetchOptions: { credentials: "include" }
 });
+
+@mutation(
+  client,
+  `mutation modifyBook($title: String) {
+    updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
+      Book {
+        _id
+        title
+      }
+    }
+  }`
+)
+class BasicMutation extends Component {
+  render() {
+    let { running, finished, runMutation } = this.props;
+    return (
+      <div>
+        {running ? <div>RUNNING</div> : null}
+        {finished ? <div>SAVED</div> : null}
+
+        <input ref={el => (this.el = el)} placeholder="New title here!" />
+        <button onClick={() => runMutation({ title: this.el.value })}>Save</button>
+      </div>
+    );
+  }
+}
 
 @query(client, props => ({
   query: `
@@ -152,6 +178,9 @@ class TestingSandbox1 extends Component {
         <button onClick={() => this.setState({ pageConflict2: this.state.pageConflict2 - 1 })}>Prev Conf 2</button>
         <button onClick={() => this.setState({ pageConflict2: this.state.pageConflict2 + 1 })}>Next Conf 2</button>
 
+        <br />
+        <br />
+        <BasicMutation />
         {this.state.shown ? <BasicQuery page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithVariables page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithError page={this.state.page} /> : null}

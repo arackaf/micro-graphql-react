@@ -71,7 +71,7 @@ export default (client, queryFn, options) => BaseComponent => {
           loaded: false
         });
       }
-      this.currentExecution = client.run(query, variables);
+      this.currentExecution = client.runQuery(query, variables);
       this.handleExecution(this.currentExecution);
     }
     handleExecution = promise => {
