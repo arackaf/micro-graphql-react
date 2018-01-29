@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
 import { Client, query, mutation } from "../index-local";
 
@@ -6,6 +6,45 @@ const client = new Client({
   endpoint: "/graphql",
   fetchOptions: { credentials: "include" }
 });
+
+class ManualMutation extends Component {
+  loadManual = () => {
+    client.runQuery(
+      `query ALL_BOOKS ($page: Int) {
+        allBooks(PAGE: $page, PAGE_SIZE: 3) {
+          Books { 
+            _id 
+            title 
+          }
+        }
+      }`,
+      { title: 1 }
+    );
+  };
+  save = () => {
+    client.runMutation(
+      `mutation modifyBook($title: String) {
+        updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
+          Book {
+            _id
+            title
+          }
+        }
+      }`,
+      { title: this.el.value }
+    );
+  };
+  render() {
+    let { running, finished, runMutation } = this.props;
+    return (
+      <div>
+        <button onClick={this.loadManual}>LOAD</button>
+        <input ref={el => (this.el = el)} placeholder="New manual title here!" />
+        <button onClick={this.save}>Save</button>
+      </div>
+    );
+  }
+}
 
 @mutation(
   client,
@@ -28,6 +67,61 @@ class BasicMutation extends Component {
 
         <input ref={el => (this.el = el)} placeholder="New title here!" />
         <button onClick={() => runMutation({ title: this.el.value })}>Save</button>
+      </div>
+    );
+  }
+}
+
+@query(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      allBooks(PAGE: 1, PAGE_SIZE: 3) {
+        Books { 
+          _id 
+          title 
+        }
+      }
+    }`
+}))
+@mutation(
+  client,
+  `mutation modifyBook($_id: String, $title: String) {
+    updateBook(_id: $_id, Updates: { title: $title }) {
+      success
+    }
+  }`
+)
+class MutationAndQuery extends Component {
+  state = { editingId: "", editingOriginaltitle: "" };
+  edit = book => {
+    this.setState({ editingId: book._id, editingOriginaltitle: book.title });
+  };
+  render() {
+    let { loading, loaded, data, running, finished, runMutation } = this.props;
+    let { editingId, editingOriginaltitle } = this.state;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(book => (
+              <li key={book._id}>
+                {book.title}
+                <button onClick={() => this.edit(book)}> edit</button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {editingId ? (
+          <Fragment>
+            {running ? <div>RUNNING</div> : null}
+            {finished ? <div>SAVED</div> : null}
+            <input defaultValue={editingOriginaltitle} ref={el => (this.el = el)} placeholder="New title here!" />
+            <button onClick={() => runMutation({ _id: editingId, title: this.el.value })}>Save</button>
+          </Fragment>
+        ) : null}
       </div>
     );
   }
@@ -180,7 +274,16 @@ class TestingSandbox1 extends Component {
 
         <br />
         <br />
+        <ManualMutation />
+        <br />
+        <br />
         <BasicMutation />
+
+        <br />
+        <br />
+        <MutationAndQuery />
+        <br />
+        <br />
         {this.state.shown ? <BasicQuery page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithVariables page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWithError page={this.state.page} /> : null}

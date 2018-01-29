@@ -113,7 +113,7 @@ export default (client, queryFn, options) => BaseComponent => {
       let { loading, loaded, data, error } = this.state;
       let packet = { loading, loaded, data, error, reload: this.executeNow };
 
-      return <BaseComponent {...packet} />;
+      return <BaseComponent {...packet} {...this.props} />;
     }
   };
 };

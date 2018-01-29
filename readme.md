@@ -6,7 +6,9 @@ Wrapped components will _not_ maintain a client-side cache of your query history
 
 Queries are fetched via HTTP GET, so while no client-side cache of prior queries is maintained, you can easily set up a Service Worker to cache your queries using something like Google's Workbox, or sw-toolbox.
 
-## Usage
+# Usage
+
+## Queries
 
 ```javascript
 import { Client, query } from "micro-graphql-react";
@@ -62,7 +64,147 @@ The `query` decorator is passed a `client` instance, and a function mapping the 
 `error` if the last fetch did not finish successfully, this will contain the errors that were returned
 `reload` a function you can call to manually re-run the current query
 
-### Transpiling decoratrs
+## Mutations
+
+```javascript
+@mutation(
+  client,
+  `mutation modifyBook($title: String) {
+    updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
+      Book {
+        _id
+        title
+      }
+    }
+  }`
+)
+class BasicMutation extends Component {
+  render() {
+    let { running, finished, runMutation } = this.props;
+    return (
+      <div>
+        {running ? <div>RUNNING</div> : null}
+        {finished ? <div>SAVED</div> : null}
+
+        <input ref={el => (this.el = el)} placeholder="New title here!" />
+        <button onClick={() => runMutation({ title: this.el.value })}>Save</button>
+      </div>
+    );
+  }
+}
+```
+
+Same idea, pass a client instance, and then just a string for your mutation, with whatever variables you need. You'll get a `runMutation` function that you can call, and pass in your variables.
+
+### props passed to your component
+
+`running` mutation is executing
+`finished` mutation has finished executing
+`runMutation` a function you can call when you want to run your mutation. Pass it an object with whatever variables you want passed down
+
+## Can I put a Query and Mutation on the same component?
+
+Of course.
+
+```javascript
+@query(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      allBooks(PAGE: 1, PAGE_SIZE: 3) {
+        Books { 
+          _id 
+          title 
+        }
+      }
+    }`
+}))
+@mutation(
+  client,
+  `mutation modifyBook($_id: String, $title: String) {
+    updateBook(_id: $_id, Updates: { title: $title }) {
+      success
+    }
+  }`
+)
+class MutationAndQuery extends Component {
+  state = { editingId: "", editingOriginaltitle: "" };
+  edit = book => {
+    this.setState({ editingId: book._id, editingOriginaltitle: book.title });
+  };
+  render() {
+    let { loading, loaded, data, running, finished, runMutation } = this.props;
+    let { editingId, editingOriginaltitle } = this.state;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(book => (
+              <li key={book._id}>
+                {book.title}
+                <button onClick={() => this.edit(book)}> edit</button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {editingId ? (
+          <Fragment>
+            {running ? <div>RUNNING</div> : null}
+            {finished ? <div>SAVED</div> : null}
+            <input defaultValue={editingOriginaltitle} ref={el => (this.el = el)} placeholder="New title here!" />
+            <button onClick={() => runMutation({ _id: editingId, title: this.el.value })}>Save</button>
+          </Fragment>
+        ) : null}
+      </div>
+    );
+  }
+}
+```
+
+## Manually running queries or mutations
+
+It's entirely possible that some pieces of data may need to be shared in multiple components, or stored in your state manager for any number of reasons. This is easily accomodated. The component decorators run their queries and mutations through the client object you're passing in. You can call those methods yourself, in your state manager as needed.
+
+### Client api
+
+`runQuery(query: String, variables?: Object)`
+`runMutation(mutation: String, variables?: Object)`
+
+For example, to imperatively run the query from above in application code, you can do
+
+```javascript
+client.runQuery(
+  `query ALL_BOOKS ($page: Int) {
+    allBooks(PAGE: $page, PAGE_SIZE: 3) {
+      Books { 
+        _id 
+        title 
+      }
+    }
+  }`,
+  { title: 1 }
+);
+```
+
+and to run the mutation from above, you can do
+
+```javascript
+client.runMutation(
+  `mutation modifyBook($title: String) {
+    updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
+      Book {
+        _id
+        title
+      }
+    }
+  }`,
+  { title: "New title" }
+);
+```
+
+## Transpiling decoratrs
 
 Be sure to use the `babel-plugin-transform-decorators-legacy` Babel preset. The code is not _yet_ updated to work with the new decorators proposal.
 
