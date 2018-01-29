@@ -102,12 +102,18 @@ export default (client, queryFn, options) => BaseComponent => {
         error: this.currentQueryError
       });
     };
+    executeNow = () => {
+      let queryPacket = queryFn(this.props);
+      this.execute(queryPacket);
+    };
     componentWillUnmount() {
       componentCount--;
     }
     render() {
       let { loading, loaded, data, error } = this.state;
-      return <BaseComponent {...{ loading, loaded, data, error }} />;
+      let packet = { loading, loaded, data, error, reload: this.executeNow };
+
+      return <BaseComponent {...packet} />;
     }
   };
 };
