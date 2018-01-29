@@ -169,9 +169,8 @@ It's entirely possible that some pieces of data may need to be shared in multipl
 
 ### Client api
 
-`runQuery(query: String, variables?: Object)`
-
-`runMutation(mutation: String, variables?: Object)`
+* `runQuery(query: String, variables?: Object)`
+* `runMutation(mutation: String, variables?: Object)`
 
 For example, to imperatively run the query from above in application code, you can do
 
