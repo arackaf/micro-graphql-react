@@ -2,9 +2,9 @@
 
 A light (about 6K min+gzip) and simple solution for painlessly connecting your React components into a GraphQL endpoint.
 
-Wrapped components will _not_ maintain a client-side cache of your query history, but _will_ remember the last run query's results, so they can be restored if your component unmounts and remounts, without needing to run a new network request.
+Wrapped components will _not_ maintain a client-side cache of your query history, but _will_ remember the last run query's results, so they can be restored if your component unmounts and remounts, without needing to run a new network request. This assumes you only render the component in one place. If you render the multiple instances of your component, then each subseuqent instance will keep track of its own current query; this means they will always fire a network request on mount, even if their query values happen to match the original instance's current query values. The end result will be correct, though not ideal. Some future optimization may be possible here, but if more intelligent and robust caching is a requirement for you, then by all means use Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). Then again, read on to hear about a potentially simpler, more powerful form of querying that's not usually available with GraphQL libraries.
 
-Queries are fetched via HTTP GET, so while no client-side cache of prior queries is maintained, you can easily set up a Service Worker to cache your queries using something like Google's Workbox or sw-toolbox.
+Queries are fetched via HTTP GET, so while no client-side cache of prior queries is maintained, you can easily set up a Service Worker to cache your queries using something like Google's Workbox, or sw-toolbox.
 
 ## Usage
 
