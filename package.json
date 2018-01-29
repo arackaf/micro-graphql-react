@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "deep-equal": "1.0.1",
-    "graphql-query-compress": "0.9.7"
+    "graphql-query-compress": "0.9.7",
+    "graphql-request": "^1.4.1"
   }
 }
