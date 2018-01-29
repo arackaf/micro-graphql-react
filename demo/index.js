@@ -47,9 +47,10 @@ class BasicQuery extends Component {
 }))
 class BasicQueryWithVariables extends Component {
   render() {
-    let { loading, loaded, data } = this.props;
+    let { loading, loaded, data, reload } = this.props;
     return (
       <div>
+        <button onClick={reload}>Reload</button>
         {loading ? <div>LOADING</div> : null}
         {loaded ? <div>LOADED</div> : null}
         {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}

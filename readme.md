@@ -54,6 +54,14 @@ class BasicQueryWithVariables extends Component {
 
 The `query` decorator is passed a `client` instance, and a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-run **if** a new `query` value, or a variables object with different values are returned.
 
+### props passed to your component
+
+`loading` fetch is executing for your query
+`loading` fetch has finished executing for your query
+`data` if the last fetch finished successfully, this will contain the data returned
+`error` if the last fetch did not finish successfully, this will contain the errors that were returned
+`reload` a function you can call to manually re-run the current query
+
 ### Transpiling decoratrs
 
 Be sure to use the `babel-plugin-transform-decorators-legacy` Babel preset. The code is not _yet_ updated to work with the new decorators proposal.
