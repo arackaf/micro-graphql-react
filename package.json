@@ -1,6 +1,6 @@
 {
   "name": "micro-graphql-react",
-  "version": "0.0.7",
+  "version": "0.0.8-beta1",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -48,7 +48,6 @@
     "umd-build": "webpack --config webpack-umd.config.js"
   },
   "dependencies": {
-    "deep-equal": "1.0.1",
     "graphql-query-compress": "0.9.7",
     "graphql-request": "^1.4.1"
   }
