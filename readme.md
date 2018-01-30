@@ -1,8 +1,8 @@
 # micro-graphql-react
 
-A light (about 10K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint. Note that this project includes `graphql-request`, so if you're already using that, the net cost is only 6.5K min+gzip.
+A light (about 10K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint. Note that this project includes `graphql-request`, so if you're already using that, the net cost is only 6.5K
 
-Wrapped components will maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the component, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This also means that two different components querying the same type, and returning the same fields will not be able to share caches. If that's a requirement, then check out Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
+Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the component, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This also means that two different components querying the same type, and returning the same fields will **not** be able to share caches. If that's a requirement, then check out Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
 
 Queries are fetched via HTTP GET, so while no client-side cache of prior queries is maintained, you can set up a Service Worker to cache them; Google's Workbox, or sw-toolbox make this easy.
 
@@ -16,7 +16,7 @@ import { Client, query, mutation } from "micro-graphql-react";
 const client = new Client({
   endpoint: "/graphql",
   fetchOptions: { credentials: "include" },
-  cacheSize: 3 // defaults to 10 if left off
+  cacheSize: 3 // defaults to 10 if left off. Pass 0 to disable caching
 });
 
 @query(client, props => ({
@@ -59,13 +59,13 @@ The `query` decorator is passed a `client` instance, and a function mapping the 
 
 ### props passed to your component
 
-`loading` Fetch is executing for your query
-`loading` Fetch has finished executing for your query
-`data` If the last fetch finished successfully, this will contain the data returned, else null
-`error` If the last fetch did not finish successfully, this will contain the errors that were returned, else null
-`reload` A function you can call to manually re-fetch the current query
-`clearCache` Clear the cache for this component
-`clearCacheAndReload` Calls `clearCache`, followed by `reload`
+* `loading` Fetch is executing for your query
+* `loading` Fetch has finished executing for your query
+* `data` If the last fetch finished successfully, this will contain the data returned, else null
+* `error` If the last fetch did not finish successfully, this will contain the errors that were returned, else null
+* `reload` A function you can call to manually re-fetch the current query
+* `clearCache` Clear the cache for this component
+* `clearCacheAndReload` Calls `clearCache`, followed by `reload`
 
 ## Mutations
 
@@ -101,9 +101,9 @@ Same idea, pass a client instance, and then just a string for your mutation. You
 
 ### props passed to your component
 
-`running` Mutation is executing
-`finished` Mutation has finished executing
-`runMutation` A function you can call when you want to run your mutation. Pass it an object with your variables
+* `running` Mutation is executing
+* `finished` Mutation has finished executing
+* `runMutation` A function you can call when you want to run your mutation. Pass it an object with your variables
 
 ## Can I put a Query and Mutation on the same component?
 
