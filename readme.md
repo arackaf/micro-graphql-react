@@ -246,5 +246,4 @@ Just note that when the new decorators proposal comes around, and this project i
 ## What's next
 
 * Allow HoC to specify custom mapping of the props, to avoid clashes.
-* Create some basic query caching (but without any material increase in this library's size)
 * Add a render prop API
