@@ -1,17 +1,17 @@
 # micro-graphql-react
 
-A light (about 6K min+gzip) and simple solution for painlessly connecting your React components into a GraphQL endpoint.
+A light (about 10K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint. Note that this project includes `graphql-request`, so if you're already using that, the net cost is only 6.5K min+gzip.
 
-Wrapped components will _not_ maintain a client-side cache of your query history, but _will_ remember the last run query's results, so they can be restored if your component unmounts and remounts, without needing to run a new network request. This assumes you only render the component in one place. If you render the multiple instances of your component, then each subseuqent instance will keep track of its own current query; this means they will always fire a network request on mount, even if their query values happen to match the original instance's current query values. The end result will be correct, though not ideal. Some future optimization may be possible here, but if more intelligent and robust caching is a requirement for you, then by all means use Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). Then again, read on to hear about a potentially simpler, more powerful form of querying that's not usually available with GraphQL libraries.
+Wrapped components will _not_ maintain a client-side cache of your query history, but _will_ remember the last run query's results, so they can be restored if your component unmounts and remounts, without needing to run a new network request.
 
-Queries are fetched via HTTP GET, so while no client-side cache of prior queries is maintained, you can easily set up a Service Worker to cache your queries using something like Google's Workbox, or sw-toolbox.
+Queries are fetched via HTTP GET, so while no client-side cache of prior queries is maintained, you can set up a Service Worker to cache them; Google's Workbox, or sw-toolbox make this easy.
 
 # Usage
 
 ## Queries
 
 ```javascript
-import { Client, query } from "micro-graphql-react";
+import { Client, query, mutation } from "micro-graphql-react";
 
 const client = new Client({
   endpoint: "/graphql",
@@ -54,15 +54,19 @@ class BasicQueryWithVariables extends Component {
 }
 ```
 
-The `query` decorator is passed a `client` instance, and a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-run **if** a new `query` value, or a variables object with different values are returned.
+The `query` decorator is passed a `client` instance, and a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component first mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-fetch **if** a new `query` value, or a variables object with different values are returned.
 
 ### props passed to your component
 
-`loading` fetch is executing for your query
-`loading` fetch has finished executing for your query
-`data` if the last fetch finished successfully, this will contain the data returned
-`error` if the last fetch did not finish successfully, this will contain the errors that were returned
-`reload` a function you can call to manually re-run the current query
+`loading` Fetch is executing for your query
+`loading` Fetch has finished executing for your query
+`data` If the last fetch finished successfully, this will contain the data returned, else null
+`error` If the last fetch did not finish successfully, this will contain the errors that were returned, else null
+`reload` A function you can call to manually re-fetch the current query
+
+### Rendering multiple instances of a `@query` component
+
+If you render multiple instances of a component decorated with `@query` then each subseuqent instance will keep track of its own current query; this means they will always fire a network request on mount, even if their query values happen to match the original instance's current query values. The end result will be correct, though not ideal. Slightly more robust caching is planned, but if this is an important requirement for you, then by all means use Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). But again, using a Service Worker to cache queries is an under-explored pattern, and may very well be good enough for your use case.
 
 ## Mutations
 
@@ -94,13 +98,13 @@ class BasicMutation extends Component {
 }
 ```
 
-Same idea, pass a client instance, and then just a string for your mutation, with whatever variables you need. You'll get a `runMutation` function that you can call, and pass in your variables.
+Same idea, pass a client instance, and then just a string for your mutation. You'll get a `runMutation` function in your props that you can call, and pass your variables.
 
 ### props passed to your component
 
-`running` mutation is executing
-`finished` mutation has finished executing
-`runMutation` a function you can call when you want to run your mutation. Pass it an object with whatever variables you want passed down
+`running` Mutation is executing
+`finished` Mutation has finished executing
+`runMutation` A function you can call when you want to run your mutation. Pass it an object with your variables
 
 ## Can I put a Query and Mutation on the same component?
 
@@ -165,7 +169,7 @@ class MutationAndQuery extends Component {
 
 ## Manually running queries or mutations
 
-It's entirely possible that some pieces of data may need to be shared in multiple components, or stored in your state manager for any number of reasons. This is easily accomodated. The component decorators run their queries and mutations through the client object you're passing in. You can call those methods yourself, in your state manager as needed.
+It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The component decorators run their queries and mutations through the client object you're already passing in. You can call those methods yourself, in your state manager (or anywhere).
 
 ### Client api
 
@@ -242,7 +246,6 @@ Just note that when the new decorators proposal comes around, and this project i
 
 ## What's next
 
-* Expose a re-fetch method so users can manually reload the current query, if needed
-* Mutations
 * Allow HoC to specify custom mapping of the props, to avoid clashes.
+* Create some basic query caching (but without any material increase in this library's size)
 * Add a render prop API
