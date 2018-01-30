@@ -3,6 +3,7 @@ import React, { Component } from "react";
 export default (client, queryFn, options) => BaseComponent => {
   const cache = new Map([]);
   const clearCache = () => cache.clear();
+  const noCaching = !client.cacheSize;
 
   return class extends Component {
     state = { loading: false, loaded: false, data: null, error: null };
@@ -27,21 +28,25 @@ export default (client, queryFn, options) => BaseComponent => {
     loadQuery(queryPacket) {
       let graphqlQuery = client.getGraphqlQuery(queryPacket);
       this.currentGraphqlQuery = graphqlQuery;
-      let cachedEntry = cache.get(graphqlQuery);
-      if (cachedEntry) {
-        if (typeof cachedEntry.then === "function") {
-          Promise.resolve(cachedEntry).then(() => {
-            //cache should now be updated, unless it was cleared. Either way, re-run this method
-            this.loadQuery(queryPacket);
-          });
-        } else {
-          //re-insert to put it at the fornt of the line
-          cache.delete(graphqlQuery);
-          cache.set(graphqlQuery, cachedEntry);
-          this.setCurrentState(cachedEntry.data, cachedEntry.error);
-        }
-      } else {
+      if (noCaching) {
         this.execute(queryPacket);
+      } else {
+        let cachedEntry = cache.get(graphqlQuery);
+        if (cachedEntry) {
+          if (typeof cachedEntry.then === "function") {
+            Promise.resolve(cachedEntry).then(() => {
+              //cache should now be updated, unless it was cleared. Either way, re-run this method
+              this.loadQuery(queryPacket);
+            });
+          } else {
+            //re-insert to put it at the fornt of the line
+            cache.delete(graphqlQuery);
+            cache.set(graphqlQuery, cachedEntry);
+            this.setCurrentState(cachedEntry.data, cachedEntry.error);
+          }
+        } else {
+          this.execute(queryPacket);
+        }
       }
     }
 
@@ -55,12 +60,14 @@ export default (client, queryFn, options) => BaseComponent => {
       let graphqlQuery = client.getGraphqlQuery({ query, variables });
       let promise = client.runQuery(query, variables);
       //front of the line now, to support LRU ejection
-      cache.delete(graphqlQuery);
-      if (cache.size === client.cacheSize) {
-        //maps iterate entries and keys in insertion order - zero'th key should be oldest
-        cache.delete([...cache.keys()][0]);
+      if (!noCaching) {
+        cache.delete(graphqlQuery);
+        if (cache.size === client.cacheSize) {
+          //maps iterate entries and keys in insertion order - zero'th key should be oldest
+          cache.delete([...cache.keys()][0]);
+        }
+        cache.set(graphqlQuery, promise);
       }
-      cache.set(graphqlQuery, promise);
       this.handleExecution(promise, graphqlQuery);
     }
 
@@ -81,6 +88,10 @@ export default (client, queryFn, options) => BaseComponent => {
     };
 
     cacheResults(promise, cacheKey, resp, err) {
+      if (noCaching) {
+        return;
+      }
+
       //cache may have been cleared while we were running. If so, we'll respect that, and not touch the cache, but
       //we'll still use the results locally
       if (cache.get(cacheKey) !== promise) return;
