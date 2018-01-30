@@ -4,7 +4,8 @@ import { Client, query, mutation } from "../index-local";
 
 const client = new Client({
   endpoint: "/graphql",
-  fetchOptions: { credentials: "include" }
+  fetchOptions: { credentials: "include" },
+  cacheSize: 3
 });
 
 class ManualMutation extends Component {
@@ -248,11 +249,15 @@ const BasicQueryWrapped = query(client, props => ({
 }))
 class BasicQueryConflict extends Component {
   render() {
-    let { loading, loaded, data } = this.props;
+    let { loading, loaded, data, page, clearCache } = this.props;
     return (
       <div>
         {loading ? <div>LOADING</div> : null}
-        {loaded ? <div>LOADED</div> : null}
+        {loaded ? (
+          <div>
+            LOADED {page} <button onClick={clearCache}>Clear cache</button>{" "}
+          </div>
+        ) : null}
         {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
       </div>
     );
@@ -274,7 +279,7 @@ class TestingSandbox1 extends Component {
 
         <br />
         <br />
-        <ManualMutation />
+        {/*<ManualMutation />
         <br />
         <br />
         <BasicMutation />
@@ -289,6 +294,7 @@ class TestingSandbox1 extends Component {
         {this.state.shown ? <BasicQueryWithError page={this.state.page} /> : null}
         {this.state.shown ? <BasicQueryWrapped page={this.state.page} /> : null}
         <hr />
+        */}
 
         {this.state.shown ? <BasicQueryConflict page={this.state.pageConflict1} /> : null}
         {this.state.shown ? <BasicQueryConflict page={this.state.pageConflict2} /> : null}
