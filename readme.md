@@ -245,5 +245,7 @@ Just note that when the new decorators proposal comes around, and this project i
 
 ## What's next
 
+* Add a manual mode, to support imerative-only loading for queries
+* Add a shouldQueryReload hook, to allow you to opt out of query reloads, even if the query / variables change
 * Allow HoC to specify custom mapping of the props, to avoid clashes.
 * Add a render prop API
