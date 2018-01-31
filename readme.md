@@ -60,7 +60,7 @@ The `query` decorator is passed a `client` instance, and a function mapping the 
 ### props passed to your component
 
 * `loading` Fetch is executing for your query
-* `loading` Fetch has finished executing for your query
+* `loaded` Fetch has finished executing for your query
 * `data` If the last fetch finished successfully, this will contain the data returned, else null
 * `error` If the last fetch did not finish successfully, this will contain the errors that were returned, else null
 * `reload` A function you can call to manually re-fetch the current query
