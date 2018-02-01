@@ -4,8 +4,8 @@ import { Client, query, mutation } from "../index-local";
 
 const client = new Client({
   endpoint: "/graphql",
-  fetchOptions: { credentials: "include" },
-  cacheSize: 0
+  fetchOptions: { credentials: "include" }
+  //cacheSize: 0
 });
 
 class ManualMutation extends Component {

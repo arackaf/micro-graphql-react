@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-export default (client, queryFn, options) => BaseComponent => {
+export default (client, queryFn, { shouldQueryUpdate, manual } = {}) => BaseComponent => {
   const cache = new Map([]);
   const clearCache = () => cache.clear();
   const noCaching = !client.cacheSize;
@@ -8,15 +8,36 @@ export default (client, queryFn, options) => BaseComponent => {
   return class extends Component {
     state = { loading: false, loaded: false, data: null, error: null };
     currentGraphqlQuery = null;
+    currentQuery = null;
+    currentVariables = null;
 
     componentDidMount() {
+      if (manual) return;
+
       let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
     }
     componentDidUpdate(prevProps, prevState) {
+      if (manual) return;
+
       let queryPacket = queryFn(this.props);
       if (this.isDirty(queryPacket)) {
-        this.loadQuery(queryPacket);
+        if (shouldQueryUpdate) {
+          if (
+            shouldQueryUpdate({
+              prevProps,
+              props: this.props,
+              prevQuery: this.currentQuery,
+              query: queryPacket.query,
+              prevVariables: this.currentVariables,
+              variables: queryPacket.variables
+            })
+          ) {
+            this.loadQuery(queryPacket);
+          }
+        } else {
+          this.loadQuery(queryPacket);
+        }
       }
     }
 
@@ -28,6 +49,8 @@ export default (client, queryFn, options) => BaseComponent => {
     loadQuery(queryPacket) {
       let graphqlQuery = client.getGraphqlQuery(queryPacket);
       this.currentGraphqlQuery = graphqlQuery;
+      this.currentQuery = queryPacket.query;
+      this.currentVariables = queryPacket.variables;
       if (noCaching) {
         this.execute(queryPacket);
       } else {
