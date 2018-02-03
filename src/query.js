@@ -67,7 +67,7 @@ class QueryCache {
   }
 }
 
-export default (client, queryFn, { shouldQueryUpdate, manual, cacheSize = 10 } = {}) => BaseComponent => {
+export default (client, queryFn, { shouldQueryUpdate, cacheSize = 10 } = {}) => BaseComponent => {
   const cache = new QueryCache(cacheSize);
 
   return class extends Component {
@@ -77,14 +77,10 @@ export default (client, queryFn, { shouldQueryUpdate, manual, cacheSize = 10 } =
     currentVariables = null;
 
     componentDidMount() {
-      if (manual) return;
-
       let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
     }
     componentDidUpdate(prevProps, prevState) {
-      if (manual) return;
-
       let queryPacket = queryFn(this.props);
       if (this.isDirty(queryPacket)) {
         if (shouldQueryUpdate) {

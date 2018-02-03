@@ -1,10 +1,10 @@
 # micro-graphql-react
 
-A light (about 10K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint. Note that this project includes `graphql-request`, so if you're already using that, the net cost is only 6.5K
+A light (about 10K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint. Note that this project includes `graphql-request`, so if you're already using that, the net cost is only about 6.5K
 
 Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the component, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This also means that two different components querying the same type, and returning the same fields will **not** be able to share caches. If that's a requirement, then check out Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
 
-Queries are fetched via HTTP GET, so while no client-side cache of prior queries is maintained, you can set up a Service Worker to cache them; Google's Workbox, or sw-toolbox make this easy.
+Queries are fetched via HTTP GET, so while the client-side caching is not nearly as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
 
 # Usage
 
@@ -15,8 +15,7 @@ import { Client, query, mutation } from "micro-graphql-react";
 
 const client = new Client({
   endpoint: "/graphql",
-  fetchOptions: { credentials: "include" },
-  cacheSize: 3 // defaults to 10 if left off. Pass 0 to disable caching
+  fetchOptions: { credentials: "include" }
 });
 
 @query(client, props => ({
@@ -55,7 +54,7 @@ class BasicQueryWithVariables extends Component {
 }
 ```
 
-The `query` decorator is passed a `client` instance, and a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component first mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-fetch **if** a new `query` value, or differing variables are returned.
+The `query` decorator is passed a `client` instance, and a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component first mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different.
 
 ### props passed to your component
 
@@ -66,6 +65,61 @@ The `query` decorator is passed a `client` instance, and a function mapping the 
 * `reload` A function you can call to manually re-fetch the current query
 * `clearCache` Clear the cache for this component
 * `clearCacheAndReload` Calls `clearCache`, followed by `reload`
+
+### Other options
+
+The decorator can also take a third argument of options. The following properties can be passed in this object:
+
+* `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
+* `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only automatically re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
+
+  * prevProps - previous component props
+  * props - current component props
+  * prevQuery - previous graphql query string produced
+  * query - current graphql query string produced
+  * prevVariables - previous graphql variables produced
+  * variables - current graphql variables produced
+
+An example follows
+
+```javascript
+@query(
+  client,
+  props => ({
+    query: `
+    query ALL_BOOKS ($page: Int, $title: String, $version: Int) {
+      allBooks(PAGE: $page, PAGE_SIZE: 3, title_contains: $title, version: $version) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`,
+    variables: {
+      page: props.page,
+      title: props.title,
+      version: props.version
+    }
+  }),
+  {
+    cacheSize: 3,
+    shouldQueryUpdate: ({ prevVariables, variables }) => prevVariables.version != variables.version
+  }
+)
+class QueryWithOptions extends Component {
+  render() {
+    let { loading, loaded, data, reload, title, version } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        <br />
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
+```
 
 ## Mutations
 
