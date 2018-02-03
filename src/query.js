@@ -1,16 +1,20 @@
 import React, { Component } from "react";
 
 class QueryCache {
+  constructor(cacheSize = 0) {
+    this.cacheSize = cacheSize;
+  }
   cache = new Map([]);
+  cacheSize = 0;
   get noCaching() {
-    return !this.cache.size;
+    return !this.cacheSize;
   }
 
   setPendingResult(graphqlQuery, promise) {
     //front of the line now, to support LRU ejection
-    if (!noCaching) {
+    if (!this.noCaching) {
       this.cache.delete(graphqlQuery);
-      if (this.cache.size === client.cacheSize) {
+      if (this.cache.size === this.cacheSize) {
         //maps iterate entries and keys in insertion order - zero'th key should be oldest
         this.cache.delete([...this.cache.keys()][0]);
       }
@@ -19,7 +23,7 @@ class QueryCache {
   }
 
   setResults(promise, cacheKey, resp, err) {
-    if (noCaching) {
+    if (this.noCaching) {
       return;
     }
 
@@ -42,14 +46,14 @@ class QueryCache {
     if (this.noCaching) {
       ifNotFound();
     } else {
-      let cachedEntry = this.cache.get(graphqlQuery);
+      let cachedEntry = this.cache.get(key);
       if (cachedEntry) {
         if (typeof cachedEntry.then === "function") {
           ifPending(cachedEntry);
         } else {
           //re-insert to put it at the fornt of the line
-          this.cache.delete(graphqlQuery);
-          this.cache.set(graphqlQuery, cachedEntry);
+          this.cache.delete(key);
+          this.cache.set(key, cachedEntry);
           ifResults(cachedEntry);
         }
       } else {
@@ -63,9 +67,8 @@ class QueryCache {
   }
 }
 
-export default (client, queryFn, { shouldQueryUpdate, manual } = {}) => BaseComponent => {
-  const cache = new QueryCache([]);
-  const noCaching = !client.cacheSize;
+export default (client, queryFn, { shouldQueryUpdate, manual, cacheSize = 10 } = {}) => BaseComponent => {
+  const cache = new QueryCache(cacheSize);
 
   return class extends Component {
     state = { loading: false, loaded: false, data: null, error: null };
