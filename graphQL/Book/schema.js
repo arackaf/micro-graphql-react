@@ -224,6 +224,7 @@ export const type = `
     dateAdded_in: [String]
     searchChildSubjects: Boolean
     publicUserId: String
+    version: Int
     OR: [BookFilters]
   }
   
@@ -370,6 +371,7 @@ export const query = `
     dateAdded_in: [String],
     searchChildSubjects: Boolean,
     publicUserId: String,
+    version: Int,
     OR: [BookFilters],
     SORT: BookSort,
     SORTS: [BookSort],
