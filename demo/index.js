@@ -4,8 +4,7 @@ import { Client, query, mutation } from "../index-local";
 
 const client = new Client({
   endpoint: "/graphql",
-  fetchOptions: { credentials: "include" },
-  cacheSize: 0
+  fetchOptions: { credentials: "include" }
 });
 
 class ManualMutation extends Component {
@@ -180,6 +179,44 @@ class BasicQueryWithVariables extends Component {
   }
 }
 
+@query(
+  client,
+  props => ({
+    query: `
+    query ALL_BOOKS ($page: Int, $title: String, $version: Int) {
+      allBooks(PAGE: $page, PAGE_SIZE: 3, title_contains: $title, version: $version) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`,
+    variables: {
+      page: props.page,
+      title: props.title,
+      version: props.version
+    }
+  }),
+  {
+    cacheSize: 3,
+    shouldQueryUpdate: ({ prevVariables, variables }) => prevVariables.version != variables.version
+  }
+)
+class QueryWithOptions extends Component {
+  render() {
+    let { loading, loaded, data, reload, title, version } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        <button onClick={reload}>reload</button>
+        <br />
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
+
 @query(client, props => ({
   query: `
     query ALL_BOOKS {
@@ -265,8 +302,9 @@ class BasicQueryConflict extends Component {
 }
 
 class TestingSandbox1 extends Component {
-  state = { page: 1, shown: true, pageConflict1: 1, pageConflict2: 1 };
+  state = { page: 1, shown: true, pageConflict1: 1, pageConflict2: 1, version: 0, title: "" };
   render() {
+    let { title, version, page } = this.state;
     return (
       <div>
         <button onClick={() => this.setState({ page: this.state.page - 1 })}>Prev</button>
@@ -276,7 +314,13 @@ class TestingSandbox1 extends Component {
         <button onClick={() => this.setState({ pageConflict1: this.state.pageConflict1 + 1 })}>Next Conf 1</button>
         <button onClick={() => this.setState({ pageConflict2: this.state.pageConflict2 - 1 })}>Prev Conf 2</button>
         <button onClick={() => this.setState({ pageConflict2: this.state.pageConflict2 + 1 })}>Next Conf 2</button>
+        <button onClick={() => this.setState({ version: this.state.version + 1 })}>Version</button>
+        {this.state.version}
+        <input value={this.state.title} onChange={e => this.setState({ title: e.target.value })} />
 
+        <br />
+        <br />
+        {this.state.shown ? <QueryWithOptions {...{ title, version, page }} /> : null}
         <br />
         <br />
         {/*<ManualMutation />
@@ -296,8 +340,10 @@ class TestingSandbox1 extends Component {
         <hr />
         */}
 
+        {/*
         {this.state.shown ? <BasicQueryConflict page={this.state.pageConflict1} /> : null}
         {this.state.shown ? <BasicQueryConflict page={this.state.pageConflict2} /> : null}
+        */}
       </div>
     );
   }
