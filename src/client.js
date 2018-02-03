@@ -5,9 +5,6 @@ export default class Client {
   constructor(props) {
     Object.assign(this, props);
     this.__mutationClient = new GraphQLClient(this.endpoint, this.fetchOptions);
-    if (this.cacheSize == null) {
-      this.cacheSize = 10;
-    }
   }
   runQuery(query, variables) {
     return fetch(this.getGraphqlQuery({ query, variables }), this.fetchOptions || void 0).then(resp => resp.json());
