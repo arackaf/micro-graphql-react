@@ -67,7 +67,7 @@ class QueryCache {
   }
 }
 
-export default (client, queryFn, { shouldQueryUpdate, cacheSize = 10 } = {}) => BaseComponent => {
+export default (client, queryFn, { shouldQueryUpdate, cacheSize = 10, mapProps = props => props } = {}) => BaseComponent => {
   const cache = new QueryCache(cacheSize);
 
   return class extends Component {
@@ -182,7 +182,7 @@ export default (client, queryFn, { shouldQueryUpdate, cacheSize = 10 } = {}) => 
 
     render() {
       let { loading, loaded, data, error } = this.state;
-      let packet = {
+      let packet = mapProps({
         loading,
         loaded,
         data,
@@ -190,7 +190,7 @@ export default (client, queryFn, { shouldQueryUpdate, cacheSize = 10 } = {}) => 
         reload: this.executeNow,
         clearCache: () => cache.clearCache(),
         clearCacheAndReload: this.clearCacheAndReload
-      };
+      });
 
       return <BaseComponent {...packet} {...this.props} />;
     }

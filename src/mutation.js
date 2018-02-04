@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-export default (client, mutation) => BaseComponent => {
+export default (client, mutation, { mapProps = props => props } = {}) => BaseComponent => {
   return class extends Component {
     state = { running: false, finished: false };
 
@@ -21,7 +21,7 @@ export default (client, mutation) => BaseComponent => {
 
     render() {
       let { running, finished } = this.state;
-      let packet = { running, finished, runMutation: this.runMutation };
+      let packet = mapProps({ running, finished, runMutation: this.runMutation });
 
       return <BaseComponent {...packet} {...this.props} />;
     }
