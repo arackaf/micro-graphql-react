@@ -80,7 +80,9 @@ The decorator can also take a third argument of options. The following propertie
   * prevVariables - previous graphql variables produced
   * variables - current graphql variables produced
 
-An example follows
+* `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your component's props will be passed to this function, and the result will be spread into your component
+
+An example of `shouldQueryUpdate`, and `cacheSize`
 
 ```javascript
 @query(
@@ -115,6 +117,54 @@ class QueryWithOptions extends Component {
         {loaded ? <div>LOADED</div> : null}
         <br />
         {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
+```
+
+An example of `mapProps`
+
+```javascript
+@query(
+  client,
+  props => ({
+    query: `
+    query ALL_BOOKS {
+      allBooks(SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`
+  }),
+  { mapProps: props => ({ firstBookProps: props }) }
+)
+@query(
+  client,
+  props => ({
+    query: `
+    query ALL_BOOKS {
+      allBooks(SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`
+  }),
+  { mapProps: props => ({ lastBookProps: props }) }
+)
+class TwoQueries extends Component {
+  render() {
+    let { firstBookProps, lastBookProps } = this.props;
+    return (
+      <div>
+        {firstBookProps.loading || lastBookProps.loading ? <div>LOADING</div> : null}
+        {firstBookProps.loaded || lastBookProps.loaded ? <div>LOADED</div> : null}
+        {firstBookProps.data ? <ul>{firstBookProps.data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+        {lastBookProps.data ? <ul>{lastBookProps.data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
       </div>
     );
   }
@@ -158,6 +208,84 @@ Same idea, pass a client instance, and then just a string for your mutation. You
 * `running` Mutation is executing
 * `finished` Mutation has finished executing
 * `runMutation` A function you can call when you want to run your mutation. Pass it an object with your variables
+
+### Other options
+
+Like `query`, you can pass a third argument to your `mutation` decorator. Here, this object only supports the `mapProps` option, which works the same as it does for queries.
+
+```javascript
+@query(client, props => ({
+  query: `
+    query ALL_BOOKS {
+      allBooks(PAGE: 1, PAGE_SIZE: 3) {
+        Books { 
+          _id 
+          title
+          pages
+        }
+      }
+    }`
+}))
+@mutation(
+  client,
+  `mutation modifyBook($_id: String, $title: String) {
+    updateBook(_id: $_id, Updates: { title: $title }) {
+      success
+    }
+  }`,
+  { mapProps: props => ({ titleMutation: props }) }
+)
+@mutation(
+  client,
+  `mutation modifyBook($_id: String, $pages: Int) {
+    updateBook(_id: $_id, Updates: { pages: $pages }) {
+      success
+    }
+  }`,
+  { mapProps: props => ({ pagesMutation: props }) }
+)
+class TwoMutationsAndQuery extends Component {
+  state = { editingId: "", editingOriginaltitle: "" };
+  edit = book => {
+    this.setState({ editingId: book._id, editingOriginaltitle: book.title, editingOriginalpages: book.pages });
+  };
+  render() {
+    let { loading, loaded, data, titleMutation, pagesMutation } = this.props;
+
+    let { editingId, editingOriginaltitle, editingOriginalpages } = this.state;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(book => (
+              <li key={book._id}>
+                {book.title}
+                <button onClick={() => this.edit(book)}> edit</button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {editingId ? (
+          <Fragment>
+            {titleMutation.running ? <div>RUNNING</div> : null}
+            {titleMutation.finished ? <div>SAVED</div> : null}
+            <input defaultValue={editingOriginaltitle} ref={el => (this.el = el)} placeholder="New title here!" />
+            <button onClick={() => titleMutation.runMutation({ _id: editingId, title: this.el.value })}>Save</button>
+
+            {pagesMutation.running ? <div>RUNNING</div> : null}
+            {pagesMutation.finished ? <div>SAVED</div> : null}
+            <input defaultValue={editingOriginalpages} ref={el => (this.elPages = el)} placeholder="New pages here!" />
+            <button onClick={() => pagesMutation.runMutation({ _id: editingId, pages: +this.elPages.value })}>Save</button>
+          </Fragment>
+        ) : null}
+      </div>
+    );
+  }
+}
+```
 
 ## Can I put a Query and Mutation on the same component?
 
@@ -219,6 +347,10 @@ class MutationAndQuery extends Component {
   }
 }
 ```
+
+## Adjusting the props passed to your components
+
+Both the query and mutation
 
 ## Manually running queries or mutations
 
