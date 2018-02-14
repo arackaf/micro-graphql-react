@@ -146,7 +146,7 @@ An example of `mapProps`
   props => ({
     query: `
     query ALL_BOOKS {
-      allBooks(SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1) {
+      allBooks(SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1)  {
         Books {
           _id
           title
@@ -350,7 +350,7 @@ class MutationAndQuery extends Component {
 
 ## Adjusting the props passed to your components
 
-Both the query and mutation
+Both query and mutation allow you to modify how the GraphQL props are passed to your component via the `mapProps` option. This is explained above.
 
 ## Manually running queries or mutations
 
