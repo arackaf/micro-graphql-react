@@ -1,5 +1,6 @@
-import Client from "./src/client";
+import Client, { defaultClientManager } from "./src/client";
 import query from "./src/query";
 import mutation from "./src/mutation";
 
-export { query, Client, mutation };
+const { setDefaultClient } = defaultClientManager;
+export { Client, query, mutation, setDefaultClient };
