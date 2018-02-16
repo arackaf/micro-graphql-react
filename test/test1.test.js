@@ -1,13 +1,7 @@
 import React, { Component, createElement } from "react";
 import Enzyme, { shallow, render, mount } from "enzyme";
 import Adapter from "enzyme-adapter-react-16";
-import { action, observable, computed } from "mobx";
-import { observer } from "mobx-react";
 Enzyme.configure({ adapter: new Adapter() });
-
-class Store {
-  @observable val = 0;
-}
 
 class Mock {
   called = 0;
@@ -15,12 +9,6 @@ class Mock {
 }
 const clientObject = new Mock();
 
-@observer
-class Wrapper extends Component {
-  render() {
-    return <Comp1 val={this.props.store.val} />;
-  }
-}
 class Comp1 extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (this.props.val % 2 === 1) {
@@ -35,14 +23,13 @@ class Comp1 extends Component {
 }
 
 test("test1", () => {
-  let store = new Store();
-  mount(<Wrapper store={store} />);
+  let obj = mount(<Comp1 val={0} />);
 
   expect(clientObject.called).toBe(0);
-  store.val++;
+  obj.setProps({ val: 1 });
   expect(clientObject.called).toBe(1);
-  store.val++;
+  obj.setProps({ val: 2 });
   expect(clientObject.called).toBe(1);
-  store.val++;
+  obj.setProps({ val: 3 });
   expect(clientObject.called).toBe(2);
 });
