@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { defaultClientManager } from "./client";
 
 class QueryCache {
   constructor(cacheSize = 0) {
@@ -67,8 +68,21 @@ class QueryCache {
   }
 }
 
-export default (client, queryFn, { shouldQueryUpdate, cacheSize = 10, mapProps = props => props } = {}) => BaseComponent => {
+export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
+  const { shouldQueryUpdate, cacheSize = 10, mapProps = props => props, client: clientOption } = packet;
   const cache = new QueryCache(cacheSize);
+
+  if (typeof clientDeprecated === "object") {
+    console.warn(
+      "Passing client as the first arg to query is deprecated. Check the docs, but you can now import setDefaultClient and call that globally, or you can pass in the options object"
+    );
+  } else {
+    packet = queryFn || {};
+    queryFn = clientDeprecated;
+    clientDeprecated = null;
+  }
+
+  const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
 
   return class extends Component {
     state = { loading: false, loaded: false, data: null, error: null };
