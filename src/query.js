@@ -82,6 +82,10 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
   const cache = new QueryCache(cacheSize);
   const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
 
+  if (!client) {
+    throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
+  }
+
   return class extends Component {
     state = { loading: false, loaded: false, data: null, error: null };
     currentGraphqlQuery = null;

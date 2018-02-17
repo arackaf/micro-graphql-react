@@ -15,6 +15,10 @@ export default (clientDeprecated, mutation, packet = {}) => BaseComponent => {
   const { mapProps = props => props, clientOption } = packet;
   const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
 
+  if (!client) {
+    throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
+  }
+
   return class extends Component {
     state = { running: false, finished: false };
 
