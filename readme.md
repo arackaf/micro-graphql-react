@@ -11,14 +11,16 @@ Queries are fetched via HTTP GET, so while the client-side caching is not nearly
 ## Queries
 
 ```javascript
-import { Client, query, mutation } from "micro-graphql-react";
+import { Client, query, mutation, setDefaultClient } from "micro-graphql-react";
 
 const client = new Client({
   endpoint: "/graphql",
   fetchOptions: { credentials: "include" }
 });
 
-@query(client, props => ({
+setDefaultClient(client);
+
+@query(props => ({
   query: `
     query ALL_BOOKS ($page: Int) {
       allBooks(PAGE: $page, PAGE_SIZE: 3) {
@@ -54,7 +56,7 @@ class BasicQueryWithVariables extends Component {
 }
 ```
 
-The `query` decorator is passed a `client` instance, and a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component first mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different.
+The `query` decorator is passed a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component first mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different.
 
 ### props passed to your component
 
@@ -68,7 +70,7 @@ The `query` decorator is passed a `client` instance, and a function mapping the 
 
 ### Other options
 
-The decorator can also take a third argument of options. The following properties can be passed in this object:
+The decorator can also take a second argument of options. The following properties can be passed in this object:
 
 * `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
 * `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only automatically re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
@@ -81,12 +83,12 @@ The decorator can also take a third argument of options. The following propertie
   * variables - current graphql variables produced
 
 * `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your component's props will be passed to this function, and the result will be spread into your component
+* `client` - manually pass in a client to be used for this component
 
 An example of `shouldQueryUpdate`, and `cacheSize`
 
 ```javascript
 @query(
-  client,
   props => ({
     query: `
     query ALL_BOOKS ($page: Int, $title: String, $version: Int) {
@@ -127,7 +129,6 @@ An example of `mapProps`
 
 ```javascript
 @query(
-  client,
   props => ({
     query: `
     query ALL_BOOKS {
@@ -142,7 +143,6 @@ An example of `mapProps`
   { mapProps: props => ({ firstBookProps: props }) }
 )
 @query(
-  client,
   props => ({
     query: `
     query ALL_BOOKS {
@@ -175,7 +175,6 @@ class TwoQueries extends Component {
 
 ```javascript
 @mutation(
-  client,
   `mutation modifyBook($title: String) {
     updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
       Book {
@@ -201,7 +200,7 @@ class BasicMutation extends Component {
 }
 ```
 
-Same idea, pass a client instance, and then just a string for your mutation. You'll get a `runMutation` function in your props that you can call, and pass your variables.
+Same idea, but just a string for your mutation. You'll get a `runMutation` function in your props that you can call, and pass your variables.
 
 ### props passed to your component
 
@@ -211,10 +210,10 @@ Same idea, pass a client instance, and then just a string for your mutation. You
 
 ### Other options
 
-Like `query`, you can pass a third argument to your `mutation` decorator. Here, this object only supports the `mapProps` option, which works the same as it does for queries.
+Like `query`, you can pass a second argument to your `mutation` decorator. Here, this object only supports the `mapProps`, and `client` options, which work the same as for queries.
 
 ```javascript
-@query(client, props => ({
+@query(props => ({
   query: `
     query ALL_BOOKS {
       allBooks(PAGE: 1, PAGE_SIZE: 3) {
@@ -227,7 +226,6 @@ Like `query`, you can pass a third argument to your `mutation` decorator. Here, 
     }`
 }))
 @mutation(
-  client,
   `mutation modifyBook($_id: String, $title: String) {
     updateBook(_id: $_id, Updates: { title: $title }) {
       success
@@ -236,7 +234,6 @@ Like `query`, you can pass a third argument to your `mutation` decorator. Here, 
   { mapProps: props => ({ titleMutation: props }) }
 )
 @mutation(
-  client,
   `mutation modifyBook($_id: String, $pages: Int) {
     updateBook(_id: $_id, Updates: { pages: $pages }) {
       success
@@ -292,7 +289,7 @@ class TwoMutationsAndQuery extends Component {
 Of course.
 
 ```javascript
-@query(client, props => ({
+@query(props => ({
   query: `
     query ALL_BOOKS {
       allBooks(PAGE: 1, PAGE_SIZE: 3) {
@@ -304,7 +301,6 @@ Of course.
     }`
 }))
 @mutation(
-  client,
   `mutation modifyBook($_id: String, $title: String) {
     updateBook(_id: $_id, Updates: { title: $title }) {
       success
@@ -354,7 +350,7 @@ Both query and mutation allow you to modify how the GraphQL props are passed to 
 
 ## Manually running queries or mutations
 
-It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The component decorators run their queries and mutations through the client object you're already passing in. You can call those methods yourself, in your state manager (or anywhere).
+It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The component decorators run their queries and mutations through the client object you're already setting via `setDefaultClient`. You can call those methods yourself, in your state manager (or anywhere).
 
 ### Client api
 
@@ -414,7 +410,7 @@ class BasicQueryUnwrapped extends Component {
     );
   }
 }
-const BasicQueryWrapped = query(client, props => ({
+const BasicQueryWrapped = query(props => ({
   query: `
     query ALL_BOOKS {
       allBooks(PAGE: ${props.page}, PAGE_SIZE: 3) {
@@ -431,7 +427,4 @@ Just note that when the new decorators proposal comes around, and this project i
 
 ## What's next
 
-* Add a manual mode, to support imerative-only loading for queries
-* Add a shouldQueryReload hook, to allow you to opt out of query reloads, even if the query / variables change
-* Allow HoC to specify custom mapping of the props, to avoid clashes.
 * Add a render prop API
