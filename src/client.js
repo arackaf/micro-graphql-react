@@ -18,3 +18,11 @@ export default class Client {
     return this.__mutationClient.request(mutation, variables);
   }
 }
+
+class DefaultClientManager {
+  defaultClient = null;
+  setDefaultClient = client => (this.defaultClient = client);
+  getDefaultClient = () => this.defaultClient;
+}
+
+export const defaultClientManager = new DefaultClientManager();
