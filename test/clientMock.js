@@ -16,6 +16,7 @@ export default class Client {
   runQuery = (query, variables) => {
     this.queriesRun++;
     this.queryCalls.push([query, variables]);
+    return {};
   };
   getGraphqlQuery({ query, variables }) {
     return `${this.endpoint}?query=${encodeURIComponent(compress(query))}${

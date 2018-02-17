@@ -17,20 +17,22 @@ beforeEach(() => {
   client2.reset();
 });
 
-@query(props => ({
-  query: basicQuery
-}))
-class BasicQuery extends Component {
-  render = () => null;
-}
+const DEFAULT_CACHE_SIZE = 10;
 
-@query(props => ({
+const getComponent = (...args) =>
+  @query(...args)
+  class extends Component {
+    render = () => null;
+  };
+
+const BasicQuery = getComponent(props => ({
+  query: basicQuery
+}));
+
+const basicQueryWithVariablesPacket = props => ({
   query: basicQueryWithVariables,
   variables: { page: props.page }
-}))
-class BasicQueryWithVariables extends Component {
-  render = () => null;
-}
+});
 
 test("Static query never re-fires", () => {
   let obj = mount(<BasicQuery unused={0} />);
@@ -40,10 +42,31 @@ test("Static query never re-fires", () => {
   expect(client1.queriesRun).toBe(1);
 });
 
-test("Query with variables re-fires", async () => {
-  let obj = mount(<BasicQueryWithVariables page={1} />);
+test("Query with variables re-fires when props change", async () => {
+  let Component = getComponent(basicQueryWithVariablesPacket);
+  let obj = mount(<Component page={1} />);
 
   expect(client1.queriesRun).toBe(1);
   obj.setProps({ page: 2 });
   expect(client1.queriesRun).toBe(2);
+});
+
+test("Query with variables does not re-fire when other props change", async () => {
+  let Component = getComponent(basicQueryWithVariablesPacket);
+  let obj = mount(<Component page={1} unused={10} />);
+
+  expect(client1.queriesRun).toBe(1);
+  obj.setProps({ unused: 2 });
+  expect(client1.queriesRun).toBe(1);
+});
+
+test("Default cache size", async () => {
+  let Component = getComponent(basicQueryWithVariablesPacket);
+  let obj = mount(<Component page={1} unused={10} />);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
+  expect(client1.queriesRun).toBe(10);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: 10 - i - 1 }));
+  expect(client1.queriesRun).toBe(10);
 });
