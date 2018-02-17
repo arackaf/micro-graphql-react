@@ -1,11 +1,18 @@
 import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
-import { Client, query, mutation } from "../index-local";
+import { Client, query, mutation, setDefaultClient } from "../index-local";
 
 const client = new Client({
   endpoint: "/graphql",
   fetchOptions: { credentials: "include" }
 });
+
+const client2 = new Client({
+  endpoint: "/graphql2",
+  fetchOptions: { credentials: "include" }
+});
+
+setDefaultClient(client2);
 
 class ManualMutation extends Component {
   loadManual = () => {
@@ -199,7 +206,7 @@ class MutationAndQuery extends Component {
   }
 }
 
-@query(client, props => ({
+@query(props => ({
   query: `
     query ALL_BOOKS {
       allBooks(PAGE: ${props.page}, PAGE_SIZE: 3) {
@@ -443,6 +450,11 @@ class TestingSandbox1 extends Component {
         <TwoQueries />
 
         {this.state.shown ? <QueryWithOptions {...{ title, version, page }} /> : null}
+        <br />
+        <br />
+
+        <BasicQuery page={this.state.page} />
+
         <br />
         <br />
         {/*<ManualMutation />
