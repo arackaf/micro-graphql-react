@@ -6,7 +6,6 @@ class QueryCache {
     this.cacheSize = cacheSize;
   }
   cache = new Map([]);
-  cacheSize = 0;
   get noCaching() {
     return !this.cacheSize;
   }
@@ -69,9 +68,6 @@ class QueryCache {
 }
 
 export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
-  const { shouldQueryUpdate, cacheSize = 10, mapProps = props => props, client: clientOption } = packet;
-  const cache = new QueryCache(cacheSize);
-
   if (typeof clientDeprecated === "object") {
     console.warn(
       "Passing client as the first arg to query is deprecated. Check the docs, but you can now import setDefaultClient and call that globally, or you can pass in the options object"
@@ -82,6 +78,8 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
     clientDeprecated = null;
   }
 
+  const { shouldQueryUpdate, cacheSize = 10, mapProps = props => props, client: clientOption } = packet;
+  const cache = new QueryCache(cacheSize);
   const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
 
   return class extends Component {
