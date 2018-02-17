@@ -23,4 +23,23 @@ app.use(
     rootValue: root
   })
 );
+
+app.use(
+  "/graphql2",
+  expressGraphql({
+    schema: executableSchema,
+    graphiql: true,
+    rootValue: root
+  })
+);
+
+app.use(
+  "/graphql3",
+  expressGraphql({
+    schema: executableSchema,
+    graphiql: true,
+    rootValue: root
+  })
+);
+
 app.listen(3000);
