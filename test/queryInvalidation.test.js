@@ -138,3 +138,27 @@ test("Override cache size with overridden client", async () => {
   Array.from({ length: 2 }).forEach((x, i) => obj.setProps({ page: 3 - i - 1 }));
   expect(client2.queriesRun).toBe(4);
 });
+
+test("shouldQueryUpdate works 1", async () => {
+  let Component = getComponent(basicQueryWithVariablesPacket, { shouldQueryUpdate: ({ props }) => props.shouldRun });
+  let obj = mount(<Component page={1} unused={10} />);
+  expect(client1.queriesRun).toBe(1);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2, shouldRun: false }));
+  expect(client1.queriesRun).toBe(1);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: 10 - i - 1, shouldRun: false }));
+  expect(client1.queriesRun).toBe(1);
+});
+
+test("shouldQueryUpdate works 2", async () => {
+  let Component = getComponent(basicQueryWithVariablesPacket, { shouldQueryUpdate: ({ props }) => props.page % 2 });
+  let obj = mount(<Component page={1} unused={10} />);
+  expect(client1.queriesRun).toBe(1);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
+  expect(client1.queriesRun).toBe(5);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: 10 - i - 1 }));
+  expect(client1.queriesRun).toBe(5);
+});
