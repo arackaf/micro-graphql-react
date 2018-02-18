@@ -40,6 +40,7 @@ test("Static query never re-fires", () => {
   let obj = mount(<BasicQuery unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
+
   obj.setProps({ unused: 1 });
   expect(client1.queriesRun).toBe(1);
 });

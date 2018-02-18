@@ -23,10 +23,6 @@ const getComponent = (...args) =>
     render = () => null;
   };
 
-const BasicQuery = getComponent(props => ({
-  query: basicQuery
-}));
-
 const basicQueryWithVariablesPacket = props => ({
   query: basicQueryWithVariables,
   variables: { page: props.page }
