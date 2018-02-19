@@ -43,6 +43,24 @@ test("Default cache size", async () => {
   expect(client1.queriesRun).toBe(10);
 });
 
+test("Second component shares the same cache", async () => {
+  let Component = getComponent(basicQueryWithVariablesPacket);
+  let obj = mount(<Component page={1} unused={10} />);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
+  expect(client1.queriesRun).toBe(10);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: 10 - i - 1 }));
+  expect(client1.queriesRun).toBe(10);
+
+  let obj2 = mount(<Component page={1} unused={10} />);
+  Array.from({ length: 9 }).forEach((x, i) => obj2.setProps({ page: i + 2 }));
+  expect(client1.queriesRun).toBe(10);
+
+  Array.from({ length: 9 }).forEach((x, i) => obj2.setProps({ page: 10 - i - 1 }));
+  expect(client1.queriesRun).toBe(10);
+});
+
 test("Override cache size", async () => {
   let Component = getComponent(basicQueryWithVariablesPacket, { cacheSize: 2 });
   let obj = mount(<Component page={1} unused={10} />);
