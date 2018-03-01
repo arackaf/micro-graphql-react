@@ -56,7 +56,6 @@
     "test": "jest --runInBand"
   },
   "dependencies": {
-    "graphql-query-compress": "0.9.7",
-    "graphql-request": "1.4.1"
+    "graphql-query-compress": "0.9.7"
   }
 }
