@@ -1,10 +1,8 @@
 import compress from "graphql-query-compress";
-import { GraphQLClient } from "graphql-request";
 
 export default class Client {
   constructor(props) {
     Object.assign(this, props);
-    this.__mutationClient = new GraphQLClient(this.endpoint, this.fetchOptions);
   }
   runQuery(query, variables) {
     return fetch(this.getGraphqlQuery({ query, variables }), this.fetchOptions || void 0).then(resp => resp.json());
@@ -15,7 +13,22 @@ export default class Client {
     }`;
   }
   runMutation(mutation, variables) {
-    return this.__mutationClient.request(mutation, variables);
+    let { headers = {}, ...otherOptions } = this.fetchOptions;
+    return fetch(this.endpoint, {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...headers
+      },
+      ...otherOptions,
+      body: JSON.stringify({
+        query: mutation,
+        variables
+      })
+    })
+      .then(resp => resp.json())
+      .then(resp => resp.data);
   }
 }
 
