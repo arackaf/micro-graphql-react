@@ -1,11 +1,4 @@
-import React, { Component, createElement } from "react";
-import Enzyme, { mount } from "enzyme";
-import Adapter from "enzyme-adapter-react-16";
-Enzyme.configure({ adapter: new Adapter() });
-
-import ClientMock from "./clientMock";
-import { Client, query, mutation, setDefaultClient } from "../index-local";
-import { basicQuery, basicQueryWithVariables } from "./graphqlConstants";
+import { React, Component, mount, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
 const client1 = new ClientMock("endpoint1");
 
