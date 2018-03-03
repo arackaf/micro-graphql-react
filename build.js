@@ -9,11 +9,18 @@ var babelOptionsWithImport = {
   plugins: ["transform-decorators-legacy", "transform-class-properties", "transform-object-rest-spread"]
 };
 
+var babelES5OptionsWithImport = {
+  presets: ["es2015", "react"],
+  plugins: ["transform-decorators-legacy", "transform-class-properties", "transform-object-rest-spread"]
+};
+
 try {
   remove.removeSync("./lib");
+  remove.removeSync("./lib-es5");
 } catch (e) {}
 
 transpileSource();
+transpileSourceES5();
 function transpileSource() {
   gulp
     .src("./src/**/*.js", { base: "./" })
@@ -21,6 +28,23 @@ function transpileSource() {
     .pipe(
       rename(path => {
         path.dirname = path.dirname.replace(/src/, "lib");
+      })
+    )
+    .pipe(gulp.dest(""))
+    .pipe(
+      gprint(function(filePath) {
+        return "File transpiled: " + filePath;
+      })
+    );
+}
+
+function transpileSourceES5() {
+  gulp
+    .src("./src/**/*.js", { base: "./" })
+    .pipe(gulpBabel(babelES5OptionsWithImport))
+    .pipe(
+      rename(path => {
+        path.dirname = path.dirname.replace(/src/, "lib-es5");
       })
     )
     .pipe(gulp.dest(""))

@@ -2,3 +2,4 @@ node_modules/
 dist/
 umd/
 lib/
+lib-es5/
