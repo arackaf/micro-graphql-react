@@ -1,6 +1,6 @@
 # micro-graphql-react
 
-A light (2K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
+A light (2.1K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
 Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the component, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This also means that two different components querying the same type, and returning the same fields will **not** be able to share caches. If that's a requirement, then check out Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
 
@@ -57,6 +57,8 @@ class BasicQueryWithVariables extends Component {
 ```
 
 The `query` decorator is passed a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component first mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different.
+
+Be sure to use the `compress` tag to remove un-needed whitespace from your query, since it will be sent via HTTP GET—just wrap any inline string parameters you may have in `${}` - for more information, see [here](./readme-compress.md).
 
 ### props passed to your component
 
