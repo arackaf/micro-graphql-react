@@ -4,7 +4,7 @@ const title = `This    is    a      not   compressed`;
 
 const query1 = compress`
   query ReadBooks () {
-     allBooks (title: "${title}") {
+     allBooks ( title: "${title}" ) {
        Books {
          title
          publisher
