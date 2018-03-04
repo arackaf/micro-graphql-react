@@ -1,18 +1,8 @@
-function gql(strings, ...expressions) {
-  return encodeURIComponent(
-    strings
-      .map((string, i) => {
-        const expression = i < expressions.length ? JSON.stringify(expressions[i]) : "";
-        return string.replace(/\s+/g, " ") + expression;
-      })
-      .join("")
-      .trim()
-  );
-}
+const compress = require("./src/compress");
 
-const title = `Where's \` your \` god \` now`;
+const title = `This    is    a      not   compressed`;
 
-const query = gql`
+const query = compress`
   query ReadBooks () {
      allBooks (title: "${title}") {
        Books {
@@ -22,17 +12,26 @@ const query = gql`
      }
   `;
 
+const query2 = compress`
+  query ReadBooks () {
+     allBooks (title: "${title}") {
+       ${compress`Books {
+         title
+         publisher
+       }
+     }`}
+  `;
+
+const query3 = compress`
+  query ReadBooks () {
+     allBooks (title: "This    will    incorrectly    be   compressed") {
+       ${compress`Books {
+         title
+         publisher
+       }
+     }`}
+  `;
+
 console.log(query);
-
-try {
-  gql("Hello world");
-} catch (er) {
-  console.log(er);
-}
-
-console.log("\n\n");
-try {
-  gql(query);
-} catch (er) {
-  console.log(er);
-}
+console.log(query2);
+console.log(query3);
