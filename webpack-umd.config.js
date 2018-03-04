@@ -2,7 +2,6 @@ var UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
 var path = require("path");
 var webpack = require("webpack");
-var isProduction = process.env.NODE_ENV === "production" || process.argv.some(arg => arg.indexOf("webpack-dev-server") >= 0);
 
 module.exports = {
   entry: {
