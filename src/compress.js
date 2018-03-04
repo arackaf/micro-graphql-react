@@ -10,6 +10,8 @@ export default function compress(strings, ...expressions) {
           .replace(/ {/g, "{")
           .replace(/ }/g, "}")
           .replace(/ \(/g, "(")
+          .replace(/ \)/g, ")")
+          .replace(/\( /g, "(")
           .replace(/\) /g, ")") + expression
       );
     })
