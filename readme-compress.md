@@ -20,7 +20,7 @@ compress`
 
 returns
 
-```javascript
+```
 query ReadBooks () { allBooks (title: "This    is    a      not   compressed") { Books { title publisher } }
 ```
 
@@ -40,7 +40,7 @@ compress`
 
 returns
 
-```javascript
+```
 query ReadBooks () { allBooks (title: "This    is    a      not   compressed") { Books {
          title
          publisher
@@ -64,7 +64,7 @@ compress`
 
 returns
 
-```javascript
+```
 query ReadBooks () { allBooks (title: "This    is    a      not   compressed") { Books { title publisher } }
 ```
 
@@ -86,6 +86,6 @@ compress`
 
 returns
 
-```javascript
+```
 query ReadBooks () { allBooks (title: "This will incorrectly be compressed") { Books { title publisher } }
 ```
