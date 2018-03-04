@@ -1,6 +1,6 @@
 # micro-graphql-react
 
-A light (6.7K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
+A light (2K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
 Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the component, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This also means that two different components querying the same type, and returning the same fields will **not** be able to share caches. If that's a requirement, then check out Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
 
@@ -11,7 +11,7 @@ Queries are fetched via HTTP GET, so while the client-side caching is not nearly
 ## Queries
 
 ```javascript
-import { Client, query, mutation, setDefaultClient } from "micro-graphql-react";
+import { Client, query, compress, mutation, setDefaultClient } from "micro-graphql-react";
 
 const client = new Client({
   endpoint: "/graphql",
@@ -21,7 +21,7 @@ const client = new Client({
 setDefaultClient(client);
 
 @query(props => ({
-  query: `
+  query: compress`
     query ALL_BOOKS ($page: Int) {
       allBooks(PAGE: $page, PAGE_SIZE: 3) {
         Books {
@@ -90,7 +90,7 @@ An example of `shouldQueryUpdate`, and `cacheSize`
 ```javascript
 @query(
   props => ({
-    query: `
+    query: compress`
     query ALL_BOOKS ($page: Int, $title: String, $version: Int) {
       allBooks(PAGE: $page, PAGE_SIZE: 3, title_contains: $title, version: $version) {
         Books {
@@ -130,7 +130,7 @@ An example of `mapProps`
 ```javascript
 @query(
   props => ({
-    query: `
+    query: compress`
     query ALL_BOOKS {
       allBooks(SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
         Books {
@@ -144,7 +144,7 @@ An example of `mapProps`
 )
 @query(
   props => ({
-    query: `
+    query: compress`
     query ALL_BOOKS {
       allBooks(SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1)  {
         Books {
@@ -214,7 +214,7 @@ Like `query`, you can pass a second argument to your `mutation` decorator. Here,
 
 ```javascript
 @query(props => ({
-  query: `
+  query: compress`
     query ALL_BOOKS {
       allBooks(PAGE: 1, PAGE_SIZE: 3) {
         Books { 
@@ -290,7 +290,7 @@ Of course.
 
 ```javascript
 @query(props => ({
-  query: `
+  query: compress`
     query ALL_BOOKS {
       allBooks(PAGE: 1, PAGE_SIZE: 3) {
         Books { 

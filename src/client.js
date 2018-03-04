@@ -1,4 +1,4 @@
-import compress from "graphql-query-compress";
+import compress from "./compress";
 
 export default class Client {
   constructor(props) {
