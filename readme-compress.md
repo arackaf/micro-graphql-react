@@ -9,7 +9,7 @@ const title = `This    is    a      not   compressed`;
 
 compress`
   query ReadBooks () {
-     allBooks (title: "${title}") {
+     allBooks (title: ${JSON.stringify(title)}) {
        ${compress`Books {
          title
          publisher
@@ -29,7 +29,7 @@ If for some reason you need put some of your GraphQL query into a `${}` expressi
 ```javascript
 compress`
   query ReadBooks () {
-     allBooks (title: "${title}") {
+     allBooks (title: ${JSON.stringify(title)}) {
        ${`Books {
          title
          publisher
@@ -89,3 +89,5 @@ returns
 ```
 query ReadBooks(){allBooks(title: "This will incorrectly be compressed"){Books{title publisher}}
 ```
+
+But of course, in practice, you'll almost always pass argumenets, string or otherwise, in a variables object, so none of this will matter.
