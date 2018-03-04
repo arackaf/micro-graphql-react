@@ -25,11 +25,11 @@ const query2 = compress`
 const query3 = compress`
   query ReadBooks () {
      allBooks (title: "This    will    incorrectly    be   compressed") {
-       ${compress`Books {
+       Books {
          title
          publisher
        }
-     }`}
+     }
   `;
 
 console.log(query);
