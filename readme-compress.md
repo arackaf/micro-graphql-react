@@ -21,7 +21,7 @@ compress`
 returns
 
 ```
-query ReadBooks () { allBooks (title: "This    is    a      not   compressed") { Books { title publisher } }
+query ReadBooks(){allBooks(title: "This    is    a      not   compressed"){Books{title publisher}}
 ```
 
 If for some reason you need put some of your GraphQL query into a `${}` expression, just tag it with `compress`. For example,
@@ -41,11 +41,11 @@ compress`
 returns
 
 ```
-query ReadBooks () { allBooks (title: "This    is    a      not   compressed") { Books {
-         title
-         publisher
-       }
+query ReadBooks(){allBooks(title: "This    is    a      not   compressed"){Books {
+       title
+       publisher
      }
+   }
 ```
 
 while
@@ -65,7 +65,7 @@ compress`
 returns
 
 ```
-query ReadBooks () { allBooks (title: "This    is    a      not   compressed") { Books { title publisher } }
+query ReadBooks(){allBooks(title: "This    is    a      not   compressed"){Books{title publisher}}
 ```
 
 as you'd expect.
@@ -87,5 +87,5 @@ compress`
 returns
 
 ```
-query ReadBooks () { allBooks (title: "This will incorrectly be compressed") { Books { title publisher } }
+query ReadBooks(){allBooks(title: "This will incorrectly be compressed"){Books{title publisher}}
 ```
