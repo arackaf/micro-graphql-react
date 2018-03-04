@@ -1,5 +1,3 @@
-import compress from "./compress";
-
 export default class Client {
   constructor(props) {
     Object.assign(this, props);
