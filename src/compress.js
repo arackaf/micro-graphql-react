@@ -5,6 +5,8 @@ export default function compress(strings, ...expressions) {
       return (
         string
           .replace(/\s+/g, " ")
+          .replace(/ :/g, ":")
+          .replace(/: /g, ":")
           .replace(/{ /g, "{")
           .replace(/} /g, "}")
           .replace(/ {/g, "{")
