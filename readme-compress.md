@@ -8,7 +8,7 @@ import { compress } from "micro-graphql-react";
 const title = `This    is    a      not   compressed`;
 
 compress`
-  query ReadBooks () {
+  query ReadBooks {
      allBooks (title: ${JSON.stringify(title)}) {
        ${compress`Books {
          title
@@ -21,14 +21,14 @@ compress`
 returns
 
 ```
-query ReadBooks(){allBooks(title: "This    is    a      not   compressed"){Books{title publisher}}
+query ReadBooks{allBooks(title: "This    is    a      not   compressed"){Books{title publisher}}
 ```
 
 If for some reason you need put some of your GraphQL query into a `${}` expression, just tag it with `compress`. For example,
 
 ```javascript
 compress`
-  query ReadBooks () {
+  query ReadBooks {
      allBooks (title: ${JSON.stringify(title)}) {
        ${`Books {
          title
@@ -41,7 +41,7 @@ compress`
 returns
 
 ```
-query ReadBooks(){allBooks(title: "This    is    a      not   compressed"){Books {
+query ReadBooks{allBooks(title: "This    is    a      not   compressed"){Books {
        title
        publisher
      }
@@ -52,7 +52,7 @@ while
 
 ```javascript
 compress`
-  query ReadBooks () {
+  query ReadBooks {
      allBooks (title: "${title}") {
        ${compress`Books {
          title
@@ -65,7 +65,7 @@ compress`
 returns
 
 ```
-query ReadBooks(){allBooks(title: "This    is    a      not   compressed"){Books{title publisher}}
+query ReadBooks{allBooks(title: "This    is    a      not   compressed"){Books{title publisher}}
 ```
 
 as you'd expect.
@@ -74,7 +74,7 @@ Lastly, be sure to wrap any string values in `${}` so they're not modified, sinc
 
 ```javascript
 compress`
-  query ReadBooks () {
+  query ReadBooks {
      allBooks (title: "This    will    incorrectly    be   compressed") {
        Books {
          title
@@ -87,7 +87,7 @@ compress`
 returns
 
 ```
-query ReadBooks(){allBooks(title: "This will incorrectly be compressed"){Books{title publisher}}
+query ReadBooks{allBooks(title: "This will incorrectly be compressed"){Books{title publisher}}
 ```
 
 But of course, in practice, you'll almost always pass argumenets, string or otherwise, in a variables object, so none of this will matter.
