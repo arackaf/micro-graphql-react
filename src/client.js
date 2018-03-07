@@ -1,5 +1,3 @@
-import compress from "graphql-query-compress";
-
 export default class Client {
   constructor(props) {
     Object.assign(this, props);
@@ -8,9 +6,7 @@ export default class Client {
     return fetch(this.getGraphqlQuery({ query, variables }), this.fetchOptions || void 0).then(resp => resp.json());
   }
   getGraphqlQuery({ query, variables }) {
-    return `${this.endpoint}?query=${encodeURIComponent(compress(query))}${
-      typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""
-    }`;
+    return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;
   }
   runMutation(mutation, variables) {
     let { headers = {}, ...otherOptions } = this.fetchOptions;

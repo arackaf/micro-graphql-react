@@ -1,6 +1,6 @@
 {
   "name": "micro-graphql-react",
-  "version": "0.1.0-beta4",
+  "version": "0.1.0-beta5",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -13,9 +13,7 @@
     "url": "https://github.com/arackaf/micro-graphql-react/issues"
   },
   "jest": {
-    "setupFiles": [
-      "./test/testSetup.js"
-    ]
+    "setupFiles": ["./test/testSetup.js"]
   },
   "homepage": "https://github.com/arackaf/micro-graphql-react",
   "devDependencies": {
@@ -58,7 +56,5 @@
     "umd-build": "webpack --config webpack-umd.config.js",
     "test": "jest --runInBand"
   },
-  "dependencies": {
-    "graphql-query-compress": "0.9.7"
-  }
+  "dependencies": {}
 }
