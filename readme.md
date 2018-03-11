@@ -6,6 +6,10 @@ Wrapped components maintain a basic client-side cache of your query history. The
 
 Queries are fetched via HTTP GET, so while the client-side caching is not nearly as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
 
+# Cache Invalidation
+
+This library will not invalidate the client-side cache as you perform GraphQL mutations. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're left to just invalidate the cache as needed, likely by changing an identifier in your query. For more information, see [this explanation](./readme-cache.md)
+
 # Usage
 
 ## Queries
