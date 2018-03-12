@@ -431,6 +431,19 @@ const BasicQueryWrapped = query(props => ({
 
 Just note that when the new decorators proposal comes around, and this project is updated to use it, the same api will no longer work interchangeably. When that happens, the existing `query` method will be updated to work as a decorator under the new proposal, and a new export will be created to work as a manual function wrapper. So if you avoid using decorators, expect a breaking change at some point. But really, give decorators a try: they're awesome!
 
+## Use in old browsers
+
+By default this library ships standard ES6, which should work in all modern browsers. If you have to support older, non-ES6 browsers like IE, then just add the following alias to your webpack's resolve section
+
+```javascript
+  resolve: {
+    alias: {
+      "micro-graphql-react": "node_modules/micro-graphql-react/index-es5.js"
+    },
+    modules: [path.resolve("./"), path.resolve("./node_modules")]
+  }
+```
+
 ## What's next
 
 * Add a render prop API
