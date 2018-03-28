@@ -8,7 +8,7 @@ Queries are fetched via HTTP GET, so while the client-side caching is not nearly
 
 # Cache Invalidation
 
-This library will not invalidate the client-side cache as you perform GraphQL mutations. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're left to just invalidate the cache as needed, likely by changing an identifier in your query. For more information, see [this explanation](./readme-cache.md)
+This library will not invalidate the client-side cache as you perform GraphQL mutations. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're left to just invalidate the cache as needed, likely by changing an identifier in your query. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. For more information, see [this explanation](./readme-cache.md)
 
 # Usage
 
