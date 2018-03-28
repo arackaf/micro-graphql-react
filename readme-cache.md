@@ -90,4 +90,47 @@ which you change in your state manager as needed. In Redux, it might look someth
 
 Again, the decision to punt on cache invalidation was driven primarily by the fact that all existing solutions are insufficient, at least for my own use cases. Since I would usually have to manually declare that existing caches need to be updated anyway, it made sense to me to just leave all cache invalidation responsibilities to application code, and in the process greatly reduce bundle size for this library—which currently sits at just 2.1K min+gzip.
 
+Needless to say, if you're happy to shut off client-side caching and eliminate the problem completely, you can just pass a `cacheSize` of zero, and you'll be good to go.
+
+```javascript
+@query(
+  client,
+  props => ({
+    query: `
+    query ALL_BOOKS ($page: Int, $title: String, $version: Int) {
+      allBooks(PAGE: $page, PAGE_SIZE: 3, title_contains: $title, version: $version) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`,
+    variables: {
+      page: props.page,
+      title: props.title,
+      version: props.version
+    }
+  }),
+  {
+    cacheSize: 0
+  }
+)
+class QueryWithOptions extends Component {
+  render() {
+    let { loading, loaded, data, reload, title, version } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        <button onClick={reload}>reload</button>
+        <br />
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
+```
+
+---
+
 Naturally, if the assumptions above don't apply to your application, and Apollo or urql work for you, then use them!
