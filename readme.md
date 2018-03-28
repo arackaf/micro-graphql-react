@@ -395,7 +395,7 @@ client.runMutation(
 );
 ```
 
-## Transpiling decoratrs
+## Transpiling decorators
 
 Be sure to use the `babel-plugin-transform-decorators-legacy` Babel preset. The code is not _yet_ updated to work with the new decorators proposal.
 
