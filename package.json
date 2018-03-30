@@ -13,11 +13,14 @@
     "url": "https://github.com/arackaf/micro-graphql-react/issues"
   },
   "jest": {
-    "setupFiles": ["./test/testSetup.js"]
+    "setupFiles": [
+      "./test/testSetup.js"
+    ]
   },
   "homepage": "https://github.com/arackaf/micro-graphql-react",
   "devDependencies": {
     "@std/esm": "0.19.7",
+    "@types/react": "^16.1.0",
     "babel-jest": "21.2.0",
     "babel-loader": "6.4.1",
     "babel-plugin-transform-class-properties": "6.24.1",
