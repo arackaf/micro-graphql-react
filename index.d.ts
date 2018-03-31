@@ -2,11 +2,22 @@ import React, { StatelessComponent, ComponentClass, ClassicComponentClass } from
 
 type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
 
-type QueryType = {
-  loading?: boolean;
-  loaded?: boolean;
+export type QueryProps = {
+  loading: boolean;
+  loaded: boolean;
+  data: any;
+  error: any;
+  reload: () => void;
+  clearCache: () => void;
+  clearCacheAndReload: () => void;
 };
 
-export function foo(input: { x: number }): <T extends IReactComponent>(input: T) => T {
-  return null;
-}
+export type MutationProps = {
+  running: boolean;
+  finished: boolean;
+  runMutation: (variables: any) => void;
+};
+
+//TODO: type packet
+export function query(queryFn: (componentProps: any) => { query: string; variables: any }, packet: any): <T extends IReactComponent>(input: T) => T;
+export function mutation(mutation: string, packet: any): <T extends IReactComponent>(input: T) => T;
