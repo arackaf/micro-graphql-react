@@ -12,7 +12,7 @@ export default (clientDeprecated, mutation, packet = {}) => BaseComponent => {
     clientDeprecated = null;
   }
 
-  const { mapProps = props => props, clientOption } = packet;
+  const { mapProps = props => props, client: clientOption } = packet;
   const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
 
   if (!client) {
