@@ -1,7 +1,17 @@
 import React, { StatelessComponent, ComponentClass, ClassicComponentClass } from "react";
-import Client from "./src/client";
+import compress from "./src/compress";
 
 type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
+
+class Client {
+  constructor(options: any);
+  runQuery(query: string, variables: any = null): any;
+  getGraphqlQuery({ query: string, variables: any = null }): any;
+  runMutation(mutation: string, variables: any = null): any;
+}
+declare function setDefaultClient(client: Client): void;
+
+export { compress, Client, setDefaultClient };
 
 //options you can pass to the query decorator
 export interface QueryOptions {
@@ -38,8 +48,8 @@ export type MutationProps = {
 //query decorator
 export function query(
   queryFn: (componentProps: any) => { query: string; variables: any },
-  options: QueryOptions
+  options?: QueryOptions
 ): <T extends IReactComponent>(input: T) => T;
 
 //mutation decorator
-export function mutation(mutation: string, options: MutationOptions): <T extends IReactComponent>(input: T) => T;
+export function mutation(mutation: string, options?: MutationOptions): <T extends IReactComponent>(input: T) => T;
