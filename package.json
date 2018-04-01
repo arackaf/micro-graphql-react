@@ -59,5 +59,6 @@
     "umd-build": "webpack --config webpack-umd.config.js",
     "test": "jest --runInBand"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "typings": "index.d.ts"
 }
