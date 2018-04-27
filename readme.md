@@ -429,7 +429,9 @@ const BasicQueryWrapped = query(props => ({
 }))(BasicQueryUnwrapped);
 ```
 
-Just note that when the new decorators proposal comes around, and this project is updated to use it, the same api will no longer work interchangeably. When that happens, the existing `query` method will be updated to work as a decorator under the new proposal, and a new export will be created to work as a manual function wrapper. So if you avoid using decorators, expect a breaking change at some point. But really, give decorators a try: they're awesome!
+I plan on supporting both the old, and new class decorator formats indefinitely, if for no other reason than to transparently allow for separate, explicit wrapping like the above. This pattern is popular for unit testing React components.
+
+But really, don't be afraid to give decorators a try: they're awesome!
 
 ## Use in old browsers
 
