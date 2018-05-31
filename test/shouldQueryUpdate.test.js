@@ -16,13 +16,10 @@ const getComponent = (...args) =>
     render = () => null;
   };
 
-const basicQueryWithVariablesPacket = props => ({
-  query: basicQueryWithVariables,
-  variables: { page: props.page }
-});
+const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
 
 test("shouldQueryUpdate works 1", async () => {
-  let Component = getComponent(basicQueryWithVariablesPacket, { shouldQueryUpdate: ({ props }) => props.shouldRun });
+  let Component = getComponent(...basicQueryWithVariablesPacket, { shouldQueryUpdate: ({ props }) => props.shouldRun });
   let obj = mount(<Component page={1} unused={10} />);
   expect(client1.queriesRun).toBe(1);
 
@@ -34,7 +31,7 @@ test("shouldQueryUpdate works 1", async () => {
 });
 
 test("shouldQueryUpdate works 2", async () => {
-  let Component = getComponent(basicQueryWithVariablesPacket, { shouldQueryUpdate: ({ props }) => props.page % 2 });
+  let Component = getComponent(...basicQueryWithVariablesPacket, { shouldQueryUpdate: ({ props }) => props.page % 2 });
   let obj = mount(<Component page={1} unused={10} />);
   expect(client1.queriesRun).toBe(1);
 
