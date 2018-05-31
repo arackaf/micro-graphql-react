@@ -259,43 +259,39 @@ class BasicQuery extends Component {
 //   }
 // }
 
-// @query(
-//   client,
-//   props => ({
-//     query: `
-//     query ALL_BOOKS ($page: Int, $title: String, $version: Int) {
-//       allBooks(PAGE: $page, PAGE_SIZE: 3, title_contains: $title, version: $version) {
-//         Books {
-//           _id
-//           title
-//         }
-//       }
-//     }`,
-//     variables: {
-//       page: props.page,
-//       title: props.title,
-//       version: props.version
-//     }
-//   }),
-//   {
-//     cacheSize: 3,
-//     shouldQueryUpdate: ({ prevVariables, variables }) => prevVariables.version != variables.version
-//   }
-// )
-// class QueryWithOptions extends Component {
-//   render() {
-//     let { loading, loaded, data, reload, title, version } = this.props;
-//     return (
-//       <div>
-//         {loading ? <div>LOADING</div> : null}
-//         {loaded ? <div>LOADED</div> : null}
-//         <button onClick={reload}>reload</button>
-//         <br />
-//         {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-//       </div>
-//     );
-//   }
-// }
+@query(
+  `
+    query ALL_BOOKS ($page: Int, $title: String) {
+      allBooks(PAGE: $page, PAGE_SIZE: 2, title_contains: $title) {
+        Books {
+          _id
+          title
+        }
+      }
+    }`,
+  props => ({
+    page: props.page,
+    title: props.title
+  }),
+  {
+    cacheSize: 3,
+    shouldQueryUpdate: ({ prevQuery, query, props, prevProps }) => prevProps.version != props.version || prevQuery != query
+  }
+)
+class QueryWithOptions extends Component {
+  render() {
+    let { loading, loaded, data, reload, title, version } = this.props;
+    return (
+      <div>
+        {loading ? <div>LOADING</div> : null}
+        {loaded ? <div>LOADED</div> : null}
+        <button onClick={reload}>reload</button>
+        <br />
+        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+      </div>
+    );
+  }
+}
 
 // @query(client, props => ({
 //   query: `
@@ -442,7 +438,8 @@ class TestingSandbox1 extends Component {
         {this.state.version}
         <input value={this.state.title} onChange={e => this.setState({ title: e.target.value })} />
 
-        <BasicQuery page={this.state.page} />
+        {this.state.shown ? <QueryWithOptions {...{ title, version, page }} /> : null}
+        {/*<BasicQuery page={this.state.page} />*/}
 
         {/*
         <br />
@@ -455,7 +452,6 @@ class TestingSandbox1 extends Component {
         <BasicMutation />
         <TwoQueries />
 
-        {this.state.shown ? <QueryWithOptions {...{ title, version, page }} /> : null}
         <br />
         <br />
 

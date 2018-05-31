@@ -81,10 +81,10 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
   }
 
-  const queryFn = (props, mountedComponent) => {
+  const queryFn = props => {
     return {
       query,
-      variables: variablesFn ? variablesFn(props, mountedComponent.state) : null
+      variables: variablesFn ? variablesFn(props) : null
     };
   };
 
@@ -95,19 +95,20 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     currentVariables = null;
 
     componentDidMount() {
-      let queryPacket = queryFn(this.props, this.mountedComponent);
+      let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
     }
     componentDidUpdate(prevProps, prevState) {
-      let queryPacket = queryFn(this.props, this.mountedComponent);
+      let queryPacket = queryFn(this.props);
+      let graphqlQuery = client.getGraphqlQuery(queryPacket);
       if (this.isDirty(queryPacket)) {
         if (shouldQueryUpdate) {
           if (
             shouldQueryUpdate({
               prevProps,
               props: this.props,
-              prevQuery: this.currentQuery,
-              query: queryPacket.query,
+              prevQuery: this.currentGraphqlQuery,
+              query: graphqlQuery,
               prevVariables: this.currentVariables,
               variables: queryPacket.variables
             })
@@ -189,7 +190,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     };
 
     executeNow = () => {
-      let queryPacket = queryFn(this.props, this.mountedComponent);
+      let queryPacket = queryFn(this.props);
       this.execute(queryPacket);
     };
 
@@ -210,7 +211,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
         clearCacheAndReload: this.clearCacheAndReload
       });
 
-      return <BaseComponent ref={c => (this.mountedComponent = c)} {...packet} {...this.props} />;
+      return <BaseComponent {...packet} {...this.props} />;
     }
   };
 };
