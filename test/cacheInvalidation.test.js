@@ -33,6 +33,18 @@ test("Default cache size", async () => {
   expect(client1.queriesRun).toBe(10);
 });
 
+// test("Cache accessible by query in client", async () => {
+//   let Component = getComponent(...basicQueryWithVariablesPacket);
+//   let cache = client1.getCache()
+//   let obj = mount(<Component page={1} unused={10} />);
+
+//   Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
+//   expect(client1.queriesRun).toBe(10);
+
+//   Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: 10 - i - 1 }));
+//   expect(client1.queriesRun).toBe(10);
+// });
+
 test("Second component shares the same cache", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
   let obj = mount(<Component page={1} unused={10} />);
