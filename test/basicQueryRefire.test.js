@@ -20,14 +20,9 @@ const getComponent = (...args) =>
     render = () => null;
   };
 
-const BasicQuery = getComponent(props => ({
-  query: basicQuery
-}));
+const BasicQuery = getComponent(basicQuery);
 
-const basicQueryWithVariablesPacket = props => ({
-  query: basicQueryWithVariables,
-  variables: { page: props.page }
-});
+const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
 
 test("Static query never re-fires", () => {
   let obj = mount(<BasicQuery unused={0} />);
@@ -39,7 +34,7 @@ test("Static query never re-fires", () => {
 });
 
 test("Query with variables re-fires when props change", async () => {
-  let Component = getComponent(basicQueryWithVariablesPacket);
+  let Component = getComponent(...basicQueryWithVariablesPacket);
   let obj = mount(<Component page={1} />);
 
   expect(client1.queriesRun).toBe(1);
@@ -48,7 +43,7 @@ test("Query with variables re-fires when props change", async () => {
 });
 
 test("Query with variables does not re-fire when other props change", async () => {
-  let Component = getComponent(basicQueryWithVariablesPacket);
+  let Component = getComponent(...basicQueryWithVariablesPacket);
   let obj = mount(<Component page={1} unused={10} />);
 
   expect(client1.queriesRun).toBe(1);
