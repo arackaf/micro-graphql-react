@@ -16,17 +16,12 @@ const getComponent = (...args) =>
     render = () => null;
   };
 
-const BasicQuery = getComponent(props => ({
-  query: basicQuery
-}));
+const BasicQuery = getComponent(basicQuery);
 
-const basicQueryWithVariablesPacket = props => ({
-  query: basicQueryWithVariables,
-  variables: { page: props.page }
-});
+const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
 
-test("Static query never re-fires", () => {
-  let Component = getComponent(basicQueryWithVariablesPacket, {
+test("Map props 1", () => {
+  let Component = getComponent(...basicQueryWithVariablesPacket, {
     mapProps: ({ loading, loaded, data, error }) => ({ loadingX: loading, loadedX: loaded, dataX: data, errorX: error })
   });
   let obj = mount(<Component />);
@@ -39,8 +34,8 @@ test("Static query never re-fires", () => {
   });
 });
 
-test("Static query never re-fires", async () => {
-  let Component = getComponent(basicQueryWithVariablesPacket, {
+test("Map props 2", async () => {
+  let Component = getComponent(...basicQueryWithVariablesPacket, {
     mapProps: ({ loading, loaded, data, error }) => ({ loadingX: loading, loadedX: loaded, dataX: data, errorX: error })
   });
   let results = { data: { allBooks: [{ title: "Hello" }] } };
@@ -62,5 +57,31 @@ test("Static query never re-fires", async () => {
     loadedX: true,
     dataX: results.data,
     errorX: null
+  });
+});
+
+test("Map props 3", async () => {
+  let Component = getComponent(...basicQueryWithVariablesPacket, {
+    mapProps: ({ loading, loaded, data, error }) => ({ packet: { loading, loaded, data, error } })
+  });
+  let results = { data: { allBooks: [{ title: "Hello" }] } };
+  client1.nextResult = new Promise(res => res(results));
+
+  let obj = mount(<Component />);
+  expect(obj.childAt(0).props().packet).toMatchObject({
+    loading: true,
+    loaded: false,
+    data: null,
+    error: null
+  });
+
+  await client1.nextResult;
+
+  obj.update();
+  expect(obj.childAt(0).props().packet).toMatchObject({
+    loading: false,
+    loaded: true,
+    data: results.data,
+    error: null
   });
 });
