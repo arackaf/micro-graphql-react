@@ -67,24 +67,26 @@ class QueryCache {
   }
 }
 
-export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
-  if (typeof clientDeprecated === "object") {
-    console.warn(
-      "Passing client as the first arg to query is deprecated. Check the docs, but you can now import setDefaultClient and call that globally, or you can pass in the options object"
-    );
-  } else {
-    packet = queryFn || {};
-    queryFn = clientDeprecated;
-    clientDeprecated = null;
-  }
-
+export default (query, variablesFn, packet = {}) => BaseComponent => {
   const { shouldQueryUpdate, cacheSize = 10, mapProps = props => props, client: clientOption } = packet;
   const cache = new QueryCache(cacheSize);
-  const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
+  const client = clientOption || defaultClientManager.getDefaultClient();
+
+  if (typeof variablesFn === "object") {
+    packet = variablesFn;
+    variablesFn = null;
+  }
 
   if (!client) {
     throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
   }
+
+  const queryFn = (props, mountedComponent) => {
+    return {
+      query,
+      variables: variablesFn ? variablesFn(props, mountedComponent.state) : null
+    };
+  };
 
   return class extends Component {
     state = { loading: false, loaded: false, data: null, error: null };
@@ -93,11 +95,11 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
     currentVariables = null;
 
     componentDidMount() {
-      let queryPacket = queryFn(this.props);
+      let queryPacket = queryFn(this.props, this.mountedComponent);
       this.loadQuery(queryPacket);
     }
     componentDidUpdate(prevProps, prevState) {
-      let queryPacket = queryFn(this.props);
+      let queryPacket = queryFn(this.props, this.mountedComponent);
       if (this.isDirty(queryPacket)) {
         if (shouldQueryUpdate) {
           if (
@@ -187,7 +189,7 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
     };
 
     executeNow = () => {
-      let queryPacket = queryFn(this.props);
+      let queryPacket = queryFn(this.props, this.mountedComponent);
       this.execute(queryPacket);
     };
 
@@ -208,7 +210,7 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
         clearCacheAndReload: this.clearCacheAndReload
       });
 
-      return <BaseComponent {...packet} {...this.props} />;
+      return <BaseComponent ref={c => (this.mountedComponent = c)} {...packet} {...this.props} />;
     }
   };
 };

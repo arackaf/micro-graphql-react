@@ -24,43 +24,33 @@ const client = new Client({
 
 setDefaultClient(client);
 
-@query(props => ({
-  query: compress`
-    query ALL_BOOKS ($page: Int) {
-      allBooks(PAGE: $page, PAGE_SIZE: 3) {
-        Books {
-          _id
-          title
-        }
+@query(
+  `
+  query ALL_BOOKS ($page: Int) {
+    allBooks(PAGE: $page, PAGE_SIZE: 3) {
+      Books {
+        _id
+        title
       }
-    }`,
-  variables: {
-    page: props.page
-  }
-}))
-class BasicQueryWithVariables extends Component {
+    }
+  }`,
+  props => ({ page: props.page })
+)
+class BasicQuery extends Component {
   render() {
-    let { loading, loaded, data, error } = this.props;
+    let { loading, loaded, data } = this.props;
     return (
       <div>
         {loading ? <div>LOADING</div> : null}
         {loaded ? <div>LOADED</div> : null}
         {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-        {error ? (
-          <div>
-            {error
-              .map(e => e.message)
-              .join(",")
-              .toString()}
-          </div>
-        ) : null}
       </div>
     );
   }
 }
 ```
 
-The `query` decorator is passed a function mapping the component's props to an object with a `query` string, and an optional `variables` object. When the component first mounts, this query will be executed. When the component updates, the function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different.
+The `query` decorator is passed the GraphQL query, an optional function mapping the component's props to a variables object. When the component first mounts, this query will be executed. When the component updates, the variables function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different. Of course if your query has no variables, it'll never update.
 
 Be sure to use the `compress` tag to remove un-needed whitespace from your query, since it will be sent via HTTP GET—just wrap any inline string parameters you may have in `${}` - for more information, see [here](./readme-compress.md).
 
@@ -76,15 +66,13 @@ Be sure to use the `compress` tag to remove un-needed whitespace from your query
 
 ### Other options
 
-The decorator can also take a second argument of options. The following properties can be passed in this object:
+The decorator can also take a third argument of options (or second argument, if your query doesn't use variables). The following properties can be passed in this object:
 
 * `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
-* `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only automatically re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
+* `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
 
   * prevProps - previous component props
   * props - current component props
-  * prevQuery - previous graphql query string produced
-  * query - current graphql query string produced
   * prevVariables - previous graphql variables produced
   * variables - current graphql variables produced
 
