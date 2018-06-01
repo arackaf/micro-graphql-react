@@ -1,11 +1,10 @@
 import { React, Component, mount, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
-const client1 = new ClientMock("endpoint1");
-
-setDefaultClient(client1);
+let client1;
 
 beforeEach(() => {
-  client1.reset();
+  client1 = new ClientMock("endpoint1");
+  setDefaultClient(client1);
 });
 
 const DEFAULT_CACHE_SIZE = 10;

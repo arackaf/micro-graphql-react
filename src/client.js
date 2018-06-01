@@ -1,6 +1,14 @@
 export default class Client {
   constructor(props) {
     Object.assign(this, props);
+    this.caches = new Map([]);
+  }
+  getCache(query) {
+    return this.caches.get(query);
+  }
+  setCache(query, cache) {
+    this.caches.set(query, cache);
+    return cache;
   }
   runQuery(query, variables) {
     return fetch(this.getGraphqlQuery({ query, variables }), this.fetchOptions || void 0).then(resp => resp.json());
