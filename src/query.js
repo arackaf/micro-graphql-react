@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
 
+const setPendingResult = Symbol("setPendingResult");
+const setResults = Symbol("setResults");
+const getFromCache = Symbol("getFromCache");
 class QueryCache {
   constructor(cacheSize = 0) {
     this.cacheSize = cacheSize;
@@ -10,7 +13,7 @@ class QueryCache {
     return !this.cacheSize;
   }
 
-  setPendingResult(graphqlQuery, promise) {
+  [setPendingResult](graphqlQuery, promise) {
     //front of the line now, to support LRU ejection
     if (!this.noCaching) {
       this.cache.delete(graphqlQuery);
@@ -22,7 +25,7 @@ class QueryCache {
     }
   }
 
-  setResults(promise, cacheKey, resp, err) {
+  [setResults](promise, cacheKey, resp, err) {
     if (this.noCaching) {
       return;
     }
@@ -42,7 +45,7 @@ class QueryCache {
     }
   }
 
-  getFromCache(key, ifPending, ifResults, ifNotFound) {
+  [getFromCache](key, ifPending, ifResults, ifNotFound) {
     if (this.noCaching) {
       ifNotFound();
     } else {
@@ -134,7 +137,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       this.currentQuery = queryPacket.query;
       this.currentVariables = queryPacket.variables;
 
-      cache.getFromCache(
+      cache[getFromCache](
         graphqlQuery,
         promise => {
           Promise.resolve(promise).then(() => {
@@ -158,14 +161,14 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       }
       let graphqlQuery = client.getGraphqlQuery({ query, variables });
       let promise = client.runQuery(query, variables);
-      cache.setPendingResult(graphqlQuery, promise);
+      cache[setPendingResult](graphqlQuery, promise);
       this.handleExecution(promise, graphqlQuery);
     }
 
     handleExecution = (promise, cacheKey) => {
       Promise.resolve(promise)
         .then(resp => {
-          cache.setResults(promise, cacheKey, resp);
+          cache[setResults](promise, cacheKey, resp);
           if (resp.errors) {
             this.handlerError(resp.errors);
           } else {
@@ -173,7 +176,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
           }
         })
         .catch(err => {
-          cache.setResults(promise, cacheKey, null, err);
+          cache[setResults](promise, cacheKey, null, err);
           this.handlerError(err);
         });
     };
