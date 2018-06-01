@@ -4,18 +4,19 @@ import { defaultClientManager } from "./client";
 const setPendingResult = Symbol("setPendingResult");
 const setResults = Symbol("setResults");
 const getFromCache = Symbol("getFromCache");
+const noCaching = Symbol("noCaching");
 class QueryCache {
   constructor(cacheSize = 0) {
     this.cacheSize = cacheSize;
   }
   cache = new Map([]);
-  get noCaching() {
+  get [noCaching]() {
     return !this.cacheSize;
   }
 
   [setPendingResult](graphqlQuery, promise) {
     //front of the line now, to support LRU ejection
-    if (!this.noCaching) {
+    if (!this[noCaching]) {
       this.cache.delete(graphqlQuery);
       if (this.cache.size === this.cacheSize) {
         //maps iterate entries and keys in insertion order - zero'th key should be oldest
@@ -26,7 +27,7 @@ class QueryCache {
   }
 
   [setResults](promise, cacheKey, resp, err) {
-    if (this.noCaching) {
+    if (this[noCaching]) {
       return;
     }
 
@@ -46,7 +47,7 @@ class QueryCache {
   }
 
   [getFromCache](key, ifPending, ifResults, ifNotFound) {
-    if (this.noCaching) {
+    if (this[noCaching]) {
       ifNotFound();
     } else {
       let cachedEntry = this.cache.get(key);
