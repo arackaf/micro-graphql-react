@@ -13,9 +13,7 @@
     "url": "https://github.com/arackaf/micro-graphql-react/issues"
   },
   "jest": {
-    "setupFiles": [
-      "./test/testSetup.js"
-    ]
+    "setupFiles": ["./test/testSetup.js"]
   },
   "homepage": "https://github.com/arackaf/micro-graphql-react",
   "devDependencies": {
@@ -57,7 +55,8 @@
     "server": "node runServer",
     "deploy": "node build && npm run umd-build && npm publish",
     "umd-build": "webpack --config webpack-umd.config.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "testw": "jest --runInBand --watchAll"
   },
   "dependencies": {},
   "typings": "index.d.ts"

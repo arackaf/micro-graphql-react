@@ -1,11 +1,12 @@
 import { React, Component, mount, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
-const client1 = new ClientMock("endpoint1");
-
-setDefaultClient(client1);
+let client1;
+let BasicQuery;
 
 beforeEach(() => {
-  client1.reset();
+  client1 = new ClientMock("endpoint1");
+  setDefaultClient(client1);
+  BasicQuery = getComponent(basicQuery);
 });
 
 const DEFAULT_CACHE_SIZE = 10;
@@ -15,8 +16,6 @@ const getComponent = (...args) =>
   class extends Component {
     render = () => null;
   };
-
-const BasicQuery = getComponent(basicQuery);
 
 const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
 
