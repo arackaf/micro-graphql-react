@@ -1,63 +1,67 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
 
-const setPendingResult = Symbol("setPendingResult");
-const setResults = Symbol("setResults");
-const getFromCache = Symbol("getFromCache");
-const noCaching = Symbol("noCaching");
+const setPendingResultSymbol = Symbol("setPendingResult");
+const setResultsSymbol = Symbol("setResults");
+const getFromCacheSymbol = Symbol("getFromCache");
+const noCachingSymbol = Symbol("noCaching");
+const cacheSymbol = Symbol("cache");
 class QueryCache {
   constructor(cacheSize = 0) {
     this.cacheSize = cacheSize;
   }
-  cache = new Map([]);
-  get [noCaching]() {
+  [cacheSymbol] = new Map([]);
+  get [noCachingSymbol]() {
     return !this.cacheSize;
   }
 
-  [setPendingResult](graphqlQuery, promise) {
+  [setPendingResultSymbol](graphqlQuery, promise) {
+    let cache = this[cacheSymbol];
     //front of the line now, to support LRU ejection
-    if (!this[noCaching]) {
-      this.cache.delete(graphqlQuery);
-      if (this.cache.size === this.cacheSize) {
+    if (!this[noCachingSymbol]) {
+      cache.delete(graphqlQuery);
+      if (cache.size === this.cacheSize) {
         //maps iterate entries and keys in insertion order - zero'th key should be oldest
-        this.cache.delete([...this.cache.keys()][0]);
+        cache.delete([...cache.keys()][0]);
       }
-      this.cache.set(graphqlQuery, promise);
+      cache.set(graphqlQuery, promise);
     }
   }
 
-  [setResults](promise, cacheKey, resp, err) {
-    if (this[noCaching]) {
+  [setResultsSymbol](promise, cacheKey, resp, err) {
+    let cache = this[cacheSymbol];
+    if (this[noCachingSymbol]) {
       return;
     }
 
     //cache may have been cleared while we were running. If so, we'll respect that, and not touch the cache, but
     //we'll still use the results locally
-    if (this.cache.get(cacheKey) !== promise) return;
+    if (cache.get(cacheKey) !== promise) return;
 
     if (err) {
-      this.cache.set(cacheKey, { data: null, error: err });
+      cache.set(cacheKey, { data: null, error: err });
     } else {
       if (resp.errors) {
-        this.cache.set(cacheKey, { data: null, error: errors });
+        cache.set(cacheKey, { data: null, error: errors });
       } else {
-        this.cache.set(cacheKey, { data: resp.data, error: null });
+        cache.set(cacheKey, { data: resp.data, error: null });
       }
     }
   }
 
-  [getFromCache](key, ifPending, ifResults, ifNotFound) {
-    if (this[noCaching]) {
+  [getFromCacheSymbol](key, ifPending, ifResults, ifNotFound) {
+    let cache = this[cacheSymbol];
+    if (this[noCachingSymbol]) {
       ifNotFound();
     } else {
-      let cachedEntry = this.cache.get(key);
+      let cachedEntry = cache.get(key);
       if (cachedEntry) {
         if (typeof cachedEntry.then === "function") {
           ifPending(cachedEntry);
         } else {
           //re-insert to put it at the fornt of the line
-          this.cache.delete(key);
-          this.cache.set(key, cachedEntry);
+          cache.delete(key);
+          cache.set(key, cachedEntry);
           ifResults(cachedEntry);
         }
       } else {
@@ -67,7 +71,7 @@ class QueryCache {
   }
 
   clearCache() {
-    this.cache.clear();
+    this[cacheSymbol].clear();
   }
 }
 
@@ -138,7 +142,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       this.currentQuery = queryPacket.query;
       this.currentVariables = queryPacket.variables;
 
-      cache[getFromCache](
+      cache[getFromCacheSymbol](
         graphqlQuery,
         promise => {
           Promise.resolve(promise).then(() => {
@@ -162,14 +166,14 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       }
       let graphqlQuery = client.getGraphqlQuery({ query, variables });
       let promise = client.runQuery(query, variables);
-      cache[setPendingResult](graphqlQuery, promise);
+      cache[setPendingResultSymbol](graphqlQuery, promise);
       this.handleExecution(promise, graphqlQuery);
     }
 
     handleExecution = (promise, cacheKey) => {
       Promise.resolve(promise)
         .then(resp => {
-          cache[setResults](promise, cacheKey, resp);
+          cache[setResultsSymbol](promise, cacheKey, resp);
           if (resp.errors) {
             this.handlerError(resp.errors);
           } else {
@@ -177,7 +181,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
           }
         })
         .catch(err => {
-          cache[setResults](promise, cacheKey, null, err);
+          cache[setResultsSymbol](promise, cacheKey, null, err);
           this.handlerError(err);
         });
     };
