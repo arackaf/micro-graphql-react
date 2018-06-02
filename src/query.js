@@ -19,6 +19,22 @@ class QueryCache {
     return [...this[cacheSymbol]];
   }
 
+  get(key) {
+    return this[cacheSymbol].get(key);
+  }
+
+  set(key, results) {
+    this[cacheSymbol].set(key, results);
+  }
+
+  delete(key) {
+    this[cacheSymbol].delete(key);
+  }
+
+  clearCache() {
+    this[cacheSymbol].clear();
+  }
+
   [setPendingResultSymbol](graphqlQuery, promise) {
     let cache = this[cacheSymbol];
     //front of the line now, to support LRU ejection
@@ -65,17 +81,13 @@ class QueryCache {
         } else {
           //re-insert to put it at the fornt of the line
           cache.delete(key);
-          cache.set(key, cachedEntry);
+          this.set(key, cachedEntry);
           ifResults(cachedEntry);
         }
       } else {
         ifNotFound();
       }
     }
-  }
-
-  clearCache() {
-    this[cacheSymbol].clear();
   }
 }
 
