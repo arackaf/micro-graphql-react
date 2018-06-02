@@ -1,4 +1,3 @@
-import compress from "graphql-query-compress";
 import ClientBase from "../src/client";
 
 export default class Client extends ClientBase {

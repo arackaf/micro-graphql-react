@@ -15,6 +15,10 @@ class QueryCache {
     return !this.cacheSize;
   }
 
+  get entries() {
+    return [...this[cacheSymbol]];
+  }
+
   [setPendingResultSymbol](graphqlQuery, promise) {
     let cache = this[cacheSymbol];
     //front of the line now, to support LRU ejection

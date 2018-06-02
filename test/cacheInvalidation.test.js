@@ -38,6 +38,42 @@ test("Cache accessible by query in client", async () => {
   expect(typeof cache).toBe("object");
 });
 
+test("Default cache size - verify on cache object retrieved", async () => {
+  let Component = getComponent(...basicQueryWithVariablesPacket);
+  let obj = mount(<Component page={1} unused={10} />);
+  let cache = client1.getCache(basicQueryWithVariables);
+
+  Array.from({ length: 9 }).forEach((x, i) => {
+    obj.setProps({ page: i + 2 });
+    expect(cache.entries.length).toBe(i + 2);
+  });
+  expect(cache.entries.length).toBe(10);
+
+  Array.from({ length: 9 }).forEach((x, i) => {
+    obj.setProps({ page: 10 - i - 1 });
+    expect(cache.entries.length).toBe(10);
+  });
+  expect(cache.entries.length).toBe(10);
+});
+
+//TODO: delete me
+import parse from "url-parse";
+test("TEMP", async () => {
+  let Component = getComponent(...basicQueryWithVariablesPacket);
+  let obj = mount(<Component page={1} unused={10} />);
+  let cache = client1.getCache(basicQueryWithVariables);
+
+  Array.from({ length: 9 }).forEach((x, i) => {
+    obj.setProps({ page: i + 2 });
+    cache.entries.forEach(([key, results]) => {
+      let parsed = parse(key, true);
+      console.log(parsed.query.query);
+      let variables = JSON.parse(parsed.query.variables);
+      console.log("variables:", variables, variables.page);
+    });
+  });
+});
+
 test("Second component shares the same cache", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
   let obj = mount(<Component page={1} unused={10} />);

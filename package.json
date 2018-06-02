@@ -13,7 +13,9 @@
     "url": "https://github.com/arackaf/micro-graphql-react/issues"
   },
   "jest": {
-    "setupFiles": ["./test/testSetup.js"]
+    "setupFiles": [
+      "./test/testSetup.js"
+    ]
   },
   "homepage": "https://github.com/arackaf/micro-graphql-react",
   "devDependencies": {
@@ -48,6 +50,7 @@
     "react-test-renderer": "16.2.0",
     "remove": "0.1.5",
     "uglifyjs-webpack-plugin": "1.1.6",
+    "url-parse": "^1.4.0",
     "webpack": "3.10.0"
   },
   "scripts": {
