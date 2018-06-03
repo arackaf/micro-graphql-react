@@ -21,5 +21,6 @@ export default class Client extends ClientBase {
   runMutation = (mutation, variables) => {
     this.mutationsRun++;
     this.mutationCalls.push([mutation, variables]);
+    return this.nextMutationResult;
   };
 }

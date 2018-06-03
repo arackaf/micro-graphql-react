@@ -28,7 +28,7 @@ export default (clientDeprecated, mutation, packet = {}) => BaseComponent => {
         finished: false
       });
 
-      return client.runMutation(mutation, variables).then(resp => {
+      return client.processMutation(mutation, variables).then(resp => {
         this.setState({
           running: false,
           finished: true
