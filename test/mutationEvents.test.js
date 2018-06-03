@@ -1,15 +1,4 @@
-import {
-  React,
-  Component,
-  shallow,
-  mount,
-  ClientMock,
-  query,
-  mutation,
-  setDefaultClient,
-  basicQuery,
-  basicQueryWithVariables
-} from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
 let client1;
 let client2;

@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
 let client1;
 let client2;
@@ -23,7 +23,7 @@ const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page
 
 test("Default cache size", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} unused={10} />);
+  let obj = shallow(<Component page={1} unused={10} />);
 
   Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
   expect(client1.queriesRun).toBe(10);
@@ -40,7 +40,7 @@ test("Cache accessible by query in client", async () => {
 
 test("Default cache size - verify on cache object retrieved", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} unused={10} />);
+  let obj = shallow(<Component page={1} unused={10} />);
   let cache = client1.getCache(basicQueryWithVariables);
 
   Array.from({ length: 9 }).forEach((x, i) => {
@@ -60,7 +60,7 @@ test("Default cache size - verify on cache object retrieved", async () => {
 import parse from "url-parse";
 test("TEMP", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} unused={10} />);
+  let obj = shallow(<Component page={1} unused={10} />);
   let cache = client1.getCache(basicQueryWithVariables);
 
   Array.from({ length: 9 }).forEach((x, i) => {
@@ -76,7 +76,7 @@ test("TEMP", async () => {
 
 test("Second component shares the same cache", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} unused={10} />);
+  let obj = shallow(<Component page={1} unused={10} />);
 
   Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
   expect(client1.queriesRun).toBe(10);
@@ -84,7 +84,7 @@ test("Second component shares the same cache", async () => {
   Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: 10 - i - 1 }));
   expect(client1.queriesRun).toBe(10);
 
-  let obj2 = mount(<Component page={1} unused={10} />);
+  let obj2 = shallow(<Component page={1} unused={10} />);
   Array.from({ length: 9 }).forEach((x, i) => obj2.setProps({ page: i + 2 }));
   expect(client1.queriesRun).toBe(10);
 
@@ -94,7 +94,7 @@ test("Second component shares the same cache", async () => {
 
 // test("Override cache size", async () => {
 //   let Component = getComponent(...basicQueryWithVariablesPacket, { cacheSize: 2 });
-//   let obj = mount(<Component page={1} unused={10} />);
+//   let obj = shallow(<Component page={1} unused={10} />);
 
 //   //3 is a cache ejection, cache is now 2,3
 //   Array.from({ length: 2 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
@@ -108,7 +108,7 @@ test("Second component shares the same cache", async () => {
 
 test("Default cache size with overridden client", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket, { client: client2 });
-  let obj = mount(<Component page={1} unused={10} />);
+  let obj = shallow(<Component page={1} unused={10} />);
 
   Array.from({ length: 9 }).forEach((x, i) => obj.setProps({ page: i + 2 }));
   expect(client2.queriesRun).toBe(10);
@@ -119,7 +119,7 @@ test("Default cache size with overridden client", async () => {
 
 // test("Override cache size with overridden client", async () => {
 //   let Component = getComponent(...basicQueryWithVariablesPacket, { cacheSize: 2, client: client2 });
-//   let obj = mount(<Component page={1} unused={10} />);
+//   let obj = shallow(<Component page={1} unused={10} />);
 
 //   //3 is a cache ejection, cache is now 2,3
 //   Array.from({ length: 2 }).forEach((x, i) => obj.setProps({ page: i + 2 }));

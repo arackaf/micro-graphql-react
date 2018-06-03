@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
 let client1;
 let client2;
@@ -24,7 +24,7 @@ const getComponent = (...args) =>
 const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
 
 test("Static query never re-fires", () => {
-  let obj = mount(<BasicQuery unused={0} />);
+  let obj = shallow(<BasicQuery unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
@@ -34,7 +34,7 @@ test("Static query never re-fires", () => {
 
 test("Query with variables re-fires when props change", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} />);
+  let obj = shallow(<Component page={1} />);
 
   expect(client1.queriesRun).toBe(1);
   obj.setProps({ page: 2 });
@@ -43,7 +43,7 @@ test("Query with variables re-fires when props change", async () => {
 
 test("Query with variables does not re-fire when other props change", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} unused={10} />);
+  let obj = shallow(<Component page={1} unused={10} />);
 
   expect(client1.queriesRun).toBe(1);
   obj.setProps({ unused: 2 });
