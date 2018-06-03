@@ -1,7 +1,10 @@
+const mutationListenersSymbol = Symbol("mutationListeners");
+
 export default class Client {
   constructor(props) {
     Object.assign(this, props);
     this.caches = new Map([]);
+    this[mutationListenersSymbol] = new Set([]);
   }
   getCache(query) {
     return this.caches.get(query);
@@ -15,6 +18,12 @@ export default class Client {
   }
   getGraphqlQuery({ query, variables }) {
     return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;
+  }
+  processMutation(mutation, variables) {
+    return this.runMutation(mutation, variables).then(resp => {
+      [...this[mutationListenersSymbol]].forEach(f => f(resp));
+      return resp;
+    });
   }
   runMutation(mutation, variables) {
     let { headers = {}, ...otherOptions } = this.fetchOptions;

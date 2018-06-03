@@ -67,9 +67,9 @@ test("TEMP", async () => {
     obj.setProps({ page: i + 2 });
     cache.entries.forEach(([key, results]) => {
       let parsed = parse(key, true);
-      console.log(parsed.query.query);
+      //console.log(parsed.query.query);
       let variables = JSON.parse(parsed.query.variables);
-      console.log("variables:", variables, variables.page);
+      //console.log("variables:", variables, variables.page);
     });
   });
 });
