@@ -94,7 +94,7 @@ class QueryCache {
 const DEFAULT_CACHE_SIZE = 10;
 
 export default (query, variablesFn, packet = {}) => BaseComponent => {
-  const { shouldQueryUpdate, mapProps = props => props, client: clientOption } = packet;
+  const { shouldQueryUpdate, mapProps = props => props, client: clientOption, onMutation } = packet;
   const client = clientOption || defaultClientManager.getDefaultClient();
   const cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
 
@@ -123,6 +123,9 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     componentDidMount() {
       let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
+      if (onMutation) {
+        this.__mutationSubscription = client.subscribeMutation({ ...onMutation, cache });
+      }
     }
     componentDidUpdate(prevProps, prevState) {
       let queryPacket = queryFn(this.props);
@@ -145,6 +148,10 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
           this.loadQuery(queryPacket);
         }
       }
+    }
+
+    componentWillUnmount() {
+      this.__mutationSubscription && this.__mutationSubscription();
     }
 
     isDirty(queryPacket) {
