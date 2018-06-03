@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
 let client1;
 let BasicQuery;
@@ -23,9 +23,9 @@ test("Map props 1", () => {
   let Component = getComponent(...basicQueryWithVariablesPacket, {
     mapProps: ({ loading, loaded, data, error }) => ({ loadingX: loading, loadedX: loaded, dataX: data, errorX: error })
   });
-  let obj = mount(<Component />);
+  let obj = shallow(<Component />);
 
-  expect(obj.childAt(0).props()).toMatchObject({
+  expect(obj.props()).toMatchObject({
     loadingX: true,
     loadedX: false,
     dataX: null,
@@ -40,8 +40,8 @@ test("Map props 2", async () => {
   let results = { data: { allBooks: [{ title: "Hello" }] } };
   client1.nextResult = new Promise(res => res(results));
 
-  let obj = mount(<Component />);
-  expect(obj.childAt(0).props()).toMatchObject({
+  let obj = shallow(<Component />);
+  expect(obj.props()).toMatchObject({
     loadingX: true,
     loadedX: false,
     dataX: null,
@@ -51,7 +51,7 @@ test("Map props 2", async () => {
   await client1.nextResult;
 
   obj.update();
-  expect(obj.childAt(0).props()).toMatchObject({
+  expect(obj.props()).toMatchObject({
     loadingX: false,
     loadedX: true,
     dataX: results.data,
@@ -66,8 +66,8 @@ test("Map props 3", async () => {
   let results = { data: { allBooks: [{ title: "Hello" }] } };
   client1.nextResult = new Promise(res => res(results));
 
-  let obj = mount(<Component />);
-  expect(obj.childAt(0).props().packet).toMatchObject({
+  let obj = shallow(<Component />);
+  expect(obj.props().packet).toMatchObject({
     loading: true,
     loaded: false,
     data: null,
@@ -77,7 +77,7 @@ test("Map props 3", async () => {
   await client1.nextResult;
 
   obj.update();
-  expect(obj.childAt(0).props().packet).toMatchObject({
+  expect(obj.props().packet).toMatchObject({
     loading: false,
     loaded: true,
     data: results.data,
