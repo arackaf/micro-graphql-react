@@ -19,8 +19,8 @@ export default class Client {
   getGraphqlQuery({ query, variables }) {
     return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;
   }
-  subscribeMutation(subscription) {
-    this[mutationListenersSymbol].add(subscription);
+  subscribeMutation(subscription, options) {
+    this[mutationListenersSymbol].add({ subscription, options });
 
     return () => this[mutationListenersSymbol].delete(subscription);
   }
@@ -28,10 +28,10 @@ export default class Client {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
       let mutationKeys = Object.keys(resp);
       let mutationKeysLookup = new Set(mutationKeys);
-      [...this[mutationListenersSymbol]].forEach(obj => {
-        if (typeof obj.when === "string") {
-          if (mutationKeysLookup.has(obj.when)) {
-            obj.run(resp, obj.cache);
+      [...this[mutationListenersSymbol]].forEach(({ subscription, options: { cache, softReset, currentResults } }) => {
+        if (typeof subscription.when === "string") {
+          if (mutationKeysLookup.has(subscription.when)) {
+            subscription.run(resp, { cache, softReset, currentResults: currentResults() });
           }
         }
       });
