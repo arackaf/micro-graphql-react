@@ -120,11 +120,20 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     currentQuery = null;
     currentVariables = null;
 
+    softReset = newResults => {
+      cache.clearCache();
+      this.setState({ data: newResults });
+    };
+
     componentDidMount() {
       let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
       if (onMutation) {
-        this.__mutationSubscription = client.subscribeMutation({ ...onMutation, cache });
+        this.__mutationSubscription = client.subscribeMutation(onMutation, {
+          cache,
+          softReset: this.softReset,
+          currentResults: () => this.state.data
+        });
       }
     }
     componentDidUpdate(prevProps, prevState) {
