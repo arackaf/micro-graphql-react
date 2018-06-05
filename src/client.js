@@ -28,10 +28,10 @@ export default class Client {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
       let mutationKeys = Object.keys(resp);
       let mutationKeysLookup = new Set(mutationKeys);
-      [...this[mutationListenersSymbol]].forEach(({ subscription, options: { cache, softReset, hardReset, currentResults } }) => {
+      [...this[mutationListenersSymbol]].forEach(({ subscription, options: { currentResults, ...rest } }) => {
         if (typeof subscription.when === "string") {
           if (mutationKeysLookup.has(subscription.when)) {
-            subscription.run(resp, { cache, softReset, hardReset, currentResults: currentResults() });
+            subscription.run(resp, { currentResults: currentResults(), ...rest });
           }
         }
       });

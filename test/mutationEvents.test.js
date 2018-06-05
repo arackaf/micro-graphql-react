@@ -78,6 +78,43 @@ test("Mutation listener updates cache", async () => {
   expect(obj.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
+test("Mutation listener updates cache then refreshes from cache", async () => {
+  let Component = getQueryAndMutationComponent(
+    queryPacket2.concat({
+      onMutation: {
+        when: "updateBook",
+        run: ({ updateBook: { Book } }, { cache, refresh }) => {
+          cache.entries.forEach(([key, results]) => {
+            let newBooks = results.data.Books.map(b => {
+              if (b.id == Book.id) {
+                return Object.assign({}, b, Book);
+              }
+              return b;
+            });
+            //do this immutable crap just to make sure tests don't accidentally pass because of object references to current props being updated - in real life the component would not be re-rendered, but here's we're verifying the props directly
+            let newResults = { ...results };
+            newResults.data = { ...newResults.data };
+            newResults.data.Books = newBooks;
+            cache.set(key, newResults);
+            refresh();
+          });
+        }
+      }
+    })
+  );
+
+  client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
+  let obj = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(obj);
+
+  client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
+  await obj.props().runMutation();
+  await waitAndUpdate(obj);
+
+  expect(client1.queriesRun).toBe(1); //refreshed from cache
+  expect(obj.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //refreshed with updated data
+});
+
 test("Mutation listener - soft reset - props right, cache cleared", async () => {
   let componentsCache;
   let Component = getQueryAndMutationComponent(
