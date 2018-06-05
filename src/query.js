@@ -130,6 +130,11 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       this.reloadCurrentQuery();
     };
 
+    refresh = () => {
+      let queryPacket = queryFn(this.props);
+      this.loadQuery(queryPacket);
+    };
+
     reloadCurrentQuery = () => {
       let queryPacket = queryFn(this.props);
       this.execute(queryPacket);
@@ -143,6 +148,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
           cache,
           softReset: this.softReset,
           hardReset: this.hardReset,
+          refresh: this.refresh,
           currentResults: () => this.state.data
         });
       }
