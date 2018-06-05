@@ -125,6 +125,16 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       this.setState({ data: newResults });
     };
 
+    hardReset = () => {
+      cache.clearCache();
+      this.reloadCurrentQuery();
+    };
+
+    reloadCurrentQuery = () => {
+      let queryPacket = queryFn(this.props);
+      this.execute(queryPacket);
+    };
+
     componentDidMount() {
       let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
@@ -132,6 +142,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
         this.__mutationSubscription = client.subscribeMutation(onMutation, {
           cache,
           softReset: this.softReset,
+          hardReset: this.hardReset,
           currentResults: () => this.state.data
         });
       }
