@@ -95,16 +95,10 @@ const DEFAULT_CACHE_SIZE = 10;
 
 export default (query, variablesFn, packet = {}) => BaseComponent => {
   const { shouldQueryUpdate, mapProps = props => props, client: clientOption, onMutation } = packet;
-  const client = clientOption || defaultClientManager.getDefaultClient();
-  const cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
 
   if (typeof variablesFn === "object") {
     packet = variablesFn;
     variablesFn = null;
-  }
-
-  if (!client) {
-    throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
   }
 
   const queryFn = props => {
@@ -121,12 +115,12 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     currentVariables = null;
 
     softReset = newResults => {
-      cache.clearCache();
+      this.cache.clearCache();
       this.setState({ data: newResults });
     };
 
     hardReset = () => {
-      cache.clearCache();
+      this.cache.clearCache();
       this.reloadCurrentQuery();
     };
 
@@ -141,11 +135,19 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     };
 
     componentDidMount() {
+      let client = clientOption || defaultClientManager.getDefaultClient();
+      let cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
+      if (!client) {
+        throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
+      }
+      this.client = client;
+      this.cache = cache;
+
       let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
       if (onMutation) {
-        this.__mutationSubscription = client.subscribeMutation(onMutation, {
-          cache,
+        this.__mutationSubscription = this.client.subscribeMutation(onMutation, {
+          cache: this.cache,
           softReset: this.softReset,
           hardReset: this.hardReset,
           refresh: this.refresh,
@@ -155,7 +157,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     }
     componentDidUpdate(prevProps, prevState) {
       let queryPacket = queryFn(this.props);
-      let graphqlQuery = client.getGraphqlQuery(queryPacket);
+      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
       if (this.isDirty(queryPacket)) {
         if (shouldQueryUpdate) {
           if (
@@ -181,17 +183,17 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     }
 
     isDirty(queryPacket) {
-      let graphqlQuery = client.getGraphqlQuery(queryPacket);
+      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
       return graphqlQuery !== this.currentGraphqlQuery;
     }
 
     loadQuery(queryPacket) {
-      let graphqlQuery = client.getGraphqlQuery(queryPacket);
+      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
       this.currentGraphqlQuery = graphqlQuery;
       this.currentQuery = queryPacket.query;
       this.currentVariables = queryPacket.variables;
 
-      cache[getFromCacheSymbol](
+      this.cache[getFromCacheSymbol](
         graphqlQuery,
         promise => {
           Promise.resolve(promise).then(() => {
@@ -213,16 +215,16 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
           loaded: false
         });
       }
-      let graphqlQuery = client.getGraphqlQuery({ query, variables });
-      let promise = client.runQuery(query, variables);
-      cache[setPendingResultSymbol](graphqlQuery, promise);
+      let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
+      let promise = this.client.runQuery(query, variables);
+      this.cache[setPendingResultSymbol](graphqlQuery, promise);
       this.handleExecution(promise, graphqlQuery);
     }
 
     handleExecution = (promise, cacheKey) => {
       Promise.resolve(promise)
         .then(resp => {
-          cache[setResultsSymbol](promise, cacheKey, resp);
+          this.cache[setResultsSymbol](promise, cacheKey, resp);
           if (resp.errors) {
             this.handlerError(resp.errors);
           } else {
@@ -230,7 +232,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
           }
         })
         .catch(err => {
-          cache[setResultsSymbol](promise, cacheKey, null, err);
+          this.cache[setResultsSymbol](promise, cacheKey, null, err);
           this.handlerError(err);
         });
     };
@@ -254,7 +256,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     };
 
     clearCacheAndReload = () => {
-      cache.clearCache();
+      this.cache.clearCache();
       this.executeNow();
     };
 
@@ -266,7 +268,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
         data,
         error,
         reload: this.executeNow,
-        clearCache: () => cache.clearCache(),
+        clearCache: () => this.cache.clearCache(),
         clearCacheAndReload: this.clearCacheAndReload
       });
 
