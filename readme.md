@@ -56,101 +56,59 @@ Be sure to use the `compress` tag to remove un-needed whitespace from your query
 
 ### props passed to your component
 
-* `loading` Fetch is executing for your query
-* `loaded` Fetch has finished executing for your query
-* `data` If the last fetch finished successfully, this will contain the data returned, else null
-* `error` If the last fetch did not finish successfully, this will contain the errors that were returned, else null
-* `reload` A function you can call to manually re-fetch the current query
-* `clearCache` Clear the cache for this component
-* `clearCacheAndReload` Calls `clearCache`, followed by `reload`
+- `loading` Fetch is executing for your query
+- `loaded` Fetch has finished executing for your query
+- `data` If the last fetch finished successfully, this will contain the data returned, else null
+- `error` If the last fetch did not finish successfully, this will contain the errors that were returned, else null
+- `reload` A function you can call to manually re-fetch the current query
+- `clearCache` Clear the cache for this component
+- `clearCacheAndReload` Calls `clearCache`, followed by `reload`
 
 ### Other options
 
 The decorator can also take a third argument of options (or second argument, if your query doesn't use variables). The following properties can be passed in this object:
 
-* `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
-* `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
+- `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
+- `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
 
-  * prevProps - previous component props
-  * props - current component props
-  * prevVariables - previous graphql variables produced
-  * variables - current graphql variables produced
+  - prevProps - previous component props
+  - props - current component props
+  - prevVariables - previous graphql variables produced
+  - variables - current graphql variables produced
 
-* `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your component's props will be passed to this function, and the result will be spread into your component
-* `client` - manually pass in a client to be used for this component
+- `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your component's props will be passed to this function, and the result will be spread into your component
+- `client` - manually pass in a client to be used for this component
 
-An example of `shouldQueryUpdate`, and `cacheSize`
+An example of `mapProps` and `cacheSize`
 
 ```javascript
 @query(
-  props => ({
-    query: compress`
-    query ALL_BOOKS ($page: Int, $title: String, $version: Int) {
-      allBooks(PAGE: $page, PAGE_SIZE: 3, title_contains: $title, version: $version) {
+  `
+    query ALL_BOOKS($title_contains: String) {
+      allBooks(title_contains: $title_contains, SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
         Books {
           _id
           title
         }
       }
     }`,
-    variables: {
-      page: props.page,
-      title: props.title,
-      version: props.version
+  props => ({ title_contains: props.title_contains }),
+  { mapProps: props => ({ firstBookProps: props }), cacheSize: 3 }
+)
+@query(
+  `
+  query ALL_BOOKS($title_contains: String) {
+    allBooks(title_contains: $title_contains, SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1) {
+      Books {
+        _id
+        title
+      }
     }
-  }),
-  {
-    cacheSize: 3,
-    shouldQueryUpdate: ({ prevVariables, variables }) => prevVariables.version != variables.version
-  }
+  }`,
+  props => ({ title_contains: props.title_contains }),
+  { mapProps: props => ({ lastBookProps: props }), cacheSize: 3 }
 )
-class QueryWithOptions extends Component {
-  render() {
-    let { loading, loaded, data, reload, title, version } = this.props;
-    return (
-      <div>
-        {loading ? <div>LOADING</div> : null}
-        {loaded ? <div>LOADED</div> : null}
-        <br />
-        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-      </div>
-    );
-  }
-}
-```
-
-An example of `mapProps`
-
-```javascript
-@query(
-  props => ({
-    query: compress`
-    query ALL_BOOKS {
-      allBooks(SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
-        Books {
-          _id
-          title
-        }
-      }
-    }`
-  }),
-  { mapProps: props => ({ firstBookProps: props }) }
-)
-@query(
-  props => ({
-    query: compress`
-    query ALL_BOOKS {
-      allBooks(SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1)  {
-        Books {
-          _id
-          title
-        }
-      }
-    }`
-  }),
-  { mapProps: props => ({ lastBookProps: props }) }
-)
-class TwoQueries extends Component {
+export default class TwoQueries extends Component {
   render() {
     let { firstBookProps, lastBookProps } = this.props;
     return (
@@ -198,9 +156,9 @@ Same idea, but just a string for your mutation. You'll get a `runMutation` funct
 
 ### props passed to your component
 
-* `running` Mutation is executing
-* `finished` Mutation has finished executing
-* `runMutation` A function you can call when you want to run your mutation. Pass it an object with your variables
+- `running` Mutation is executing
+- `finished` Mutation has finished executing
+- `runMutation` A function you can call when you want to run your mutation. Pass it an object with your variables
 
 ### Other options
 
@@ -280,63 +238,7 @@ class TwoMutationsAndQuery extends Component {
 
 ## Can I put a Query and Mutation on the same component?
 
-Of course.
-
-```javascript
-@query(props => ({
-  query: compress`
-    query ALL_BOOKS {
-      allBooks(PAGE: 1, PAGE_SIZE: 3) {
-        Books { 
-          _id 
-          title 
-        }
-      }
-    }`
-}))
-@mutation(
-  `mutation modifyBook($_id: String, $title: String) {
-    updateBook(_id: $_id, Updates: { title: $title }) {
-      success
-    }
-  }`
-)
-class MutationAndQuery extends Component {
-  state = { editingId: "", editingOriginaltitle: "" };
-  edit = book => {
-    this.setState({ editingId: book._id, editingOriginaltitle: book.title });
-  };
-  render() {
-    let { loading, loaded, data, running, finished, runMutation } = this.props;
-    let { editingId, editingOriginaltitle } = this.state;
-    return (
-      <div>
-        {loading ? <div>LOADING</div> : null}
-        {loaded ? <div>LOADED</div> : null}
-        {data ? (
-          <ul>
-            {data.allBooks.Books.map(book => (
-              <li key={book._id}>
-                {book.title}
-                <button onClick={() => this.edit(book)}> edit</button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {editingId ? (
-          <Fragment>
-            {running ? <div>RUNNING</div> : null}
-            {finished ? <div>SAVED</div> : null}
-            <input defaultValue={editingOriginaltitle} ref={el => (this.el = el)} placeholder="New title here!" />
-            <button onClick={() => runMutation({ _id: editingId, title: this.el.value })}>Save</button>
-          </Fragment>
-        ) : null}
-      </div>
-    );
-  }
-}
-```
+Of course - see above :)
 
 ## Adjusting the props passed to your components
 
@@ -348,8 +250,8 @@ It's entirely possible some pieces of data may need to be loaded from, and store
 
 ### Client api
 
-* `runQuery(query: String, variables?: Object)`
-* `runMutation(mutation: String, variables?: Object)`
+- `runQuery(query: String, variables?: Object)`
+- `runMutation(mutation: String, variables?: Object)`
 
 For example, to imperatively run the query from above in application code, you can do
 
@@ -436,4 +338,4 @@ By default this library ships standard ES6, which should work in all modern brow
 
 ## What's next
 
-* Add a render prop API
+- Add a render prop API

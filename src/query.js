@@ -94,12 +94,11 @@ class QueryCache {
 const DEFAULT_CACHE_SIZE = 10;
 
 export default (query, variablesFn, packet = {}) => BaseComponent => {
-  const { shouldQueryUpdate, mapProps = props => props, client: clientOption, onMutation } = packet;
-
   if (typeof variablesFn === "object") {
     packet = variablesFn;
     variablesFn = null;
   }
+  const { shouldQueryUpdate, mapProps = props => props, client: clientOption, onMutation } = packet;
 
   const queryFn = props => {
     return {
