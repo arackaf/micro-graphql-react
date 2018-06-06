@@ -2,6 +2,9 @@ import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
 import { Client, query, mutation, setDefaultClient } from "../index-local";
 
+import BasicQuery from "./basicQuery";
+import TwoQueries from "./twoQueries";
+
 const client = new Client({
   endpoint: "/graphql",
   fetchOptions: { credentials: "include" }
@@ -206,31 +209,6 @@ setDefaultClient(client2);
 //   }
 // }
 
-@query(
-  `
-  query ALL_BOOKS ($page: Int) {
-    allBooks(PAGE: $page, PAGE_SIZE: 3) {
-      Books {
-        _id
-        title
-      }
-    }
-  }`,
-  props => ({ page: props.page })
-)
-class BasicQuery extends Component {
-  render() {
-    let { loading, loaded, data } = this.props;
-    return (
-      <div>
-        {loading ? <div>LOADING</div> : null}
-        {loaded ? <div>LOADED</div> : null}
-        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-      </div>
-    );
-  }
-}
-
 // @query(client, props => ({
 //   query: `
 //     query ALL_BOOKS ($page: Int) {
@@ -258,40 +236,6 @@ class BasicQuery extends Component {
 //     );
 //   }
 // }
-
-@query(
-  `
-    query ALL_BOOKS ($page: Int, $title: String) {
-      allBooks(PAGE: $page, PAGE_SIZE: 2, title_contains: $title) {
-        Books {
-          _id
-          title
-        }
-      }
-    }`,
-  props => ({
-    page: props.page,
-    title: props.title
-  }),
-  {
-    cacheSize: 3,
-    shouldQueryUpdate: ({ prevQuery, query, props, prevProps }) => prevProps.version != props.version || prevQuery != query
-  }
-)
-class QueryWithOptions extends Component {
-  render() {
-    let { loading, loaded, data, reload, title, version } = this.props;
-    return (
-      <div>
-        {loading ? <div>LOADING</div> : null}
-        {loaded ? <div>LOADED</div> : null}
-        <button onClick={reload}>reload</button>
-        <br />
-        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-      </div>
-    );
-  }
-}
 
 // @query(client, props => ({
 //   query: `
@@ -377,50 +321,6 @@ class QueryWithOptions extends Component {
 //   }
 // }
 
-// @query(
-//   client,
-//   props => ({
-//     query: `
-//     query ALL_BOOKS {
-//       allBooks(SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
-//         Books {
-//           _id
-//           title
-//         }
-//       }
-//     }`
-//   }),
-//   { mapProps: props => ({ firstBookProps: props }) }
-// )
-// @query(
-//   client,
-//   props => ({
-//     query: `
-//     query ALL_BOOKS {
-//       allBooks(SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1) {
-//         Books {
-//           _id
-//           title
-//         }
-//       }
-//     }`
-//   }),
-//   { mapProps: props => ({ lastBookProps: props }) }
-// )
-// class TwoQueries extends Component {
-//   render() {
-//     let { firstBookProps, lastBookProps } = this.props;
-//     return (
-//       <div>
-//         {firstBookProps.loading || lastBookProps.loading ? <div>LOADING</div> : null}
-//         {firstBookProps.loaded || lastBookProps.loaded ? <div>LOADED</div> : null}
-//         {firstBookProps.data ? <ul>{firstBookProps.data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-//         {lastBookProps.data ? <ul>{lastBookProps.data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-//       </div>
-//     );
-//   }
-// }
-
 class TestingSandbox1 extends Component {
   state = { page: 1, shown: true, pageConflict1: 1, pageConflict2: 1, version: 0, title: "" };
   render() {
@@ -438,7 +338,7 @@ class TestingSandbox1 extends Component {
         {this.state.version}
         <input value={this.state.title} onChange={e => this.setState({ title: e.target.value })} />
 
-        {this.state.shown ? <QueryWithOptions {...{ title, version, page }} /> : null}
+        <TwoQueries title_contains="Sec" />
         {/*<BasicQuery page={this.state.page} />*/}
 
         {/*
@@ -450,7 +350,6 @@ class TestingSandbox1 extends Component {
         
         
         <BasicMutation />
-        <TwoQueries />
 
         <br />
         <br />
