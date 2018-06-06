@@ -123,6 +123,8 @@ class TwoQueries extends Component {
 }
 ```
 
+## Cache invalidation
+
 ## Mutations
 
 ```javascript
@@ -152,7 +154,7 @@ class BasicMutation extends Component {
 }
 ```
 
-Same idea, but just a string for your mutation. You'll get a `runMutation` function in your props that you can call, and pass your variables.
+Same idea as with query, just a string for your mutation and you'll get a `runMutation` function in your props that you can call, and pass your variables.
 
 ### props passed to your component
 
