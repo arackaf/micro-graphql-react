@@ -34,6 +34,7 @@ test("Default cache size", async () => {
 
 test("Cache accessible by query in client", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
+  shallow(<Component page={1} unused={10} />);
   let cache = client1.getCache(basicQueryWithVariables);
   expect(typeof cache).toBe("object");
 });
