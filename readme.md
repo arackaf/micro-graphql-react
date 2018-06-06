@@ -108,7 +108,7 @@ An example of `mapProps` and `cacheSize`
   props => ({ title_contains: props.title_contains }),
   { mapProps: props => ({ lastBookProps: props }), cacheSize: 3 }
 )
-export default class TwoQueries extends Component {
+class TwoQueries extends Component {
   render() {
     let { firstBookProps, lastBookProps } = this.props;
     return (
@@ -165,18 +165,19 @@ Same idea, but just a string for your mutation. You'll get a `runMutation` funct
 Like `query`, you can pass a second argument to your `mutation` decorator. Here, this object only supports the `mapProps`, and `client` options, which work the same as for queries.
 
 ```javascript
-@query(props => ({
-  query: compress`
-    query ALL_BOOKS {
-      allBooks(PAGE: 1, PAGE_SIZE: 3) {
-        Books { 
-          _id 
+@query(
+  `
+    query ALL_BOOKS($page: Int) {
+      allBooks(PAGE: $page, PAGE_SIZE: 3) {
+        Books {
+          _id
           title
           pages
         }
       }
-    }`
-}))
+    }`,
+  props => ({ page: props.page })
+)
 @mutation(
   `mutation modifyBook($_id: String, $title: String) {
     updateBook(_id: $_id, Updates: { title: $title }) {
@@ -294,7 +295,7 @@ Be sure to use the `babel-plugin-transform-decorators-legacy` Babel preset. The 
 That's fine! This will work too
 
 ```javascript
-class BasicQueryUnwrapped extends Component {
+class BasicQueryNoDecorators extends Component {
   render() {
     let { loading, loaded, data } = this.props;
     return (
@@ -306,17 +307,18 @@ class BasicQueryUnwrapped extends Component {
     );
   }
 }
-const BasicQueryWrapped = query(props => ({
-  query: `
-    query ALL_BOOKS {
-      allBooks(PAGE: ${props.page}, PAGE_SIZE: 3) {
+const BasicQueryConnected = query(
+  `
+    query ALL_BOOKS($page: Int) {
+      allBooks(PAGE: $page, PAGE_SIZE: 3) {
         Books {
           _id
           title
         }
       }
-    }`
-}))(BasicQueryUnwrapped);
+    }`,
+  props => ({ page: props.page })
+)(BasicQueryNoDecorators);
 ```
 
 I plan on supporting both the old, and new class decorator formats indefinitely, if for no other reason than to transparently allow for separate, explicit wrapping like the above. This pattern is popular for unit testing React components.
