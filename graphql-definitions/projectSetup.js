@@ -39,7 +39,7 @@ const Book = {
 };
 
 const Subject = {
-  table: "books",
+  table: "subjects",
   fields: {
     _id: MongoIdType,
     name: StringType

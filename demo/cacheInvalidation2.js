@@ -2,16 +2,17 @@ import React, { Component, Fragment } from "react";
 import { query, mutation } from "../index-local";
 import { BOOKS_QUERY, BOOKS_MUTATION, SUBJECTS_QUERY, SUBJECTS_MUTATION } from "./savedQueries";
 
-@query(BOOKS_QUERY, props => ({ page: props.page }), {
-  onMutation: {
-    when: "updateBook",
-    run: ({ updateBook: { Book } }, { softReset, currentResults }) => {
-      let CachedBook = currentResults.allBooks.Books.find(b => b._id == Book._id);
-      CachedBook && Object.assign(CachedBook, Book);
-      softReset(currentResults);
-    }
+const standardUpdateSingleStrategy = name => ({
+  when: `update${name}`,
+  run: ({ [`update${name}`]: { [name]: updatedItem } }, { softReset, currentResults }) => {
+    debugger;
+    let CachedItem = currentResults[`all${name}s`][`${name}s`].find(x => x._id == updatedItem._id);
+    CachedItem && Object.assign(CachedItem, updatedItem);
+    softReset(currentResults);
   }
-})
+});
+
+@query(BOOKS_QUERY, props => ({ page: props.page }), { onMutation: standardUpdateSingleStrategy("Book") })
 @mutation(BOOKS_MUTATION)
 export class SoftResetCacheInvalidationBooks extends Component {
   state = { editingId: "", editingOriginaltitle: "" };
@@ -47,16 +48,7 @@ export class SoftResetCacheInvalidationBooks extends Component {
   }
 }
 
-@query(SUBJECTS_QUERY, props => ({ page: props.page }), {
-  onMutation: {
-    when: "updateSubject",
-    run: ({ updateSubject: { Subject } }, { softReset, currentResults }) => {
-      let CachedSubject = currentResults.allSubjects.Subjects.find(s => s._id == Subject._id);
-      CachedSubject && Object.assign(CachedSubject, Subject);
-      softReset(currentResults);
-    }
-  }
-})
+@query(SUBJECTS_QUERY, props => ({ page: props.page }), { onMutation: standardUpdateSingleStrategy("Subject") })
 @mutation(SUBJECTS_MUTATION)
 export class SoftResetCacheInvalidationSubjects extends Component {
   state = { editingId: "", editingOriginalName: "" };
