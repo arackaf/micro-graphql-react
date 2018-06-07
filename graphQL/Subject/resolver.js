@@ -16,7 +16,7 @@ export async function loadSubjects(db, queryPacket) {
     $limit != null ? { $limit } : null
   ].filter(item => item);
 
-  let Subjects = await dbHelpers.runQuery(db, "books", aggregateItems);
+  let Subjects = await dbHelpers.runQuery(db, "subjects", aggregateItems);
   
   await processHook(hooksObj, "Subject", "adjustResults", Subjects);
   return Subjects;
@@ -50,7 +50,7 @@ export default {
         result.Meta = {};
 
         if (queryPacket.metadataRequested.get("count")) {
-          let countResults = await dbHelpers.runQuery(db, "books", [{ $match: queryPacket.$match }, { $group: { _id: null, count: { $sum: 1 } } }]);  
+          let countResults = await dbHelpers.runQuery(db, "subjects", [{ $match: queryPacket.$match }, { $group: { _id: null, count: { $sum: 1 } } }]);  
           result.Meta.count = countResults.length ? countResults[0].count : 0;
         }
       }
@@ -68,7 +68,7 @@ export default {
       if (await processHook(hooksObj, "Subject", "beforeInsert", newObject, root, args, context, ast) === false) {
         return { Subject: null };
       }
-      await dbHelpers.runInsert(db, "books", newObject);
+      await dbHelpers.runInsert(db, "subjects", newObject);
       await processHook(hooksObj, "Subject", "afterInsert", newObject, root, args, context, ast);
 
       let result = (await loadSubjects(db, { $match: { _id: newObject._id }, $project, $limit: 1 }))[0];
@@ -87,7 +87,7 @@ export default {
       if (await processHook(hooksObj, "Subject", "beforeUpdate", $match, updates, root, args, context, ast) === false) {
         return { Subject: null };
       }
-      await dbHelpers.runUpdate(db, "books", $match, updates);
+      await dbHelpers.runUpdate(db, "subjects", $match, updates);
       await processHook(hooksObj, "Subject", "afterUpdate", $match, updates, root, args, context, ast);
       
       let result = $project ? (await loadSubjects(db, { $match, $project, $limit: 1 }))[0] : null;
@@ -104,7 +104,7 @@ export default {
       if (await processHook(hooksObj, "Subject", "beforeUpdate", $match, updates, root, args, context, ast) === false) {
         return { success: true };
       }
-      await dbHelpers.runUpdate(db, "books", $match, updates, { multi: true });
+      await dbHelpers.runUpdate(db, "subjects", $match, updates, { multi: true });
       await processHook(hooksObj, "Subject", "afterUpdate", $match, updates, root, args, context, ast);
       
       let result = $project ? await loadSubjects(db, { $match, $project }) : null;
@@ -121,7 +121,7 @@ export default {
       if (await processHook(hooksObj, "Subject", "beforeUpdate", $match, updates, root, args, context, ast) === false) {
         return { success: true };
       }
-      await dbHelpers.runUpdate(db, "books", $match, updates, { multi: true });
+      await dbHelpers.runUpdate(db, "subjects", $match, updates, { multi: true });
       await processHook(hooksObj, "Subject", "afterUpdate", $match, updates, root, args, context, ast);
 
       return { success: true };
@@ -136,7 +136,7 @@ export default {
       if (await processHook(hooksObj, "Subject", "beforeDelete", $match, root, args, context, ast) === false) {
         return false;
       }
-      await dbHelpers.runDelete(db, "books", $match);
+      await dbHelpers.runDelete(db, "subjects", $match);
       await processHook(hooksObj, "Subject", "afterDelete", $match, root, args, context, ast);
       return true;
     }

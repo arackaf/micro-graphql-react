@@ -6,11 +6,30 @@ Wrapped components maintain a basic client-side cache of your query history. The
 
 Queries are fetched via HTTP GET, so while the client-side caching is not nearly as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
 
-# Cache Invalidation
+**A note on cache invalidation**
 
-This library will not invalidate the client-side cache as you perform GraphQL mutations. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're left to just invalidate the cache as needed, likely by changing an identifier in your query. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. For more information, see [this explanation](./readme-cache.md)
+This library will not automatically add metadata requests to your query, and attempt to automatically update your cached results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which will allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, it's easily built on and abstracted. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. This is all explained at length, below
 
-# Usage
+For more information on the difficulties of GraphQL caching, see [this explanation](./readme-cache.md)
+
+<!-- TOC -->
+
+- [Queries](#queries)
+  - [props passed to your component](#props-passed-to-your-component)
+  - [Other options](#other-options)
+- [Mutations](#mutations)
+  - [props passed to your component](#props-passed-to-your-component-1)
+  - [Other options](#other-options-1)
+- [Cache invalidation](#cache-invalidation)
+  - [Use case 1: Update current results, but otherwise clear the cache](#use-case-1-update-current-results-but-otherwise-clear-the-cache)
+- [Manually running queries or mutations](#manually-running-queries-or-mutations)
+  - [Client api](#client-api)
+- [Transpiling decorators](#transpiling-decorators)
+  - [But I don't like decorators](#but-i-dont-like-decorators)
+- [Use in old browsers](#use-in-old-browsers)
+- [What's next](#whats-next)
+
+<!-- /TOC -->
 
 ## Queries
 
@@ -68,6 +87,8 @@ Be sure to use the `compress` tag to remove un-needed whitespace from your query
 
 The decorator can also take a third argument of options (or second argument, if your query doesn't use variables). The following properties can be passed in this object:
 
+- `onMutation` - a map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below
+- `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your component's props will be passed to this function, and the result will be spread into your component
 - `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
 - `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
 
@@ -76,7 +97,6 @@ The decorator can also take a third argument of options (or second argument, if 
   - prevVariables - previous graphql variables produced
   - variables - current graphql variables produced
 
-- `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your component's props will be passed to this function, and the result will be spread into your component
 - `client` - manually pass in a client to be used for this component
 
 An example of `mapProps` and `cacheSize`
@@ -122,8 +142,6 @@ class TwoQueries extends Component {
   }
 }
 ```
-
-## Cache invalidation
 
 ## Mutations
 
@@ -239,13 +257,154 @@ class TwoMutationsAndQuery extends Component {
 }
 ```
 
-## Can I put a Query and Mutation on the same component?
+## Cache invalidation
 
-Of course - see above :)
+The onMutation option that `query` takes is an object, with entries of the form `{ when: "string|regularExpression", run: function }`
 
-## Adjusting the props passed to your components
+`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with two arguments: the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
 
-Both query and mutation allow you to modify how the GraphQL props are passed to your component via the `mapProps` option. This is explained above.
+`softReset` - clears the cache, but does **not** re-issue any queries. It can optionally take an argument of new, updated results, which will update the `data` props passed
+`currentResults` - the current results that are passed as your `data` prop
+`hardReset` - clear the cache, and re-load the current query
+`cache` - the actual cache object. You can enumerate its entries, and update whatever you need.
+`refresh` - refresh the current query from cache. You'll likely want to call this after modifying the cache.
+
+Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I build a book tracking website and so already have some data to work with :D
+
+### Use case 1: Update current results, but otherwise clear the cache
+
+Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but not run any network requests. So, if you have a book search for an author of Dumas Malone, but one of the results was written by Shelby Foote, and you click the edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion. (if you do want to do that, stay tuned, it's even easier).
+
+Let's look at some code. Our components will be using these constants
+
+```javascript
+export const BOOKS_QUERY = `
+query ALL_BOOKS($page: Int) {
+  allBooks(PAGE: $page, PAGE_SIZE: 3) {
+    Books { _id title pages }
+  }
+}`;
+
+export const BOOKS_MUTATION = `mutation modifyBook($_id: String, $title: String, $pages: Int) {
+  updateBook(_id: $_id, Updates: { title: $title, pages: $pages }) {
+    Book { _id title pages }
+  }
+}`;
+
+export const SUBJECTS_QUERY = `
+query ALL_SUBJECTS($page: Int) {
+  allSubjects(PAGE: $page, PAGE_SIZE: 3) {
+    Subjects { _id name }
+  }
+}`;
+
+export const SUBJECTS_MUTATION = `mutation modifySubject($_id: String, $name: String) {
+  updateSubject(_id: $_id, Updates: { name: $name }) {
+    Subject { _id name }
+  }
+}`;
+```
+
+Let's see a (contrived) component to list books, and allow you to edit their title, and then update any changes, while clearing the cache, as described above
+
+```javascript
+@query(BOOKS_QUERY, props => ({ page: props.page }), {
+  onMutation: {
+    when: "updateBook",
+    run: ({ updateBook: { Book } }, { softReset, currentResults }) => {
+      let CachedBook = currentResults.allBooks.Books.find(b => b._id == Book._id);
+      CachedBook && Object.assign(CachedBook, Book);
+      softReset(currentResults);
+    }
+  }
+})
+@mutation(BOOKS_MUTATION)
+export class SoftResetCacheInvalidationBooks extends Component {
+  state = { editingId: "", editingOriginaltitle: "" };
+  edit = book => this.setState({ editingId: book._id, editingOriginaltitle: book.title, editingOriginalpages: book.pages });
+  cancel = () => this.setState({ editingId: null });
+
+  render() {
+    let { data, runMutation } = this.props;
+    let { editingId, editingOriginaltitle, editingOriginalpages } = this.state;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(book => (
+              <li key={book._id}>
+                {book.title}
+                <button onClick={() => this.edit(book)}> edit</button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {editingId ? (
+          <Fragment>
+            <input defaultValue={editingOriginaltitle} style={{ width: "300px" }} ref={el => (this.el = el)} placeholder="New title here!" />
+            <input defaultValue={editingOriginalpages} ref={el => (this.elPages = el)} placeholder="New pages here!" />
+            <button onClick={() => runMutation({ _id: editingId, title: this.el.value, pages: +this.elPages.value }).then(this.cancel)}>Save</button>
+            <button onClick={this.cancel}>Cancel</button>
+          </Fragment>
+        ) : null}
+      </div>
+    );
+  }
+}
+```
+
+The interesting work is being done on line 2 above, in `onMutation`. Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing all cache results. This will also clear the current cache result, so if you page up, then come back down to where you were, a **new** network request will be run, and so your edited book will no longer be there, as you want.
+
+This seems like quite a lot of boilerplate, but lets look at another example and see if any patterns emerge. Specifically, lets look at a (again contrived) component that lists out our books' subjects, with the option of editing them, and updating as we did above.
+
+```javascript
+@query(SUBJECTS_QUERY, props => ({ page: props.page }), {
+  onMutation: {
+    when: "updateSubject",
+    run: ({ updateSubject: { Subject } }, { softReset, currentResults }) => {
+      let CachedSubject = currentResults.allSubjects.Subjects.find(s => s._id == Subject._id);
+      CachedSubject && Object.assign(CachedSubject, Subject);
+      softReset(currentResults);
+    }
+  }
+})
+@mutation(SUBJECTS_MUTATION)
+export class SoftResetCacheInvalidationSubjects extends Component {
+  state = { editingId: "", editingOriginalName: "" };
+  edit = subject => this.setState({ editingId: subject._id, editingOriginalName: subject.name });
+  cancel = () => this.setState({ editingId: null });
+
+  render() {
+    let { data, runMutation } = this.props;
+    let { editingId, editingOriginalName, editingOriginalpages } = this.state;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allSubjects.Subjects.map(subject => (
+              <li key={subject._id}>
+                {subject.name}
+                <button onClick={() => this.edit(subject)}> edit</button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {editingId ? (
+          <Fragment>
+            <input defaultValue={editingOriginalName} style={{ width: "300px" }} ref={el => (this.el = el)} placeholder="New name here!" />
+            <button onClick={() => runMutation({ _id: editingId, name: this.el.value }).then(this.cancel)}>Save</button>
+            <button onClick={this.cancel}>Cancel</button>
+          </Fragment>
+        ) : null}
+      </div>
+    );
+  }
+}
+```
+
+Assuming we've named our GraphQL operations consistently, and we should have, then theres some pretty obvious repetition happening. We can easily refactor this repetition into some helper methods that can be re-used throughout our app. Let's see what that looks like
 
 ## Manually running queries or mutations
 
