@@ -45,13 +45,9 @@ const client = new Client({
 setDefaultClient(client);
 
 @query(
-  `
-  query ALL_BOOKS ($page: Int) {
+  `query ALL_BOOKS ($page: Int) {
     allBooks(PAGE: $page, PAGE_SIZE: 3) {
-      Books {
-        _id
-        title
-      }
+      Books { _id title }
     }
   }`,
   props => ({ page: props.page })
@@ -104,26 +100,18 @@ An example of `mapProps` and `cacheSize`
 
 ```javascript
 @query(
-  `
-    query ALL_BOOKS($title_contains: String) {
+  `query ALL_BOOKS($title_contains: String) {
       allBooks(title_contains: $title_contains, SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
-        Books {
-          _id
-          title
-        }
+        Books { _id title }
       }
     }`,
   props => ({ title_contains: props.title_contains }),
   { mapProps: props => ({ firstBookProps: props }), cacheSize: 3 }
 )
 @query(
-  `
-  query ALL_BOOKS($title_contains: String) {
+  `query ALL_BOOKS($title_contains: String) {
     allBooks(title_contains: $title_contains, SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1) {
-      Books {
-        _id
-        title
-      }
+      Books { _id title }
     }
   }`,
   props => ({ title_contains: props.title_contains }),
@@ -147,16 +135,11 @@ class TwoQueries extends Component {
 ## Mutations
 
 ```javascript
-@mutation(
-  `mutation modifyBook($title: String) {
+@mutation(`mutation modifyBook($title: String) {
     updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
-      Book {
-        _id
-        title
-      }
+      Book { _id title }
     }
-  }`
-)
+  }`)
 class BasicMutation extends Component {
   render() {
     let { running, finished, runMutation } = this.props;
@@ -190,28 +173,20 @@ Like `query`, you can pass a second argument to your `mutation` decorator. Here,
   `
     query ALL_BOOKS($page: Int) {
       allBooks(PAGE: $page, PAGE_SIZE: 3) {
-        Books {
-          _id
-          title
-          pages
-        }
+        Books { _id title pages }
       }
     }`,
   props => ({ page: props.page })
 )
 @mutation(
   `mutation modifyBook($_id: String, $title: String) {
-    updateBook(_id: $_id, Updates: { title: $title }) {
-      success
-    }
+    updateBook(_id: $_id, Updates: { title: $title }) { success }
   }`,
   { mapProps: props => ({ titleMutation: props }) }
 )
 @mutation(
   `mutation modifyBook($_id: String, $pages: Int) {
-    updateBook(_id: $_id, Updates: { pages: $pages }) {
-      success
-    }
+    updateBook(_id: $_id, Updates: { pages: $pages }) { success }
   }`,
   { mapProps: props => ({ pagesMutation: props }) }
 )

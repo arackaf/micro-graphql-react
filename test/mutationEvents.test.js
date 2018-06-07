@@ -112,7 +112,7 @@ test("Mutation listener updates cache", async () => {
     queryPacket2.concat({
       onMutation: {
         when: "updateBook",
-        run: ({ updateBook: { Book } }, { cache }) => {
+        run: (args, { updateBook: { Book } }, { cache }) => {
           cache.entries.forEach(([key, results]) => {
             let CachedBook = results.data.Books.find(b => b.id == Book.id);
             CachedBook && Object.assign(CachedBook, Book);
@@ -140,12 +140,46 @@ test("Mutation listener updates cache", async () => {
   expect(obj.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
+test("Mutation listener updates cache with mutation args", async () => {
+  let Component = getQueryAndMutationComponent(
+    queryPacket2.concat({
+      onMutation: {
+        when: "deleteBook",
+        run: (args, resp, { cache, refresh }) => {
+          cache.entries.forEach(([key, results]) => {
+            results.data.Books = results.data.Books.filter(b => b.id != args.id);
+            refresh();
+          });
+        }
+      }
+    })
+  );
+
+  client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] } };
+  let obj = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(obj);
+
+  client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }] } };
+  await setPropsAndWait(obj, { query: "b" });
+
+  client1.nextMutationResult = { deleteBook: { success: true } };
+  await obj.props().runMutation({ id: 1 });
+
+  expect(client1.queriesRun).toBe(2); //run for new query args
+  expect(obj.props().data).toEqual({ Books: [] }); //loads updated data
+
+  await setPropsAndWait(obj, { query: "a" });
+
+  expect(client1.queriesRun).toBe(2); //still loads from cache
+  expect(obj.props().data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
+});
+
 test("Mutation listener updates cache then refreshes from cache", async () => {
   let Component = getQueryAndMutationComponent(
     queryPacket2.concat({
       onMutation: {
         when: "updateBook",
-        run: ({ updateBook: { Book } }, { cache, refresh }) => {
+        run: (args, { updateBook: { Book } }, { cache, refresh }) => {
           cache.entries.forEach(([key, results]) => {
             let newBooks = results.data.Books.map(b => {
               if (b.id == Book.id) {
@@ -183,7 +217,7 @@ test("Mutation listener - soft reset - props right, cache cleared", async () => 
     queryPacket2.concat({
       onMutation: {
         when: "updateBook",
-        run: ({ updateBook: { Book } }, { cache, softReset, currentResults }) => {
+        run: (args, { updateBook: { Book } }, { cache, softReset, currentResults }) => {
           componentsCache = cache;
           let CachedBook = currentResults.Books.find(b => b.id == Book.id);
           CachedBook && Object.assign(CachedBook, Book);
@@ -210,7 +244,7 @@ test("Mutation listener - hard reset - props right, cache cleared, client qeried
     queryPacket2.concat({
       onMutation: {
         when: "updateBook",
-        run: (Resp, { cache, hardReset, currentResults }) => {
+        run: (args, Resp, { cache, hardReset, currentResults }) => {
           componentsCache = cache;
           hardReset();
         }
