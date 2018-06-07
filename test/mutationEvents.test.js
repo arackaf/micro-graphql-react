@@ -51,6 +51,51 @@ test("Mutation listener runs with exact match twice", async () => {
   expect(runCount2).toBe(1);
 });
 
+test("Mutation listener runs with regex match", async () => {
+  let runCount = 0;
+  let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: /update/, run: () => runCount++ } }));
+  let obj = shallow(<Component page={1} />).dive();
+
+  client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
+  await obj.props().runMutation();
+
+  expect(runCount).toBe(1);
+});
+
+test("Mutation listener runs with regex match twice", async () => {
+  let runCount = 0;
+  let runCount2 = 0;
+  let Component = getQueryAndMutationComponent(
+    queryPacket.concat({
+      onMutation: [{ when: /book/i, run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
+    })
+  );
+  let obj = shallow(<Component page={1} />).dive();
+
+  client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
+  await obj.props().runMutation();
+
+  expect(runCount).toBe(1);
+  expect(runCount2).toBe(1);
+});
+
+test("Mutation listener runs either test match", async () => {
+  let runCount = 0;
+  let runCount2 = 0;
+  let Component = getQueryAndMutationComponent(
+    queryPacket.concat({
+      onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
+    })
+  );
+  let obj = shallow(<Component page={1} />).dive();
+
+  client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
+  await obj.props().runMutation();
+
+  expect(runCount).toBe(1);
+  expect(runCount2).toBe(1);
+});
+
 test("Mutation listener misses without match", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: "updateBook", run: () => runCount++ } }));
