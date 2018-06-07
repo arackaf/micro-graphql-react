@@ -1,16 +1,40 @@
 import React, { Component, Fragment } from "react";
 import { query, mutation } from "../index-local";
-import { BOOKS_QUERY, BOOKS_MUTATION, SUBJECTS_QUERY, SUBJECTS_MUTATION } from "./savedQueries";
+import { BOOKS_QUERY, BOOKS_MUTATION, BOOKS_MUTATION_MULTI, BOOK_CREATE, BOOK_DELETE, SUBJECTS_QUERY, SUBJECTS_MUTATION } from "./savedQueries";
 
-@query(BOOKS_QUERY, props => ({ page: props.page }), { onMutation: { when: /(update|create)Books?/, run: (resp, { hardReset }) => hardReset() } })
-@mutation(BOOKS_MUTATION)
-export class SoftResetCacheInvalidationBooks extends Component {
+@query(BOOKS_QUERY, props => ({ page: props.page }), {
+  onMutation: { when: /(update|create|delete)Books?/, run: (resp, { hardReset }) => hardReset() }
+})
+export class BookQueryComponent extends Component {
+  render() {
+    let { data } = this.props;
+    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+  }
+}
+
+@query(BOOKS_QUERY, props => ({ page: props.page }))
+@mutation(BOOKS_MUTATION, { mapProps: props => ({ singleMutation: props }) })
+@mutation(BOOKS_MUTATION_MULTI, { mapProps: props => ({ multiMutation: props }) })
+@mutation(BOOK_CREATE, { mapProps: props => ({ bookCreation: props }) })
+@mutation(BOOK_DELETE, { mapProps: props => ({ bookDeletion: props }) })
+export class BookGruntWork extends Component {
   state = { editingId: "", editingOriginaltitle: "" };
   edit = book => this.setState({ editingId: book._id, editingOriginaltitle: book.title, editingOriginalpages: book.pages });
   cancel = () => this.setState({ editingId: null });
 
+  saveSingle = () => {
+    this.props.multiMutation.runMutation({ _ids: this.state.editingId, title: this.el.value, pages: +this.elPages.value }).then(this.cancel);
+  };
+  saveMulti = () => {
+    this.props.multiMutation.runMutation({ _ids: [this.state.editingId], title: this.el.value, pages: +this.elPages.value }).then(this.cancel);
+  };
+
+  runCreate = () => {
+    this.props.bookCreation.runMutation({ Book: { title: this.newBookTitleEl.value, pages: this.newBookPagesEl.value } }).then(this.cancel);
+  };
+
   render() {
-    let { data, runMutation } = this.props;
+    let { data, singleMutation, multiMutation, bookCreation, bookDeletion } = this.props;
     let { editingId, editingOriginaltitle, editingOriginalpages } = this.state;
     return (
       <div>
@@ -24,47 +48,19 @@ export class SoftResetCacheInvalidationBooks extends Component {
             ))}
           </ul>
         ) : null}
-
+        New Book:
+        <input ref={el => (this.newBookTitleEl = el)} />
+        <input ref={el => (this.newBookPagesEl = el)} />
+        <br />
+        <button onClick={this.runCreate}>CREATE</button>
+        <br />
         {editingId ? (
           <Fragment>
             <input defaultValue={editingOriginaltitle} style={{ width: "300px" }} ref={el => (this.el = el)} placeholder="New title here!" />
             <input defaultValue={editingOriginalpages} ref={el => (this.elPages = el)} placeholder="New pages here!" />
-            <button onClick={() => runMutation({ _id: editingId, title: this.el.value, pages: +this.elPages.value }).then(this.cancel)}>Save</button>
-            <button onClick={this.cancel}>Cancel</button>
-          </Fragment>
-        ) : null}
-      </div>
-    );
-  }
-}
-
-@query(SUBJECTS_QUERY, props => ({ page: props.page }), { onMutation: standardUpdateSingleStrategy("Subject") })
-@mutation(SUBJECTS_MUTATION)
-export class SoftResetCacheInvalidationSubjects extends Component {
-  state = { editingId: "", editingOriginalName: "" };
-  edit = subject => this.setState({ editingId: subject._id, editingOriginalName: subject.name });
-  cancel = () => this.setState({ editingId: null });
-
-  render() {
-    let { data, runMutation } = this.props;
-    let { editingId, editingOriginalName, editingOriginalpages } = this.state;
-    return (
-      <div>
-        {data ? (
-          <ul>
-            {data.allSubjects.Subjects.map(subject => (
-              <li key={subject._id}>
-                {subject.name}
-                <button onClick={() => this.edit(subject)}> edit</button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {editingId ? (
-          <Fragment>
-            <input defaultValue={editingOriginalName} style={{ width: "300px" }} ref={el => (this.el = el)} placeholder="New name here!" />
-            <button onClick={() => runMutation({ _id: editingId, name: this.el.value }).then(this.cancel)}>Save</button>
+            <button onClick={this.saveSingle}>Save single</button>
+            <button onClick={this.saveMulti}>Save multi</button>
+            <button onClick={() => bookDeletion.runMutation({ _id: _id }).then(this.cancel)}>DELETE</button>
             <button onClick={this.cancel}>Cancel</button>
           </Fragment>
         ) : null}

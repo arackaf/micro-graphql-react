@@ -5,8 +5,11 @@ import { Client, query, mutation, setDefaultClient } from "../index-local";
 import BasicQuery from "./basicQuery";
 import TwoQueries from "./twoQueries";
 import TwoMutationsAndQuery from "./twoMutationsAndQuery";
-//import { SoftResetCacheInvalidationBooks, SoftResetCacheInvalidationSubjects } from "./cacheInvalidation1";
-import { SoftResetCacheInvalidationBooks, SoftResetCacheInvalidationSubjects } from "./cacheInvalidation2";
+
+//import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation1";
+//import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation2";
+import { BookQueryComponent, BookGruntWork } from "./cacheInvalidation3";
+
 import BasicQueryNoDecorators from "./basicQueryNoDecorators";
 
 const client = new Client({
@@ -143,8 +146,8 @@ class TestingSandbox1 extends Component {
         <BasicQueryNoDecorators page={2} />
         <TwoMutationsAndQuery page={1} />
         */}
-        <SoftResetCacheInvalidationBooks page={this.state.page} />
-        <SoftResetCacheInvalidationSubjects page={this.state.page} />
+        <BookQueryComponent page={this.state.page} />
+        <BookGruntWork page={this.state.page} />
         {/*<BasicQuery page={this.state.page} />*/}
 
         {/*
