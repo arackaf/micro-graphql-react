@@ -259,7 +259,7 @@ class TwoMutationsAndQuery extends Component {
 
 ## Cache invalidation
 
-The onMutation option that `query` takes is an object, with entries of the form `{ when: "string|regularExpression", run: function }`
+The onMutation option that `query` takes is an object, or array of objects, of the form `{ when: "string|regularExpression", run: function }`
 
 `when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with two arguments: the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
 
@@ -405,6 +405,35 @@ export class SoftResetCacheInvalidationSubjects extends Component {
 ```
 
 Assuming we've named our GraphQL operations consistently, and we should have, then theres some pretty obvious repetition happening. We can easily refactor this repetition into some helper methods that can be re-used throughout our app. Let's see what that looks like
+
+```javascript
+const standardUpdateSingleStrategy = name => ({
+  when: `update${name}`,
+  run: ({ [`update${name}`]: { [name]: updatedItem } }, { softReset, currentResults }) => {
+    let CachedItem = currentResults[`all${name}s`][`${name}s`].find(x => x._id == updatedItem._id);
+    CachedItem && Object.assign(CachedItem, updatedItem);
+    softReset(currentResults);
+  }
+});
+```
+
+Now we can clean up all that boilerplate from before
+
+```javascript
+@query(BOOKS_QUERY, props => ({ page: props.page }), { onMutation: standardUpdateSingleStrategy("Book") })
+@mutation(BOOKS_MUTATION)
+export class SoftResetCacheInvalidationBooks extends Component {
+  //same as before
+}
+
+@query(SUBJECTS_QUERY, props => ({ page: props.page }), { onMutation: standardUpdateSingleStrategy("Subject") })
+@mutation(SUBJECTS_MUTATION)
+export class SoftResetCacheInvalidationSubjects extends Component {
+  //same as before
+}
+```
+
+And of course, if you have multiple mutations, just pass them all in an array
 
 ## Manually running queries or mutations
 

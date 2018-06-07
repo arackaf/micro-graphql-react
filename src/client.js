@@ -29,11 +29,13 @@ export default class Client {
       let mutationKeys = Object.keys(resp);
       let mutationKeysLookup = new Set(mutationKeys);
       [...this[mutationListenersSymbol]].forEach(({ subscription, options: { currentResults, ...rest } }) => {
-        if (typeof subscription.when === "string") {
-          if (mutationKeysLookup.has(subscription.when)) {
-            subscription.run(resp, { currentResults: currentResults(), ...rest });
+        subscription.forEach(singleSubscription => {
+          if (typeof singleSubscription.when === "string") {
+            if (mutationKeysLookup.has(singleSubscription.when)) {
+              singleSubscription.run(resp, { currentResults: currentResults(), ...rest });
+            }
           }
-        }
+        });
       });
       return resp;
     });
