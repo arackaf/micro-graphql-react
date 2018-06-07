@@ -98,7 +98,11 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     packet = variablesFn;
     variablesFn = null;
   }
-  const { shouldQueryUpdate, mapProps = props => props, client: clientOption, onMutation } = packet;
+  const { shouldQueryUpdate, mapProps = props => props, client: clientOption } = packet;
+  let { onMutation } = packet;
+  if (typeof onMutation === "object" && !Array.isArray(onMutation)) {
+    onMutation = [onMutation];
+  }
 
   const queryFn = props => {
     return {
