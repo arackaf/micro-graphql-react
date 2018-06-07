@@ -22,6 +22,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
   - [Other options](#other-options-1)
 - [Cache invalidation](#cache-invalidation)
   - [Use case 1: Update current results, but otherwise clear the cache](#use-case-1-update-current-results-but-otherwise-clear-the-cache)
+  - [Use case 2: Hard reset and reload after any mutation](#use-case-2-hard-reset-and-reload-after-any-mutation)
 - [Manually running queries or mutations](#manually-running-queries-or-mutations)
   - [Client api](#client-api)
 - [Transpiling decorators](#transpiling-decorators)
@@ -259,23 +260,23 @@ class TwoMutationsAndQuery extends Component {
 
 ## Cache invalidation
 
-The onMutation option that `query` takes is an object, or array of objects, of the form `{ when: "string|regularExpression", run: function }`
+The onMutation option that `query` takes is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
 `when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with two arguments: the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
 
-`softReset` - clears the cache, but does **not** re-issue any queries. It can optionally take an argument of new, updated results, which will update the `data` props passed
+`softReset` - clears the cache, but does **not** re-issue any queries. It can optionally take an argument of new, updated results, which will replace the current `data` props
 `currentResults` - the current results that are passed as your `data` prop
-`hardReset` - clear the cache, and re-load the current query
+`hardReset` - clear the cache, and re-load the current query from the network
 `cache` - the actual cache object. You can enumerate its entries, and update whatever you need.
 `refresh` - refresh the current query from cache. You'll likely want to call this after modifying the cache.
 
-Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I build a book tracking website and so already have some data to work with :D
+Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
 ### Use case 1: Update current results, but otherwise clear the cache
 
-Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but not run any network requests. So, if you have a book search for an author of Dumas Malone, but one of the results was written by Shelby Foote, and you click the edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion. (if you do want to do that, stay tuned, it's even easier).
+Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but not run any network requests. So if you're currently searching for an author value of "Dumas Malone", but one of the results was written by Shelby Foote, and you click the edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion. (if you do want to do that, stay tuned, it's even easier).
 
-Let's look at some code. Our components will be using these constants
+Let's look at how we'd do that. Our components will be using these constants
 
 ```javascript
 export const BOOKS_QUERY = `
@@ -305,7 +306,7 @@ export const SUBJECTS_MUTATION = `mutation modifySubject($_id: String, $name: St
 }`;
 ```
 
-Let's see a (contrived) component to list books, and allow you to edit their title, and then update any changes, while clearing the cache, as described above
+Here's a (contrived) component to list books, and allow you to edit their title, and then update any changes while clearing the cache, as described above
 
 ```javascript
 @query(BOOKS_QUERY, props => ({ page: props.page }), {
@@ -354,9 +355,9 @@ export class SoftResetCacheInvalidationBooks extends Component {
 }
 ```
 
-The interesting work is being done on line 2 above, in `onMutation`. Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing all cache results. This will also clear the current cache result, so if you page up, then come back down to where you were, a **new** network request will be run, and so your edited book will no longer be there, as you want.
+The interesting work is being done on line 2 above, in `onMutation`. Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing our cache. This will also clear the current cache result, so if you page up, then come back down to where you were, a **new** network request will be run, and so your edited book will no longer be there, as expected. Note that in this example we're actually mutating our current result; this is fine, since our updated value will just replace our current `data` prop.
 
-This seems like quite a lot of boilerplate, but lets look at another example and see if any patterns emerge. Specifically, lets look at a (again contrived) component that lists out our books' subjects, with the option of editing them, and updating as we did above.
+This seems like a lot of boilerplate, but lets look at another example and see if any patterns emerge. Specifically, lets look at a (again contrived) component that lists our subjects (which can be applied to books), with the option of editing them, and updating things as we did above.
 
 ```javascript
 @query(SUBJECTS_QUERY, props => ({ page: props.page }), {
@@ -404,7 +405,7 @@ export class SoftResetCacheInvalidationSubjects extends Component {
 }
 ```
 
-Assuming we've named our GraphQL operations consistently, and we should have, then theres some pretty obvious repetition happening. We can easily refactor this repetition into some helper methods that can be re-used throughout our app. Let's see what that looks like
+Assuming we've named our GraphQL operations consistently, and we should have, then there's some pretty obvious repetition happening. We can refactor this repetition into some helper methods that can be re-used throughout our app. Let's see what that looks like for the GraphQL naming scheme that exists above, and was made by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter)
 
 ```javascript
 const standardUpdateSingleStrategy = name => ({
@@ -433,7 +434,11 @@ export class SoftResetCacheInvalidationSubjects extends Component {
 }
 ```
 
-And of course, if you have multiple mutations, just pass them all in an array
+And if you have multiple mutations, just pass them in an array
+
+### Use case 2: Hard reset and reload after any mutation
+
+TODO:
 
 ## Manually running queries or mutations
 
