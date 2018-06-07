@@ -11,6 +11,22 @@ export const BOOKS_MUTATION = `mutation modifyBook($_id: String, $title: String,
   }
 }`;
 
+export const BOOKS_MUTATION_MULTI = `mutation modifyBooks($_ids: [String], $title: String, $pages: Int) {
+  updateBooks(_ids: $_ids, Updates: { title: $title, pages: $pages }) {
+    Books { _id title pages }
+  }
+}`;
+
+export const BOOK_DELETE = `mutation deleteBook($_id: [String], $title: String, $pages: Int) {
+  deleteBook(_id: $_id) {
+    { success }
+  }
+}`;
+
+export const BOOK_CREATE = `mutation createBook($Book: BookInput) {
+  createBook(Book: $Book) { Book { _id title } }
+}`;
+
 export const SUBJECTS_QUERY = `
 query ALL_SUBJECTS($page: Int) {
   allSubjects(PAGE: $page, PAGE_SIZE: 3) {

@@ -21,8 +21,8 @@ For more information on the difficulties of GraphQL caching, see [this explanati
   - [props passed to your component](#props-passed-to-your-component-1)
   - [Other options](#other-options-1)
 - [Cache invalidation](#cache-invalidation)
-  - [Use case 1: Update current results, but otherwise clear the cache](#use-case-1-update-current-results-but-otherwise-clear-the-cache)
-  - [Use case 2: Hard reset and reload after any mutation](#use-case-2-hard-reset-and-reload-after-any-mutation)
+  - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
+  - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
 - [Manually running queries or mutations](#manually-running-queries-or-mutations)
   - [Client api](#client-api)
 - [Transpiling decorators](#transpiling-decorators)
@@ -272,7 +272,11 @@ The onMutation option that `query` takes is an object, or array of objects, of t
 
 Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
-### Use case 1: Update current results, but otherwise clear the cache
+### Use Case 1: Hard reset and reload after any mutation
+
+TODO:
+
+### Use Case 2: Update current results, but otherwise clear the cache
 
 Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but not run any network requests. So if you're currently searching for an author value of "Dumas Malone", but one of the results was written by Shelby Foote, and you click the edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion. (if you do want to do that, stay tuned, it's even easier).
 
@@ -435,10 +439,6 @@ export class SoftResetCacheInvalidationSubjects extends Component {
 ```
 
 And if you have multiple mutations, just pass them in an array
-
-### Use case 2: Hard reset and reload after any mutation
-
-TODO:
 
 ## Manually running queries or mutations
 

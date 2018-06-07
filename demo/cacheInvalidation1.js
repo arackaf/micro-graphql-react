@@ -13,7 +13,7 @@ import { BOOKS_QUERY, BOOKS_MUTATION, SUBJECTS_QUERY, SUBJECTS_MUTATION } from "
   }
 })
 @mutation(BOOKS_MUTATION)
-export class SoftResetCacheInvalidationBooks extends Component {
+export class BookQueryComponent extends Component {
   state = { editingId: "", editingOriginaltitle: "" };
   edit = book => this.setState({ editingId: book._id, editingOriginaltitle: book.title, editingOriginalpages: book.pages });
   cancel = () => this.setState({ editingId: null });
@@ -58,7 +58,7 @@ export class SoftResetCacheInvalidationBooks extends Component {
   }
 })
 @mutation(SUBJECTS_MUTATION)
-export class SoftResetCacheInvalidationSubjects extends Component {
+export class SubjectQueryComponent extends Component {
   state = { editingId: "", editingOriginalName: "" };
   edit = subject => this.setState({ editingId: subject._id, editingOriginalName: subject.name });
   cancel = () => this.setState({ editingId: null });
