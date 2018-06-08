@@ -11,7 +11,6 @@ import SubjectGruntWork from "./subjectGruntWork";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation1";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation2";
 import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidationB";
-
 import BasicQueryNoDecorators from "./basicQueryNoDecorators";
 
 const client = new Client({
