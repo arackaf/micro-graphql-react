@@ -6,9 +6,11 @@ import BasicQuery from "./basicQuery";
 import TwoQueries from "./twoQueries";
 import TwoMutationsAndQuery from "./twoMutationsAndQuery";
 
+import BookGruntWork from "./bookGruntWork";
+import SubjectGruntWork from "./subjectGruntWork";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation1";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation2";
-import { BookQueryComponent, BookGruntWork, SubjectQueryComponent, SubjectGruntWork } from "./cacheInvalidation3";
+import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidationB";
 
 import BasicQueryNoDecorators from "./basicQueryNoDecorators";
 
