@@ -17,10 +17,8 @@ export const BOOKS_MUTATION_MULTI = `mutation modifyBooks($_ids: [String], $titl
   }
 }`;
 
-export const BOOK_DELETE = `mutation deleteBook($_id: [String], $title: String, $pages: Int) {
-  deleteBook(_id: $_id) {
-    { success }
-  }
+export const BOOK_DELETE = `mutation deleteBook($_id: String) {
+  deleteBook(_id: $_id)
 }`;
 
 export const BOOK_CREATE = `mutation createBook($Book: BookInput) {
@@ -29,7 +27,7 @@ export const BOOK_CREATE = `mutation createBook($Book: BookInput) {
 
 export const SUBJECTS_QUERY = `
 query ALL_SUBJECTS($page: Int) {
-  allSubjects(PAGE: $page, PAGE_SIZE: 3) {
+  allSubjects(SORT: { name: 1 }, PAGE: $page, PAGE_SIZE: 3) {
     Subjects { _id name }
   }
 }`;
@@ -38,4 +36,18 @@ export const SUBJECTS_MUTATION = `mutation modifySubject($_id: String, $name: St
   updateSubject(_id: $_id, Updates: { name: $name }) {
     Subject { _id name }
   }
+}`;
+
+export const SUBJECTS_MUTATION_MULTI = `mutation modifySubjects($_ids: [String], $name: String) {
+  updateSubjects(_ids: $_ids, Updates: { name: $name }) {
+    Subjects { _id name }
+  }
+}`;
+
+export const SUBJECT_DELETE = `mutation deleteSubject($_id: String) {
+  deleteSubject(_id: $_id)
+}`;
+
+export const SUBJECT_CREATE = `mutation createSubject($Subject: SubjectInput) {
+  createSubject(Subject: $Subject) { Subject { _id name } }
 }`;
