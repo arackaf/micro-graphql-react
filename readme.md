@@ -1,14 +1,14 @@
 # micro-graphql-react
 
-A light (2.1K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
+A light (2.6K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
-Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the component, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This also means that two different components querying the same type, and returning the same fields will **not** be able to share caches. If that's a requirement, then check out Apollo, or Ken Wheeler's [urql](https://www.npmjs.com/package/urql). This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
+Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
 
 Queries are fetched via HTTP GET, so while the client-side caching is not nearly as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
 
 **A note on cache invalidation**
 
-This library will not automatically add metadata requests to your query, and attempt to automatically update your cached results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which will allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, it's easily built on and abstracted. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. This is all explained at length, below
+This library will not automatically add metadata requests to your query, and attempt to update your cached results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which will allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. This is all explained at length, below.
 
 For more information on the difficulties of GraphQL caching, see [this explanation](./readme-cache.md)
 
@@ -67,7 +67,7 @@ class BasicQuery extends Component {
 }
 ```
 
-The `query` decorator is passed the GraphQL query, an optional function mapping the component's props to a variables object. When the component first mounts, this query will be executed. When the component updates, the variables function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different. Of course if your query has no variables, it'll never update.
+The `query` decorator is passed the GraphQL query, and an optional function mapping the component's props to a variables object. When the component first mounts, this query will be executed. When the component updates, the variables function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different. Of course if your query has no variables, it'll never update.
 
 Be sure to use the `compress` tag to remove un-needed whitespace from your query, since it will be sent via HTTP GET—just wrap any inline string parameters you may have in `${}` - for more information, see [here](./readme-compress.md).
 
@@ -86,7 +86,7 @@ Be sure to use the `compress` tag to remove un-needed whitespace from your query
 The decorator can also take a third argument of options (or second argument, if your query doesn't use variables). The following properties can be passed in this object:
 
 - `onMutation` - a map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below
-- `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your component's props will be passed to this function, and the result will be spread into your component
+- `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your GraphQL props will be passed to this function, and the result will be spread into your component's props
 - `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
 - `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
 
@@ -157,7 +157,7 @@ class BasicMutation extends Component {
 }
 ```
 
-Same idea as with query, just a string for your mutation and you'll get a `runMutation` function in your props that you can call, and pass your variables.
+Same idea as `query`, pass a string for your mutation and you'll get a `runMutation` function in your props that you can call, and pass your variables.
 
 ### props passed to your component
 
@@ -238,7 +238,7 @@ class TwoMutationsAndQuery extends Component {
 
 The onMutation option that `query` takes is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
-`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with two arguments: the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
+`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: the mutations variables object, the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
 
 `softReset` - clears the cache, but does **not** re-issue any queries. It can optionally take an argument of new, updated results, which will replace the current `data` props
 `currentResults` - the current results that are passed as your `data` prop
@@ -313,7 +313,7 @@ export class SubjectQueryComponent extends Component {
 
 ### Use Case 2: Update current results, but otherwise clear the cache
 
-Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone", and one of the current results was written by Shelby Foote, and you click the edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion. (if you do want to do that, stay tuned, it's even easier).
+Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone", and one of the current results was written by Shelby Foote, and you click the edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
 
 Here's the same books component as above, but with our new cache strategy
 
@@ -336,7 +336,7 @@ export class BookQueryComponent extends Component {
 }
 ```
 
-The interesting work is being done on line 2 above, in `onMutation`. Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing our cache, including the current cache result; so if you page up, then come back down to where you were, a **new** network request will be run, and your edited book will no longer be there, as expected. Note that in this example we're actually mutating our current result; which is fine.
+The interesting work is being done on line 2 above, in `onMutation`. Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing our cache, including the current cache result; so if you page up, then come back down to where you were, a **new** network request will be run, and your edited book will no longer be there, as expected. Note that in this example we're actually mutating our current result; that's fine.
 
 This seems like a lot of boilerplate, but again, lets look at the subjects component and see if any patterns emerge.
 
@@ -413,10 +413,7 @@ For example, to imperatively run the query from above in application code, you c
 client.runQuery(
   `query ALL_BOOKS ($page: Int) {
     allBooks(PAGE: $page, PAGE_SIZE: 3) {
-      Books { 
-        _id 
-        title 
-      }
+      Books { _id title }
     }
   }`,
   { title: 1 }
@@ -429,10 +426,7 @@ and to run the mutation from above, you can do
 client.runMutation(
   `mutation modifyBook($title: String) {
     updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
-      Book {
-        _id
-        title
-      }
+      Book { _id title }
     }
   }`,
   { title: "New title" }
@@ -441,7 +435,7 @@ client.runMutation(
 
 ## Transpiling decorators
 
-Be sure to use the `babel-plugin-transform-decorators-legacy` Babel preset. The code is not _yet_ updated to work with the new decorators proposal.
+Be sure to use the `babel-plugin-transform-decorators-legacy` Babel plugin. The code is not _yet_ updated to work with the new decorators proposal.
 
 ### But I don't like decorators
 
