@@ -8,7 +8,7 @@ import TwoMutationsAndQuery from "./twoMutationsAndQuery";
 
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation1";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation2";
-import { BookQueryComponent, BookGruntWork } from "./cacheInvalidation3";
+import { BookQueryComponent, BookGruntWork, SubjectQueryComponent, SubjectGruntWork } from "./cacheInvalidation3";
 
 import BasicQueryNoDecorators from "./basicQueryNoDecorators";
 
@@ -148,6 +148,9 @@ class TestingSandbox1 extends Component {
         */}
         <BookQueryComponent page={this.state.page} />
         <BookGruntWork page={this.state.page} />
+
+        <SubjectQueryComponent page={this.state.page} />
+        <SubjectGruntWork page={this.state.page} />
         {/*<BasicQuery page={this.state.page} />*/}
 
         {/*
