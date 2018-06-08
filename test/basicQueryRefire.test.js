@@ -1,15 +1,16 @@
-import { React, Component, mount, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
-const client1 = new ClientMock("endpoint1");
-const client2 = new ClientMock("endpoint2");
-const client3 = new ClientMock("endpoint3");
-
-setDefaultClient(client1);
+let client1;
+let client2;
+let client3;
+let BasicQuery;
 
 beforeEach(() => {
-  client1.reset();
-  client2.reset();
-  client3.reset();
+  client1 = new ClientMock("endpoint1");
+  client2 = new ClientMock("endpoint2");
+  client3 = new ClientMock("endpoint3");
+  setDefaultClient(client1);
+  BasicQuery = getComponent(basicQuery);
 });
 
 const DEFAULT_CACHE_SIZE = 10;
@@ -20,17 +21,10 @@ const getComponent = (...args) =>
     render = () => null;
   };
 
-const BasicQuery = getComponent(props => ({
-  query: basicQuery
-}));
-
-const basicQueryWithVariablesPacket = props => ({
-  query: basicQueryWithVariables,
-  variables: { page: props.page }
-});
+const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
 
 test("Static query never re-fires", () => {
-  let obj = mount(<BasicQuery unused={0} />);
+  let obj = shallow(<BasicQuery unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
@@ -39,8 +33,8 @@ test("Static query never re-fires", () => {
 });
 
 test("Query with variables re-fires when props change", async () => {
-  let Component = getComponent(basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} />);
+  let Component = getComponent(...basicQueryWithVariablesPacket);
+  let obj = shallow(<Component page={1} />);
 
   expect(client1.queriesRun).toBe(1);
   obj.setProps({ page: 2 });
@@ -48,8 +42,8 @@ test("Query with variables re-fires when props change", async () => {
 });
 
 test("Query with variables does not re-fire when other props change", async () => {
-  let Component = getComponent(basicQueryWithVariablesPacket);
-  let obj = mount(<Component page={1} unused={10} />);
+  let Component = getComponent(...basicQueryWithVariablesPacket);
+  let obj = shallow(<Component page={1} unused={10} />);
 
   expect(client1.queriesRun).toBe(1);
   obj.setProps({ unused: 2 });

@@ -1,26 +1,20 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
 
-export default (clientDeprecated, mutation, packet = {}) => BaseComponent => {
-  if (typeof clientDeprecated === "object") {
-    console.warn(
-      "Passing client as the first arg to query is deprecated. Check the docs, but you can now import setDefaultClient and call that globally, or you can pass in the options object"
-    );
-  } else {
-    packet = mutation || {};
-    mutation = clientDeprecated;
-    clientDeprecated = null;
-  }
-
-  const { mapProps = props => props, client: clientOption } = packet;
-  const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
-
-  if (!client) {
-    throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
-  }
-
+export default (mutation, packet = {}) => BaseComponent => {
   return class extends Component {
     state = { running: false, finished: false };
+
+    componentDidMount() {
+      let { mapProps = props => props, client: clientOption } = packet;
+      let client = clientOption || defaultClientManager.getDefaultClient();
+
+      if (!client) {
+        throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
+      }
+
+      this.client = client;
+    }
 
     runMutation = variables => {
       this.setState({
@@ -28,7 +22,7 @@ export default (clientDeprecated, mutation, packet = {}) => BaseComponent => {
         finished: false
       });
 
-      return client.runMutation(mutation, variables).then(resp => {
+      return this.client.processMutation(mutation, variables).then(resp => {
         this.setState({
           running: false,
           finished: true
@@ -38,10 +32,11 @@ export default (clientDeprecated, mutation, packet = {}) => BaseComponent => {
     };
 
     render() {
+      let { mapProps = props => props } = packet;
       let { running, finished } = this.state;
-      let packet = mapProps({ running, finished, runMutation: this.runMutation });
+      let clientPacket = mapProps({ running, finished, runMutation: this.runMutation });
 
-      return <BaseComponent {...packet} {...this.props} />;
+      return <BaseComponent {...clientPacket} {...this.props} />;
     }
   };
 };

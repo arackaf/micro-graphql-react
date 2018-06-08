@@ -1,59 +1,87 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
 
+const setPendingResultSymbol = Symbol("setPendingResult");
+const setResultsSymbol = Symbol("setResults");
+const getFromCacheSymbol = Symbol("getFromCache");
+const noCachingSymbol = Symbol("noCaching");
+const cacheSymbol = Symbol("cache");
 class QueryCache {
   constructor(cacheSize = 0) {
     this.cacheSize = cacheSize;
   }
-  cache = new Map([]);
-  get noCaching() {
+  [cacheSymbol] = new Map([]);
+  get [noCachingSymbol]() {
     return !this.cacheSize;
   }
 
-  setPendingResult(graphqlQuery, promise) {
+  get entries() {
+    return [...this[cacheSymbol]];
+  }
+
+  get(key) {
+    return this[cacheSymbol].get(key);
+  }
+
+  set(key, results) {
+    this[cacheSymbol].set(key, results);
+  }
+
+  delete(key) {
+    this[cacheSymbol].delete(key);
+  }
+
+  clearCache() {
+    this[cacheSymbol].clear();
+  }
+
+  [setPendingResultSymbol](graphqlQuery, promise) {
+    let cache = this[cacheSymbol];
     //front of the line now, to support LRU ejection
-    if (!this.noCaching) {
-      this.cache.delete(graphqlQuery);
-      if (this.cache.size === this.cacheSize) {
+    if (!this[noCachingSymbol]) {
+      cache.delete(graphqlQuery);
+      if (cache.size === this.cacheSize) {
         //maps iterate entries and keys in insertion order - zero'th key should be oldest
-        this.cache.delete([...this.cache.keys()][0]);
+        cache.delete([...cache.keys()][0]);
       }
-      this.cache.set(graphqlQuery, promise);
+      cache.set(graphqlQuery, promise);
     }
   }
 
-  setResults(promise, cacheKey, resp, err) {
-    if (this.noCaching) {
+  [setResultsSymbol](promise, cacheKey, resp, err) {
+    let cache = this[cacheSymbol];
+    if (this[noCachingSymbol]) {
       return;
     }
 
     //cache may have been cleared while we were running. If so, we'll respect that, and not touch the cache, but
     //we'll still use the results locally
-    if (this.cache.get(cacheKey) !== promise) return;
+    if (cache.get(cacheKey) !== promise) return;
 
     if (err) {
-      this.cache.set(cacheKey, { data: null, error: err });
+      cache.set(cacheKey, { data: null, error: err });
     } else {
       if (resp.errors) {
-        this.cache.set(cacheKey, { data: null, error: errors });
+        cache.set(cacheKey, { data: null, error: errors });
       } else {
-        this.cache.set(cacheKey, { data: resp.data, error: null });
+        cache.set(cacheKey, { data: resp.data, error: null });
       }
     }
   }
 
-  getFromCache(key, ifPending, ifResults, ifNotFound) {
-    if (this.noCaching) {
+  [getFromCacheSymbol](key, ifPending, ifResults, ifNotFound) {
+    let cache = this[cacheSymbol];
+    if (this[noCachingSymbol]) {
       ifNotFound();
     } else {
-      let cachedEntry = this.cache.get(key);
+      let cachedEntry = cache.get(key);
       if (cachedEntry) {
         if (typeof cachedEntry.then === "function") {
           ifPending(cachedEntry);
         } else {
           //re-insert to put it at the fornt of the line
-          this.cache.delete(key);
-          this.cache.set(key, cachedEntry);
+          cache.delete(key);
+          this.set(key, cachedEntry);
           ifResults(cachedEntry);
         }
       } else {
@@ -61,30 +89,27 @@ class QueryCache {
       }
     }
   }
-
-  clearCache() {
-    this.cache.clear();
-  }
 }
 
-export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
-  if (typeof clientDeprecated === "object") {
-    console.warn(
-      "Passing client as the first arg to query is deprecated. Check the docs, but you can now import setDefaultClient and call that globally, or you can pass in the options object"
-    );
-  } else {
-    packet = queryFn || {};
-    queryFn = clientDeprecated;
-    clientDeprecated = null;
+const DEFAULT_CACHE_SIZE = 10;
+
+export default (query, variablesFn, packet = {}) => BaseComponent => {
+  if (typeof variablesFn === "object") {
+    packet = variablesFn;
+    variablesFn = null;
+  }
+  const { shouldQueryUpdate, mapProps = props => props, client: clientOption } = packet;
+  let { onMutation } = packet;
+  if (typeof onMutation === "object" && !Array.isArray(onMutation)) {
+    onMutation = [onMutation];
   }
 
-  const { shouldQueryUpdate, cacheSize = 10, mapProps = props => props, client: clientOption } = packet;
-  const cache = new QueryCache(cacheSize);
-  const client = clientOption || clientDeprecated || defaultClientManager.getDefaultClient();
-
-  if (!client) {
-    throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
-  }
+  const queryFn = props => {
+    return {
+      query,
+      variables: variablesFn ? variablesFn(props) : null
+    };
+  };
 
   return class extends Component {
     state = { loading: false, loaded: false, data: null, error: null };
@@ -92,20 +117,58 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
     currentQuery = null;
     currentVariables = null;
 
-    componentDidMount() {
+    softReset = newResults => {
+      this.cache.clearCache();
+      this.setState({ data: newResults });
+    };
+
+    hardReset = () => {
+      this.cache.clearCache();
+      this.reloadCurrentQuery();
+    };
+
+    refresh = () => {
       let queryPacket = queryFn(this.props);
       this.loadQuery(queryPacket);
+    };
+
+    reloadCurrentQuery = () => {
+      let queryPacket = queryFn(this.props);
+      this.execute(queryPacket);
+    };
+
+    componentDidMount() {
+      let client = clientOption || defaultClientManager.getDefaultClient();
+      let cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
+      if (!client) {
+        throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
+      }
+      this.client = client;
+      this.cache = cache;
+
+      let queryPacket = queryFn(this.props);
+      this.loadQuery(queryPacket);
+      if (onMutation) {
+        this.__mutationSubscription = this.client.subscribeMutation(onMutation, {
+          cache: this.cache,
+          softReset: this.softReset,
+          hardReset: this.hardReset,
+          refresh: this.refresh,
+          currentResults: () => this.state.data
+        });
+      }
     }
     componentDidUpdate(prevProps, prevState) {
       let queryPacket = queryFn(this.props);
+      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
       if (this.isDirty(queryPacket)) {
         if (shouldQueryUpdate) {
           if (
             shouldQueryUpdate({
               prevProps,
               props: this.props,
-              prevQuery: this.currentQuery,
-              query: queryPacket.query,
+              prevQuery: this.currentGraphqlQuery,
+              query: graphqlQuery,
               prevVariables: this.currentVariables,
               variables: queryPacket.variables
             })
@@ -118,18 +181,22 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
       }
     }
 
+    componentWillUnmount() {
+      this.__mutationSubscription && this.__mutationSubscription();
+    }
+
     isDirty(queryPacket) {
-      let graphqlQuery = client.getGraphqlQuery(queryPacket);
+      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
       return graphqlQuery !== this.currentGraphqlQuery;
     }
 
     loadQuery(queryPacket) {
-      let graphqlQuery = client.getGraphqlQuery(queryPacket);
+      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
       this.currentGraphqlQuery = graphqlQuery;
       this.currentQuery = queryPacket.query;
       this.currentVariables = queryPacket.variables;
 
-      cache.getFromCache(
+      this.cache[getFromCacheSymbol](
         graphqlQuery,
         promise => {
           Promise.resolve(promise).then(() => {
@@ -151,16 +218,16 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
           loaded: false
         });
       }
-      let graphqlQuery = client.getGraphqlQuery({ query, variables });
-      let promise = client.runQuery(query, variables);
-      cache.setPendingResult(graphqlQuery, promise);
+      let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
+      let promise = this.client.runQuery(query, variables);
+      this.cache[setPendingResultSymbol](graphqlQuery, promise);
       this.handleExecution(promise, graphqlQuery);
     }
 
     handleExecution = (promise, cacheKey) => {
       Promise.resolve(promise)
         .then(resp => {
-          cache.setResults(promise, cacheKey, resp);
+          this.cache[setResultsSymbol](promise, cacheKey, resp);
           if (resp.errors) {
             this.handlerError(resp.errors);
           } else {
@@ -168,7 +235,7 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
           }
         })
         .catch(err => {
-          cache.setResults(promise, cacheKey, null, err);
+          this.cache[setResultsSymbol](promise, cacheKey, null, err);
           this.handlerError(err);
         });
     };
@@ -192,7 +259,7 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
     };
 
     clearCacheAndReload = () => {
-      cache.clearCache();
+      this.cache.clearCache();
       this.executeNow();
     };
 
@@ -204,7 +271,7 @@ export default (clientDeprecated, queryFn, packet = {}) => BaseComponent => {
         data,
         error,
         reload: this.executeNow,
-        clearCache: () => cache.clearCache(),
+        clearCache: () => this.cache.clearCache(),
         clearCacheAndReload: this.clearCacheAndReload
       });
 
