@@ -37,7 +37,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 ## Queries
 
 ```javascript
-import { Client, query, compress, mutation, setDefaultClient } from "micro-graphql-react";
+import { Client, query, compress, setDefaultClient } from "micro-graphql-react";
 
 const client = new Client({
   endpoint: "/graphql",
@@ -47,21 +47,22 @@ const client = new Client({
 setDefaultClient(client);
 
 @query(
-  `query ALL_BOOKS ($page: Int) {
+  compress`query ALL_BOOKS ($page: Int) {
     allBooks(PAGE: $page, PAGE_SIZE: 3) {
       Books { _id title }
     }
   }`,
   props => ({ page: props.page })
 )
-class BasicQuery extends Component {
+export default class BasicQuery extends Component {
   render() {
     let { loading, loaded, data } = this.props;
+    let booksArr = data ? data.allBooks.Books : [];
     return (
       <div>
         {loading ? <div>LOADING</div> : null}
         {loaded ? <div>LOADED</div> : null}
-        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+        {data ? <ul>{booksArr.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}
       </div>
     );
   }
@@ -74,35 +75,35 @@ Be sure to use the `compress` tag to remove un-needed whitespace from your query
 
 ### props passed to your component
 
-- `loading` Fetch is executing for your query
-- `loaded` Fetch has finished executing for your query
-- `data` If the last fetch finished successfully, this will contain the data returned, else null
-- `error` If the last fetch did not finish successfully, this will contain the errors that were returned, else null
-- `reload` A function you can call to manually re-fetch the current query
-- `clearCache` Clear the cache for this component
-- `clearCacheAndReload` Calls `clearCache`, followed by `reload`
+<!-- prettier-ignore -->
+| Props | Description |
+| ----- | ----------- |
+|`loading`|Fetch is executing for your query|
+|`loaded`|Fetch has finished executing for your query|
+|`data`|If the last fetch finished successfully, this will contain the data returned, else null|
+|`error`|If the last fetch did not finish successfully, this will contain the errors that were returned, else `null`|
+|`reload`|A function you can call to manually re-fetch the current query|
+|`clearCache`|Clear the cache for this component|
+|`clearCacheAndReload`|Calls `clearCache`, followed by `reload`|
 
 ### Other options
 
 The decorator can also take a third argument of options (or second argument, if your query doesn't use variables). The following properties can be passed in this object:
 
-- `onMutation` - a map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below
-- `mapProps` - allows you to adjust the props passed to your component. If specified, a single object with all your GraphQL props will be passed to this function, and the result will be spread into your component's props
-- `cacheSize` - override the default cache size of 10. Pass in 0 to disable caching completely
-- `shouldQueryUpdate` - take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above.
-
-  - prevProps - previous component props
-  - props - current component props
-  - prevVariables - previous graphql variables produced
-  - variables - current graphql variables produced
-
-- `client` - manually pass in a client to be used for this component
+<!-- prettier-ignore -->
+| Option  | Description |
+| -------| ----------- |
+| `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
+| `mapProps`| Allows you to adjust the props passed to your component. If specified, a single object with all your GraphQL props will be passed to this function, and the result will be spread into your component's props |
+| `cacheSize` | Overrides the default cache size of 10. Pass in 0 to disable caching completely |
+| `shouldQueryUpdate` | Take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above. <br/><br/><ul><li>`prevProps` - previous component props</li><li>`props` - current component props</li><li>`prevVariables` - previous graphql variables produced</li><li>`variables` - current graphql variables produced</li></ul> |
+| `client`  | Manually pass in a client to be used for this component|
 
 An example of `mapProps` and `cacheSize`
 
 ```javascript
 @query(
-  `query ALL_BOOKS($title_contains: String) {
+  compress`query ALL_BOOKS($title_contains: String) {
       allBooks(title_contains: $title_contains, SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
         Books { _id title }
       }
@@ -111,7 +112,7 @@ An example of `mapProps` and `cacheSize`
   { mapProps: props => ({ firstBookProps: props }), cacheSize: 3 }
 )
 @query(
-  `query ALL_BOOKS($title_contains: String) {
+  compress`query ALL_BOOKS($title_contains: String) {
     allBooks(title_contains: $title_contains, SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1) {
       Books { _id title }
     }
@@ -162,9 +163,12 @@ Same idea as `query`, pass a string for your mutation and you'll get a `runMutat
 
 ### props passed to your component
 
-- `running` Mutation is executing
-- `finished` Mutation has finished executing
-- `runMutation` A function you can call when you want to run your mutation. Pass it an object with your variables
+<!-- prettier-ignore -->
+| Props         | Description  |
+| ------------- | --------- |
+| `running`     | Mutation is executing |
+| `finished`    | Mutation has finished executing|
+| `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
 
 ### Other options
 
@@ -241,11 +245,14 @@ The onMutation option that `query` takes is an object, or array of objects, of t
 
 `when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: the mutations variables object, the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
 
-`softReset` - clears the cache, but does **not** re-issue any queries. It can optionally take an argument of new, updated results, which will replace the current `data` props
-`currentResults` - the current results that are passed as your `data` prop
-`hardReset` - clear the cache, and re-load the current query from the network
-`cache` - the actual cache object. You can enumerate its entries, and update whatever you need.
-`refresh` - refresh the current query from cache. You'll likely want to call this after modifying the cache.
+<!-- prettier-ignore -->
+| Arg  | Description  |
+| ---| -------- |
+| `softReset` | Clears the cache, but does **not** re-issue any queries. It can optionally take an argument of new, updated results, which will replace the current `data` props |
+| `currentResults` | The current results that are passed as your `data` prop |
+| `hardReset` | Clears the cache, and re-load the current query from the network|
+| `cache`  | The actual cache object. You can enumerate its entries, and update whatever you need.|
+| `refresh`   | Refreshes the current query from cache. You'll likely want to call this after modifying the cache.  |
 
 Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
@@ -264,7 +271,7 @@ The hard reload method that's passed makes this easy. Let's see how to use this 
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
   }
 }
 ```
@@ -278,7 +285,7 @@ Here we specify a regex matching every kind of book mutation we have, and upon c
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(subject => <li key={subject._id}>{subject.name}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
   }
 }
 ```
@@ -299,7 +306,7 @@ and then apply it like so
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
   }
 }
 
@@ -307,14 +314,14 @@ export class BookQueryComponent extends Component {
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(subject => <li key={subject._id}>{subject.name}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
   }
 }
 ```
 
 ### Use Case 2: Update current results, but otherwise clear the cache
 
-Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone", and one of the current results was written by Shelby Foote, and you click the edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
+Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone", but one of the current results was clearly written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
 
 Here's the same books component as above, but with our new cache strategy
 
@@ -332,7 +339,7 @@ Here's the same books component as above, but with our new cache strategy
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
   }
 }
 ```
@@ -355,7 +362,7 @@ This seems like a lot of boilerplate, but again, lets look at the subjects compo
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(subject => <li key={subject._id}>{subject.name}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
   }
 }
 ```
@@ -380,7 +387,7 @@ Now we can clean up all that boilerplate from before
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
   }
 }
 
@@ -388,7 +395,7 @@ export class BookQueryComponent extends Component {
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(subject => <li key={subject._id}>{subject.name}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
   }
 }
 ```
@@ -397,9 +404,9 @@ And if you have multiple mutations, just pass them in an array
 
 ### Use Case 3: Manually update all affected cache entries
 
-Let's say you want to intercept mutation results, and manually update your cache. This is difficult to get right, so be careful when attempting it.
+Let's say you want to intercept mutation results, and manually update your cache. This is difficult to get right, so be careful.
 
-There's a `cache` object passed to the `run` callback, with an `entries` you can iterate, and update. As before, it's fine to just mutate the cached entries directly, just don't forget to call the `refresh` method when done, so your current results will update.
+There's a `cache` object passed to the `run` callback, with an `entries` you can iterate, and update. As before, it's fine to just mutate the cached entries directly; just don't forget to call the `refresh` method when done, so your current results will update.
 
 This example shows how you can remove a deleted book from every cache result.
 
@@ -429,13 +436,14 @@ It's worth noting that this solution will have problems if your results are page
 
 The cache object has the following properties and methods
 
-| Member            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+<!-- prettier-ignore -->
+| Member | Description  |
+| ----- | --------- |
 | `get entries()`   | An array of the current entries. Each entry is an array of length 2, of the form `[key, value]`. The cache entry key is the actual GraphQL url query that was run. If you'd like to inspect it, see the variables that were sent, etc, just use your favorite url parsing utility, like `url-parse`. And of course the cache value itself is whatever the server sent back for that query. If the query is still pending, then the entry will be a promise for that request. |
-| `get(key)`        | Gets the cache entry for a particular key                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `set(key, value)` | Sets the cache entry for a particular key                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `delete(key)`     | Deletes the cache entry for a particular key                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `clearCache()`    | Clears all entries from the cache                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `get(key)` | Gets the cache entry for a particular key      |
+| `set(key, value)` | Sets the cache entry for a particular key  |
+| `delete(key)`     | Deletes the cache entry for a particular key |
+| `clearCache()`    | Clears all entries from the cache |
 
 ## Manually running queries or mutations
 
@@ -450,7 +458,7 @@ For example, to imperatively run the query from above in application code, you c
 
 ```javascript
 client.runQuery(
-  `query ALL_BOOKS ($page: Int) {
+  compress`query ALL_BOOKS ($page: Int) {
     allBooks(PAGE: $page, PAGE_SIZE: 3) {
       Books { _id title }
     }
@@ -474,7 +482,7 @@ client.runMutation(
 
 ## Transpiling decorators
 
-Be sure to use the `babel-plugin-transform-decorators-legacy` Babel plugin. The code is not _yet_ updated to work with the new decorators proposal.
+Be sure to use the `babel-plugin-transform-decorators-legacy` Babel plugin. When the new decorators proposal is updated, this code will be updated to support both.
 
 ### But I don't like decorators
 
@@ -507,7 +515,7 @@ const BasicQueryConnected = query(
 )(BasicQueryNoDecorators);
 ```
 
-I plan on supporting both the old, and new class decorator formats indefinitely, if for no other reason than to transparently allow for separate, explicit wrapping like the above. This pattern is popular for unit testing React components.
+Again, I plan on supporting both the old, and new class decorator formats indefinitely, if for no other reason than to transparently allow for separate, explicit wrapping like the above. This pattern is popular for unit testing React components.
 
 But really, don't be afraid to give decorators a try: they're awesome!
 
