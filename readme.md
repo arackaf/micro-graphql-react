@@ -24,6 +24,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
   - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
   - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
   - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
+- [Cache API](#cache-api)
 - [Manually running queries or mutations](#manually-running-queries-or-mutations)
   - [Client api](#client-api)
 - [Transpiling decorators](#transpiling-decorators)
@@ -422,7 +423,19 @@ export class BookQueryComponent extends Component {
 }
 ```
 
-It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back.
+It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back. The whole cache api is listed below
+
+## Cache API
+
+The cache object has the following properties and methods
+
+| Member            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get entries()`   | An array of the current entries. Each entry is an array of length 2, of the form `[key, value]`. The cache entry key is the actual GraphQL url query that was run. If you'd like to inspect it, see the variables that were sent, etc, just use your favorite url parsing utility, like `url-parse`. And of course the cache value itself is whatever the server sent back for that query. If the query is still pending, then the entry will be a promise for that request. |
+| `get(key)`        | Gets the cache entry for a particular key                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `set(key, value)` | Sets the cache entry for a particular key                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `delete(key)`     | Deletes the cache entry for a particular key                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `clearCache()`    | Clears all entries from the cache                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ## Manually running queries or mutations
 
