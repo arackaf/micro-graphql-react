@@ -396,7 +396,33 @@ And if you have multiple mutations, just pass them in an array
 
 ### Use Case 3: Manually update all affected cache entries
 
-TODO: (code is written and works, docs will be updated soon)
+Let's say you want to intercept mutation results, and manually update your cache. This is difficult to get right, so be careful when attempting it.
+
+There's a `cache` object passed to the `run` callback, with an `entries` you can iterate, and update. As before, it's fine to just mutate the cached entries directly, just don't forget to call the `refresh` method when done, so your current results will update.
+
+This example shows how you can remove a deleted book from every cache result.
+
+```javascript
+@query(BOOKS_QUERY, props => ({ page: props.page }), {
+  onMutation: {
+    when: "deleteBook",
+    run: (args, mutationResponse, { cache, refresh }) => {
+      cache.entries.forEach(([key, results]) => {
+        results.data.allBooks.Books = results.data.allBooks.Books.filter(b => b._id != args._id);
+      });
+      refresh();
+    }
+  }
+})
+export class BookQueryComponent extends Component {
+  render() {
+    let { data } = this.props;
+    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+  }
+}
+```
+
+It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back.
 
 ## Manually running queries or mutations
 

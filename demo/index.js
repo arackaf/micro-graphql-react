@@ -10,7 +10,7 @@ import BookGruntWork from "./bookGruntWork";
 import SubjectGruntWork from "./subjectGruntWork";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation1";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation2";
-import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidationB";
+import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidationC";
 import BasicQueryNoDecorators from "./basicQueryNoDecorators";
 
 const client = new Client({
@@ -150,8 +150,10 @@ class TestingSandbox1 extends Component {
         <BookQueryComponent page={this.state.page} />
         <BookGruntWork page={this.state.page} />
 
+        {/*
         <SubjectQueryComponent page={this.state.page} />
         <SubjectGruntWork page={this.state.page} />
+        */}
         {/*<BasicQuery page={this.state.page} />*/}
 
         {/*
