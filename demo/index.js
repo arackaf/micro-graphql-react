@@ -139,6 +139,9 @@ class TestingSandbox1 extends Component {
         {this.state.version}
         <input value={this.state.title} onChange={e => this.setState({ title: e.target.value })} />
 
+        <BasicQuery page={this.state.page} />
+        <br />
+        <hr />
         {/*<TwoQueries title_contains="Sec" />
         <br />
         <br />
@@ -154,7 +157,6 @@ class TestingSandbox1 extends Component {
         <SubjectQueryComponent page={this.state.page} />
         <SubjectGruntWork page={this.state.page} />
         */}
-        {/*<BasicQuery page={this.state.page} />*/}
 
         {/*
         <br />

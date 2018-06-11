@@ -15,7 +15,7 @@ import { BOOKS_QUERY, BOOKS_MUTATION, SUBJECTS_QUERY, SUBJECTS_MUTATION } from "
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
   }
 }
 
@@ -32,6 +32,6 @@ export class BookQueryComponent extends Component {
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(subject => <li key={subject._id}>{subject.name}</li>)}</ul> : null}</div>;
+    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
   }
 }
