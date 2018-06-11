@@ -1,17 +1,11 @@
 import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
 
 let client1;
-let client2;
-let client3;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
-  client2 = new ClientMock("endpoint2");
-  client3 = new ClientMock("endpoint3");
   setDefaultClient(client1);
 });
-
-const DEFAULT_CACHE_SIZE = 10;
 
 const getQueryAndMutationComponent = queryArgs =>
   @mutation(`someMutation{}`)
@@ -20,96 +14,11 @@ const getQueryAndMutationComponent = queryArgs =>
     render = () => null;
   };
 
-const queryPacket = [basicQueryWithVariables, props => ({ page: props.page })];
-const queryPacket2 = [basicQueryWithVariables, props => ({ query: props.query })];
-
-test("Mutation listener runs with exact match", async () => {
-  let runCount = 0;
-  let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: "updateBook", run: () => runCount++ } }));
-  let obj = shallow(<Component page={1} />).dive();
-
-  client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
-  await obj.props().runMutation();
-
-  expect(runCount).toBe(1);
-});
-
-test("Mutation listener runs with exact match twice", async () => {
-  let runCount = 0;
-  let runCount2 = 0;
-  let Component = getQueryAndMutationComponent(
-    queryPacket.concat({
-      onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: "updateBook", run: () => runCount2++ }]
-    })
-  );
-  let obj = shallow(<Component page={1} />).dive();
-
-  client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
-  await obj.props().runMutation();
-
-  expect(runCount).toBe(1);
-  expect(runCount2).toBe(1);
-});
-
-test("Mutation listener runs with regex match", async () => {
-  let runCount = 0;
-  let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: /update/, run: () => runCount++ } }));
-  let obj = shallow(<Component page={1} />).dive();
-
-  client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
-  await obj.props().runMutation();
-
-  expect(runCount).toBe(1);
-});
-
-test("Mutation listener runs with regex match twice", async () => {
-  let runCount = 0;
-  let runCount2 = 0;
-  let Component = getQueryAndMutationComponent(
-    queryPacket.concat({
-      onMutation: [{ when: /book/i, run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
-    })
-  );
-  let obj = shallow(<Component page={1} />).dive();
-
-  client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
-  await obj.props().runMutation();
-
-  expect(runCount).toBe(1);
-  expect(runCount2).toBe(1);
-});
-
-test("Mutation listener runs either test match", async () => {
-  let runCount = 0;
-  let runCount2 = 0;
-  let Component = getQueryAndMutationComponent(
-    queryPacket.concat({
-      onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
-    })
-  );
-  let obj = shallow(<Component page={1} />).dive();
-
-  client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
-  await obj.props().runMutation();
-
-  expect(runCount).toBe(1);
-  expect(runCount2).toBe(1);
-});
-
-test("Mutation listener misses without match", async () => {
-  let runCount = 0;
-  let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: "updateBook", run: () => runCount++ } }));
-  let obj = shallow(<Component page={1} />).dive();
-
-  client1.nextMutationResult = { updateAuthor: { Author: { name: "New Name" } } };
-  await obj.props().runMutation();
-
-  expect(runCount).toBe(0);
-});
+const queryPacket = [basicQueryWithVariables, props => ({ query: props.query })];
 
 test("Mutation listener updates cache", async () => {
   let Component = getQueryAndMutationComponent(
-    queryPacket2.concat({
+    queryPacket.concat({
       onMutation: {
         when: "updateBook",
         run: (args, { updateBook: { Book } }, { cache }) => {
@@ -142,7 +51,7 @@ test("Mutation listener updates cache", async () => {
 
 test("Mutation listener updates cache with mutation args - string", async () => {
   let Component = getQueryAndMutationComponent(
-    queryPacket2.concat({
+    queryPacket.concat({
       onMutation: {
         when: "deleteBook",
         run: (args, resp, { cache, refresh }) => {
@@ -176,7 +85,7 @@ test("Mutation listener updates cache with mutation args - string", async () => 
 
 test("Mutation listener updates cache with mutation args - regex", async () => {
   let Component = getQueryAndMutationComponent(
-    queryPacket2.concat({
+    queryPacket.concat({
       onMutation: {
         when: /deleteBook/,
         run: (args, resp, { cache, refresh }) => {
@@ -210,7 +119,7 @@ test("Mutation listener updates cache with mutation args - regex", async () => {
 
 test("Mutation listener updates cache then refreshes from cache", async () => {
   let Component = getQueryAndMutationComponent(
-    queryPacket2.concat({
+    queryPacket.concat({
       onMutation: {
         when: "updateBook",
         run: (args, { updateBook: { Book } }, { cache, refresh }) => {
@@ -248,7 +157,7 @@ test("Mutation listener updates cache then refreshes from cache", async () => {
 test("Mutation listener - soft reset - props right, cache cleared", async () => {
   let componentsCache;
   let Component = getQueryAndMutationComponent(
-    queryPacket2.concat({
+    queryPacket.concat({
       onMutation: {
         when: "updateBook",
         run: (args, { updateBook: { Book } }, { cache, softReset, currentResults }) => {
@@ -275,7 +184,7 @@ test("Mutation listener - soft reset - props right, cache cleared", async () => 
 test("Mutation listener - hard reset - props right, cache cleared, client qeried", async () => {
   let componentsCache;
   let Component = getQueryAndMutationComponent(
-    queryPacket2.concat({
+    queryPacket.concat({
       onMutation: {
         when: "updateBook",
         run: (args, Resp, { cache, hardReset, currentResults }) => {
