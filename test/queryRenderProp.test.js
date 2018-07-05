@@ -16,9 +16,21 @@ beforeEach(() => {
 
 const DEFAULT_CACHE_SIZE = 10;
 
+class DummyA extends Component {
+  render() {
+    return <div className="a" />;
+  }
+}
+
+const letUpdate = obj => {
+  return new Promise(res => setTimeout(res, 200)); //.then(() => obj.instance.forceUpdate());
+};
+
 const getComponentA = (render = () => null) =>
   class extends Component {
-    render = () => <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{render}</GraphQL>;
+    render() {
+      return <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{render}</GraphQL>;
+    }
   };
 
 const getComponentB = (render = () => null) =>
@@ -33,6 +45,26 @@ test("Basic query fires on mount", () => {
 
   expect(client1.queriesRun).toBe(1);
   expect(client1.queryCalls).toEqual([[queryA, { a: 1 }]]);
+});
+
+test("loading props passed", async () => {
+  ComponentA = getComponentA(props => {
+    return <DummyA {...props.query1} />;
+  });
+  let obj = mount(<ComponentA a={1} unused={0} />);
+
+  let props = obj
+    .childAt(0)
+    .children()
+    .find(DummyA)
+    .props();
+
+  expect(props).toEqual({
+    loading: true,
+    loaded: false,
+    data: null,
+    error: null
+  });
 });
 
 test("Basic query does not re-fire for unrelated prop change", () => {
