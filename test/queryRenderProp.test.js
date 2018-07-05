@@ -47,3 +47,15 @@ test("Basic query re-fires for prop change", () => {
   expect(client1.queriesRun).toBe(2);
   expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }], [basicQueryWithVariables, { a: 2 }]]);
 });
+
+test("Basic query hits cache", () => {
+  let obj = mount(<BasicQuery a={1} unused={0} />);
+
+  expect(client1.queriesRun).toBe(1);
+
+  obj.setProps({ a: 2 });
+  obj.setProps({ a: 1 });
+
+  expect(client1.queriesRun).toBe(2);
+  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }], [basicQueryWithVariables, { a: 2 }]]);
+});
