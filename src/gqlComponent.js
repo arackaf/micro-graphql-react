@@ -10,8 +10,11 @@ class QueryPacket {
       this.query = packet[0];
       this.variables = packet[1];
     }
+    this.execute();
   }
-  execute() {}
+  execute() {
+    this.client.runQuery(this.query, this.variables);
+  }
 }
 
 export default class GraphQL extends Component {

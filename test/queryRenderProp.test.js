@@ -1,4 +1,4 @@
-import { React, Component, shallow, ClientMock, query, setDefaultClient, basicQuery, GraphQL } from "./testSuiteInitialize";
+import { React, Component, mount, ClientMock, query, setDefaultClient, basicQuery, GraphQL, basicQueryWithVariables } from "./testSuiteInitialize";
 
 let client1;
 let BasicQuery;
@@ -13,13 +13,13 @@ const DEFAULT_CACHE_SIZE = 10;
 
 const getComponent = () =>
   class extends Component {
-    render = () => <GraphQL query={}>{() => null}</GraphQL>;
+    render = () => <GraphQL query={{ query1: [basicQueryWithVariables, { a: this.props.a }] }}>{() => null}</GraphQL>;
   };
 
-const basicQueryWithVariablesPacket = [basicQuery, props => ({ page: props.page })];
+const basicQueryWithVariablesPacket = [basicQuery];
 
 test("Static query never re-fires", () => {
-  let obj = shallow(<BasicQuery unused={0} />);
+  let obj = mount(<BasicQuery unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
