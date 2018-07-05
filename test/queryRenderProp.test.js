@@ -18,11 +18,32 @@ const getComponent = () =>
 
 const basicQueryWithVariablesPacket = [basicQuery];
 
-test("Static query never re-fires", () => {
-  let obj = mount(<BasicQuery unused={0} />);
+test("Basic query fires on mount", () => {
+  let obj = mount(<BasicQuery a={1} unused={0} />);
+
+  expect(client1.queriesRun).toBe(1);
+
+  expect(client1.queriesRun).toBe(1);
+  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }]]);
+});
+
+test("Basic query does not re-fire for unrelated prop change", () => {
+  let obj = mount(<BasicQuery a={1} unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
   obj.setProps({ unused: 1 });
   expect(client1.queriesRun).toBe(1);
+  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }]]);
+});
+
+test("Basic query re-fires for prop change", () => {
+  let obj = mount(<BasicQuery a={1} unused={0} />);
+
+  expect(client1.queriesRun).toBe(1);
+
+  obj.setProps({ a: 2 });
+
+  expect(client1.queriesRun).toBe(2);
+  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }], [basicQueryWithVariables, { a: 2 }]]);
 });

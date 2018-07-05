@@ -61,6 +61,8 @@
     "test": "jest --runInBand",
     "testw": "jest --runInBand --watchAll"
   },
-  "dependencies": {},
+  "dependencies": {
+    "shallow-equal": "^1.0.0"
+  },
   "typings": "index.d.ts"
 }
