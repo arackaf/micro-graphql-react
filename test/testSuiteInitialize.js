@@ -5,7 +5,7 @@ Enzyme.configure({ adapter: new Adapter() });
 
 import ClientMock from "./clientMock";
 import { query, mutation, setDefaultClient, GraphQL } from "../index-local";
-import { basicQuery } from "./graphqlConstants";
+import { basicQuery, basicQueryWithVariables } from "./graphqlConstants";
 import GraphQLComponent from "../src/gqlComponent";
 
-export { React, Component, mount, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, GraphQL };
+export { React, Component, mount, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables, GraphQL };
