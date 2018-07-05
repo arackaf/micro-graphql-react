@@ -1,55 +1,63 @@
-import { React, Component, mount, ClientMock, query, setDefaultClient, basicQuery, GraphQL, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "./testSuiteInitialize";
+
+const queryA = "A";
+const queryB = "B";
 
 let client1;
-let BasicQuery;
+let ComponentA;
+let ComponentB;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
-  BasicQuery = getComponent(basicQuery);
+  ComponentA = getComponentA();
+  ComponentB = getComponentB();
 });
 
 const DEFAULT_CACHE_SIZE = 10;
 
-const getComponent = () =>
+const getComponentA = (render = () => null) =>
   class extends Component {
-    render = () => <GraphQL query={{ query1: [basicQueryWithVariables, { a: this.props.a }] }}>{() => null}</GraphQL>;
+    render = () => <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{render}</GraphQL>;
   };
 
-const basicQueryWithVariablesPacket = [basicQuery];
+const getComponentB = (render = () => null) =>
+  class extends Component {
+    render = () => <GraphQL query={{ query1: [queryA, { a: this.props.a }], query2: [queryB, { b: this.props.b }] }}>{render}</GraphQL>;
+  };
 
 test("Basic query fires on mount", () => {
-  let obj = mount(<BasicQuery a={1} unused={0} />);
+  let obj = mount(<ComponentA a={1} unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
   expect(client1.queriesRun).toBe(1);
-  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }]]);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }]]);
 });
 
 test("Basic query does not re-fire for unrelated prop change", () => {
-  let obj = mount(<BasicQuery a={1} unused={0} />);
+  let obj = mount(<ComponentA a={1} unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
   obj.setProps({ unused: 1 });
   expect(client1.queriesRun).toBe(1);
-  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }]]);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }]]);
 });
 
 test("Basic query re-fires for prop change", () => {
-  let obj = mount(<BasicQuery a={1} unused={0} />);
+  let obj = mount(<ComponentA a={1} unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
   obj.setProps({ a: 2 });
 
   expect(client1.queriesRun).toBe(2);
-  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }], [basicQueryWithVariables, { a: 2 }]]);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryA, { a: 2 }]]);
 });
 
 test("Basic query hits cache", () => {
-  let obj = mount(<BasicQuery a={1} unused={0} />);
+  let obj = mount(<ComponentA a={1} unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
@@ -57,5 +65,14 @@ test("Basic query hits cache", () => {
   obj.setProps({ a: 1 });
 
   expect(client1.queriesRun).toBe(2);
-  expect(client1.queryCalls).toEqual([[basicQueryWithVariables, { a: 1 }], [basicQueryWithVariables, { a: 2 }]]);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryA, { a: 2 }]]);
+});
+
+test("Run two queries", () => {
+  let obj = mount(<ComponentB a={1} b={2} unused={0} />);
+
+  expect(client1.queriesRun).toBe(2);
+
+  expect(client1.queriesRun).toBe(2);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }]]);
 });
