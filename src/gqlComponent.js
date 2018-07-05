@@ -23,7 +23,7 @@ class QueryManager {
     loading: false,
     loaded: false,
     data: null,
-    error: null
+    errors: null
   };
   constructor({ client, setState }, packet) {
     const [query, variables] = deConstructQueryPacket(packet);
@@ -73,9 +73,9 @@ class QueryManager {
       .then(resp => {
         this.cache[setResultsSymbol](promise, cacheKey, resp);
         if (resp.errors) {
-          this.updateState({ loaded: true, loading: false, data: null, error: resp.errors });
+          this.updateState({ loaded: true, loading: false, data: null, errors: resp.errors });
         } else {
-          this.updateState({ loaded: true, loading: false, data: resp.data, error: null });
+          this.updateState({ loaded: true, loading: false, data: resp.data, errors: null });
         }
       })
       .catch(err => {
