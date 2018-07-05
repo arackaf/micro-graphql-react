@@ -1,24 +1,38 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
+import shallowEqual from "shallow-equal/objects";
 
-class QueryPacket {
+const deConstructQueryPacket = packet => {
+  if (typeof packet === "string") {
+    return [query, null];
+  } else if (Array.isArray(packet)) {
+    return [packet[0], packet[1] || null];
+  }
+};
+
+class QueryManager {
   constructor(client, packet) {
     this.client = client;
-    if (typeof packet === "string") {
-      query = packet;
-    } else if (Array.isArray(packet)) {
-      this.query = packet[0];
-      this.variables = packet[1];
-    }
+    const [query, variables] = deConstructQueryPacket(packet);
+    this.query = query;
+    this.variables = variables;
     this.execute();
   }
   execute() {
     this.client.runQuery(this.query, this.variables);
   }
+  updateIfNeeded(packet) {
+    const [query, variables] = deConstructQueryPacket(packet);
+    if (query != this.query || !shallowEqual(variables || {}, this.variables || {})) {
+      this.query = query;
+      this.variables = variables;
+      this.execute();
+    }
+  }
 }
 
 export default class GraphQL extends Component {
-  queryMap = {};
+  queryManagerMap = {};
   mutationMap = {};
   get client() {
     return this.props.client || defaultClientManager.getDefaultClient();
@@ -29,7 +43,16 @@ export default class GraphQL extends Component {
 
     Object.keys(query).forEach(k => {
       let packet = query[k];
-      this.queryMap[k] = new QueryPacket(client, packet);
+      this.queryManagerMap[k] = new QueryManager(client, packet);
+    });
+  }
+  componentDidUpdate(prevProps, prevState) {
+    let { query = {} } = this.props;
+
+    Object.keys(query).forEach(k => {
+      let queryManager = this.queryManagerMap[k];
+      let packet = query[k];
+      queryManager.updateIfNeeded(packet);
     });
   }
   render() {
