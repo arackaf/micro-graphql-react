@@ -1,4 +1,4 @@
-import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery } from "./testSuiteInitialize";
 
 let client1;
 let client2;
@@ -21,7 +21,7 @@ const getComponent = (...args) =>
     render = () => null;
   };
 
-const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
+const basicQueryWithVariablesPacket = [basicQuery, props => ({ page: props.page })];
 
 test("Static query never re-fires", () => {
   let obj = shallow(<BasicQuery unused={0} />);

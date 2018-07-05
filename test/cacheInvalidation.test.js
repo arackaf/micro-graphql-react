@@ -1,4 +1,4 @@
-import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery } from "./testSuiteInitialize";
 
 let client1;
 let client2;
@@ -19,7 +19,7 @@ const getComponent = (...args) =>
     render = () => null;
   };
 
-const basicQueryWithVariablesPacket = [basicQueryWithVariables, props => ({ page: props.page })];
+const basicQueryWithVariablesPacket = [basicQuery, props => ({ page: props.page })];
 
 test("Default cache size", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
@@ -35,14 +35,14 @@ test("Default cache size", async () => {
 test("Cache accessible by query in client", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
   shallow(<Component page={1} unused={10} />);
-  let cache = client1.getCache(basicQueryWithVariables);
+  let cache = client1.getCache(basicQuery);
   expect(typeof cache).toBe("object");
 });
 
 test("Default cache size - verify on cache object retrieved", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
   let obj = shallow(<Component page={1} unused={10} />);
-  let cache = client1.getCache(basicQueryWithVariables);
+  let cache = client1.getCache(basicQuery);
 
   Array.from({ length: 9 }).forEach((x, i) => {
     obj.setProps({ page: i + 2 });
@@ -62,7 +62,7 @@ import parse from "url-parse";
 test("TEMP", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
   let obj = shallow(<Component page={1} unused={10} />);
-  let cache = client1.getCache(basicQueryWithVariables);
+  let cache = client1.getCache(basicQuery);
 
   Array.from({ length: 9 }).forEach((x, i) => {
     obj.setProps({ page: i + 2 });

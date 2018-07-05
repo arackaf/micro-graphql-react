@@ -1,4 +1,4 @@
-import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery } from "./testSuiteInitialize";
 
 let client1;
 
@@ -14,7 +14,7 @@ const getQueryAndMutationComponent = queryArgs =>
     render = () => null;
   };
 
-const queryPacket = [basicQueryWithVariables, props => ({ query: props.query })];
+const queryPacket = [basicQuery, props => ({ query: props.query })];
 
 test("Mutation listener updates cache", async () => {
   let Component = getQueryAndMutationComponent(

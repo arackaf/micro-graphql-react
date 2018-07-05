@@ -1,4 +1,4 @@
-import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery } from "./testSuiteInitialize";
 
 let client1;
 
@@ -14,7 +14,7 @@ const getQueryAndMutationComponent = queryArgs =>
     render = () => null;
   };
 
-const queryPacket = [basicQueryWithVariables, props => ({ page: props.page })];
+const queryPacket = [basicQuery, props => ({ page: props.page })];
 
 test("Mutation listener runs with exact match", async () => {
   let runCount = 0;
