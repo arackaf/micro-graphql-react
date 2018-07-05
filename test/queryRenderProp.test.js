@@ -38,6 +38,17 @@ const getComponentB = (render = () => null) =>
     render = () => <GraphQL query={{ query1: [queryA, { a: this.props.a }], query2: [queryB, { b: this.props.b }] }}>{render}</GraphQL>;
   };
 
+const getPropsFor = (obj, target) =>
+  obj
+    .children()
+    .find(target)
+    .props();
+
+const verifyPropsFor = (obj, target, expected) => {
+  let props = getPropsFor(obj, target);
+  expect(props).toEqual(expected);
+};
+
 test("Basic query fires on mount", () => {
   let obj = mount(<ComponentA a={1} unused={0} />);
 
@@ -53,17 +64,11 @@ test("loading props passed", async () => {
   });
   let obj = mount(<ComponentA a={1} unused={0} />);
 
-  let props = obj
-    .childAt(0)
-    .children()
-    .find(DummyA)
-    .props();
-
-  expect(props).toEqual({
+  verifyPropsFor(obj, DummyA, {
     loading: true,
     loaded: false,
     data: null,
-    error: null
+    errors: null
   });
 });
 
@@ -75,33 +80,21 @@ test("Query resolves and loading updated", async () => {
   client1.nextResult = p;
   let obj = mount(<ComponentA a={1} unused={0} />);
 
-  let props = obj
-    .childAt(0)
-    .children()
-    .find(DummyA)
-    .props();
-
-  expect(props).toEqual({
+  verifyPropsFor(obj, DummyA, {
     loading: true,
     loaded: false,
     data: null,
-    error: null
+    errors: null
   });
 
   await p;
   obj.update();
 
-  props = obj
-    .childAt(0)
-    .children()
-    .find(DummyA)
-    .props();
-
-  expect(props).toEqual({
+  verifyPropsFor(obj, DummyA, {
     loading: false,
     loaded: true,
     data: { tasks: [] },
-    error: null
+    errors: null
   });
 });
 
