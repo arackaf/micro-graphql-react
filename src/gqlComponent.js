@@ -55,6 +55,7 @@ class QueryManager {
         this.updateState({ loading: true });
         let promise = this.client.runQuery(this.query, this.variables);
         this.cache[setPendingResultSymbol](graphqlQuery, promise);
+        this.handleExecution(promise, graphqlQuery);
       }
     );
   }
@@ -66,6 +67,22 @@ class QueryManager {
       this.load();
     }
   }
+  handleExecution = (promise, cacheKey) => {
+    //TODO: check that this is the current promise
+    Promise.resolve(promise)
+      .then(resp => {
+        this.cache[setResultsSymbol](promise, cacheKey, resp);
+        if (resp.errors) {
+          this.updateState({ loaded: true, loading: false, data: null, error: resp.errors });
+        } else {
+          this.updateState({ loaded: true, loading: false, data: resp.data, error: null });
+        }
+      })
+      .catch(err => {
+        this.cache[setResultsSymbol](promise, cacheKey, null, err);
+        this.handlerError(err);
+      });
+  };
 }
 
 export default class GraphQL extends Component {

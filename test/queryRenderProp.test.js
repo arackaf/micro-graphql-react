@@ -67,6 +67,44 @@ test("loading props passed", async () => {
   });
 });
 
+test("Query resolves and loading updated", async () => {
+  ComponentA = getComponentA(props => {
+    return <DummyA {...props.query1} />;
+  });
+  let p = Promise.resolve({ data: { tasks: [] } });
+  client1.nextResult = p;
+  let obj = mount(<ComponentA a={1} unused={0} />);
+
+  let props = obj
+    .childAt(0)
+    .children()
+    .find(DummyA)
+    .props();
+
+  expect(props).toEqual({
+    loading: true,
+    loaded: false,
+    data: null,
+    error: null
+  });
+
+  await p;
+  obj.update();
+
+  props = obj
+    .childAt(0)
+    .children()
+    .find(DummyA)
+    .props();
+
+  expect(props).toEqual({
+    loading: false,
+    loaded: true,
+    data: { tasks: [] },
+    error: null
+  });
+});
+
 test("Basic query does not re-fire for unrelated prop change", () => {
   let obj = mount(<ComponentA a={1} unused={0} />);
 
