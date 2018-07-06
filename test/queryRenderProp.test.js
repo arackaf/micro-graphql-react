@@ -169,6 +169,26 @@ test("Out of order promise handled", async () => {
   });
 });
 
+test("Out of order promise handled 2", async () => {
+  ComponentA = getComponentWithDummyA();
+  let p = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: -999 }] } }), 10));
+  client1.nextResult = p;
+  let obj = mount(<ComponentA a={1} unused={0} />);
+
+  client1.nextResult = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: 1 }] } }), 1000));
+  obj.setProps({ a: 2 });
+
+  await p;
+  obj.update();
+
+  verifyPropsFor(obj, DummyA, {
+    loading: true,
+    loaded: false,
+    data: null,
+    error: null
+  });
+});
+
 test("Basic query does not re-fire for unrelated prop change", () => {
   let obj = mount(<ComponentA a={1} unused={0} />);
 

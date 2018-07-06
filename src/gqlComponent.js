@@ -69,7 +69,6 @@ class QueryManager {
   }
   handleExecution = (promise, cacheKey) => {
     this.currentPromise = promise;
-    //TODO: check that this is the current promise
     Promise.resolve(promise)
       .then(resp => {
         if (this.currentPromise !== promise) {
