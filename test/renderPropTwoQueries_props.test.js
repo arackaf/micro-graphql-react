@@ -1,4 +1,5 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, verifyPropsFor } from "./testSuiteInitialize";
+import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "./testSuiteInitialize";
+import { verifyPropsFor, deferred, resolveDeferred, loadingPacket } from "./testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -44,17 +45,6 @@ test("loading props passed", async () => {
   ComponentToUse = getComponent();
   let obj = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
-  verifyPropsFor(obj, DummyA, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
-
-  verifyPropsFor(obj, DummyB, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
+  verifyPropsFor(obj, DummyA, loadingPacket);
+  verifyPropsFor(obj, DummyB, loadingPacket);
 });
