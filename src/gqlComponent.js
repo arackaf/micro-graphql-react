@@ -78,7 +78,7 @@ class QueryManager {
         });
       },
       cachedEntry => {
-        //TODO:
+        this.updateState({ data: cachedEntry.data, error: cachedEntry.error });
       },
       () => {
         this.updateState({ loading: true });

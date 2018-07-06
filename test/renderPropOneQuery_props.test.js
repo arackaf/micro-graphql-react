@@ -94,3 +94,24 @@ test("Out of order promise handled 2", async () => {
   await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, obj);
   verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 });
+
+test("Cached data handled", async () => {
+  ComponentToUse = getComponent();
+  let pData = (client1.nextResult = deferred());
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
+
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, obj);
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+
+  pData = client1.nextResult = deferred();
+  obj.setProps({ a: 2 });
+
+  await resolveDeferred(pData, { data: { tasks: [{ id: 2 }] } }, obj);
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 2 }] }));
+
+  obj.setProps({ a: 1 });
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, obj);
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+
+  expect(client1.queriesRun).toBe(2);
+});
