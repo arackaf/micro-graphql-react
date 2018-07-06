@@ -1,5 +1,5 @@
 import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "./testSuiteInitialize";
-import { verifyPropsFor, deferred, resolveDeferred, loadingPacket } from "./testUtils";
+import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, pause, dataPacket } from "./testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -47,4 +47,16 @@ test("loading props passed", async () => {
 
   verifyPropsFor(obj, DummyA, loadingPacket);
   verifyPropsFor(obj, DummyB, loadingPacket);
+});
+
+test("Resolve both promises", async () => {
+  ComponentToUse = getComponent();
+
+  client1.generateResponse = query => ({ data: { tasks: [{ name: query }] } });
+  let obj = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+
+  await pause(obj);
+
+  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: queryA }] }));
+  verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: queryB }] }));
 });

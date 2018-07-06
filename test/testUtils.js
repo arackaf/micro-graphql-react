@@ -54,3 +54,11 @@ export const errorPacket = error => ({
   error,
   data: null
 });
+
+export const pause = obj =>
+  new Promise(res =>
+    setTimeout(() => {
+      obj.update();
+      res();
+    }, 10)
+  );
