@@ -63,131 +63,15 @@ const getComponentWithDummyA = () =>
     return <DummyA {...props.query1} />;
   });
 
-test("loading props passed", async () => {
-  ComponentA = getComponentWithDummyA();
-  let obj = mount(<ComponentA a={1} unused={0} />);
-
-  verifyPropsFor(obj, DummyA, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
+const getComponentWithDummyAAndDummyB = () =>
+  getComponentB(props => {
+    return (
+      <div>
+        <DummyA {...props.query1} />
+        <DummyB {...props.query2} />
+      </div>
+    );
   });
-});
-
-test("Query resolves and data updated", async () => {
-  ComponentA = getComponentWithDummyA();
-  let p = Promise.resolve({ data: { tasks: [] } });
-  client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
-
-  verifyPropsFor(obj, DummyA, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
-
-  await p;
-  obj.update();
-
-  verifyPropsFor(obj, DummyA, {
-    loading: false,
-    loaded: true,
-    data: { tasks: [] },
-    error: null
-  });
-});
-
-test("Query resolves and errors updated", async () => {
-  ComponentA = getComponentWithDummyA();
-  let p = Promise.resolve({ errors: [{ msg: "a" }] });
-  client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
-
-  verifyPropsFor(obj, DummyA, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
-
-  await p;
-  obj.update();
-
-  verifyPropsFor(obj, DummyA, {
-    loading: false,
-    loaded: true,
-    data: null,
-    error: [{ msg: "a" }]
-  });
-});
-
-test("Error in promise", async () => {
-  ComponentA = getComponentWithDummyA();
-  let p = Promise.reject({ message: "Hello" });
-  client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
-
-  verifyPropsFor(obj, DummyA, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
-
-  try {
-    await p;
-  } catch (e) {}
-  obj.update();
-
-  verifyPropsFor(obj, DummyA, {
-    loading: false,
-    loaded: true,
-    data: null,
-    error: { message: "Hello" }
-  });
-});
-
-test("Out of order promise handled", async () => {
-  ComponentA = getComponentWithDummyA();
-  let p = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: -999 }] } }), 1000));
-  client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
-
-  client1.nextResult = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: 1 }] } }), 10));
-  obj.setProps({ a: 2 });
-
-  await p;
-  obj.update();
-
-  verifyPropsFor(obj, DummyA, {
-    loading: false,
-    loaded: true,
-    data: { tasks: [{ id: 1 }] },
-    error: null
-  });
-});
-
-test("Out of order promise handled 2", async () => {
-  ComponentA = getComponentWithDummyA();
-  let p = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: -999 }] } }), 10));
-  client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
-
-  client1.nextResult = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: 1 }] } }), 1000));
-  obj.setProps({ a: 2 });
-
-  await p;
-  obj.update();
-
-  verifyPropsFor(obj, DummyA, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
-});
 
 test("Basic query does not re-fire for unrelated prop change", () => {
   let obj = mount(<ComponentA a={1} unused={0} />);
