@@ -34,21 +34,13 @@ test("loading props passed", async () => {
 
 test("Query resolves and data updated", async () => {
   ComponentToUse = getComponent();
-  let p = Promise.resolve({ data: { tasks: [] } });
-  client1.nextResult = p;
+  let p = (client1.nextResult = deferred());
   let obj = mount(<ComponentToUse a={1} unused={0} />);
 
   verifyPropsFor(obj, Dummy, loadingPacket);
 
-  await p;
-  obj.update();
-
-  verifyPropsFor(obj, Dummy, {
-    loading: false,
-    loaded: true,
-    data: { tasks: [] },
-    error: null
-  });
+  await resolveDeferred(p, { data: { tasks: [] } }, obj);
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [] }));
 });
 
 test("Query resolves and errors updated", async () => {

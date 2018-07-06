@@ -14,7 +14,9 @@ export default class Client extends ClientBase {
     this.mutationCalls = [];
   };
   runQuery = (query, variables) => {
-    if (this.justWait) {
+    if (this.generateResponse) {
+      this.nextResult = this.generateResponse(query, variables);
+    } else if (this.justWait) {
       return new Promise(() => null);
     }
     this.queriesRun++;
