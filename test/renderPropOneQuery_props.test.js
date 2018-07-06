@@ -1,4 +1,5 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, verifyPropsFor, deferred, resolveDeferred } from "./testSuiteInitialize";
+import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "./testSuiteInitialize";
+import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred } from "./testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -28,12 +29,7 @@ test("loading props passed", async () => {
   ComponentToUse = getComponent();
   let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, Dummy, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
+  verifyPropsFor(obj, Dummy, loadingPacket);
 });
 
 test("Query resolves and data updated", async () => {
@@ -42,12 +38,7 @@ test("Query resolves and data updated", async () => {
   client1.nextResult = p;
   let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, Dummy, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
+  verifyPropsFor(obj, Dummy, loadingPacket);
 
   await p;
   obj.update();
@@ -62,52 +53,24 @@ test("Query resolves and data updated", async () => {
 
 test("Query resolves and errors updated", async () => {
   ComponentToUse = getComponent();
-  let p = Promise.resolve({ errors: [{ msg: "a" }] });
-  client1.nextResult = p;
+  let p = (client1.nextResult = deferred());
   let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, Dummy, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
+  verifyPropsFor(obj, Dummy, loadingPacket);
 
-  await p;
-  obj.update();
-
-  verifyPropsFor(obj, Dummy, {
-    loading: false,
-    loaded: true,
-    data: null,
-    error: [{ msg: "a" }]
-  });
+  await resolveDeferred(p, { errors: [{ msg: "a" }] }, obj);
+  verifyPropsFor(obj, Dummy, errorPacket([{ msg: "a" }]));
 });
 
 test("Error in promise", async () => {
   ComponentToUse = getComponent();
-  let p = Promise.reject({ message: "Hello" });
-  client1.nextResult = p;
+  let p = (client1.nextResult = deferred());
   let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, Dummy, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
+  verifyPropsFor(obj, Dummy, loadingPacket);
 
-  try {
-    await p;
-  } catch (e) {}
-  obj.update();
-
-  verifyPropsFor(obj, Dummy, {
-    loading: false,
-    loaded: true,
-    data: null,
-    error: { message: "Hello" }
-  });
+  await rejectDeferred(p, { message: "Hello" }, obj);
+  verifyPropsFor(obj, Dummy, errorPacket({ message: "Hello" }));
 });
 
 test("Out of order promise handled", async () => {
@@ -119,38 +82,23 @@ test("Out of order promise handled", async () => {
   obj.setProps({ a: 2 });
 
   await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, obj);
-  verifyPropsFor(obj, Dummy, {
-    loading: false,
-    loaded: true,
-    data: { tasks: [{ id: 1 }] },
-    error: null
-  });
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
   await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, obj);
-  verifyPropsFor(obj, Dummy, {
-    loading: false,
-    loaded: true,
-    data: { tasks: [{ id: 1 }] },
-    error: null
-  });
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 });
 
 test("Out of order promise handled 2", async () => {
   ComponentToUse = getComponent();
-  let p = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: -999 }] } }), 10));
-  client1.nextResult = p;
+  let pFirst = (client1.nextResult = deferred());
   let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  client1.nextResult = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: 1 }] } }), 1000));
+  let pSecond = (client1.nextResult = deferred());
   obj.setProps({ a: 2 });
 
-  await p;
-  obj.update();
+  await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, obj);
+  verifyPropsFor(obj, Dummy, loadingPacket);
 
-  verifyPropsFor(obj, Dummy, {
-    loading: true,
-    loaded: false,
-    data: null,
-    error: null
-  });
+  await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, obj);
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 });
