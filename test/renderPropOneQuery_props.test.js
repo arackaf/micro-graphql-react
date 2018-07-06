@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, verifyPropsFor } from "./testSuiteInitialize";
+import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, verifyPropsFor, deferred, resolveDeferred } from "./testSuiteInitialize";
 
 const queryA = "A";
 const queryB = "B";
@@ -112,16 +112,21 @@ test("Error in promise", async () => {
 
 test("Out of order promise handled", async () => {
   ComponentToUse = getComponent();
-  let p = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: -999 }] } }), 1000));
-  client1.nextResult = p;
+  let pFirst = (client1.nextResult = deferred());
   let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  client1.nextResult = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: 1 }] } }), 10));
+  let pSecond = (client1.nextResult = deferred());
   obj.setProps({ a: 2 });
 
-  await p;
-  obj.update();
+  await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, obj);
+  verifyPropsFor(obj, Dummy, {
+    loading: false,
+    loaded: true,
+    data: { tasks: [{ id: 1 }] },
+    error: null
+  });
 
+  await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, obj);
   verifyPropsFor(obj, Dummy, {
     loading: false,
     loaded: true,

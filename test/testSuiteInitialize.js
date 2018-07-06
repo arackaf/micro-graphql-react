@@ -20,3 +20,20 @@ export const verifyPropsFor = (obj, target, expected) => {
   let props = getPropsFor(obj, target);
   expect(props).toEqual(expected);
 };
+
+export const deferred = () => {
+  let resolve, reject;
+  let p = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  p.resolve = resolve;
+  p.reject = reject;
+  return p;
+};
+
+export const resolveDeferred = async (p, val, obj) => {
+  p.resolve(val);
+  await p;
+  obj.update();
+};
