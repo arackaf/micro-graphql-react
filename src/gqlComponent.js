@@ -18,6 +18,35 @@ const deConstructQueryPacket = packet => {
   }
 };
 
+class MutationManager {
+  currentState = {
+    loading: false,
+    loaded: false,
+    data: null,
+    error: null
+  };
+  constructor({ client, setState }, mutation) {
+    this.client = client;
+    this.setState = setState;
+    this.mutation = mutation;
+    this.cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
+  }
+  runMutation = variables => {
+    this.setState({
+      running: true,
+      finished: false
+    });
+
+    return this.client.processMutation(this.mutation, variables).then(resp => {
+      this.setState({
+        running: false,
+        finished: true
+      });
+      return resp;
+    });
+  };
+}
+
 class QueryManager {
   currentState = {
     loading: false,
@@ -102,7 +131,9 @@ export default class GraphQL extends Component {
 
     Object.keys(query).forEach(k => {
       let packet = query[k];
-      let setState = state => this.setState({ queries: { ...this.state.queries, [k]: state } });
+      let setState = state => {
+        this.setState(oldState => ({ queries: { ...oldState.queries, [k]: state } }));
+      };
       this.queryManagerMap[k] = new QueryManager({ client, setState }, packet);
     });
   }

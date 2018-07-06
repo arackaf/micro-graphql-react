@@ -4,37 +4,31 @@ const queryA = "A";
 const queryB = "B";
 
 let client1;
-let ComponentA;
+let ComponentToUse;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
-  ComponentA = getComponentA();
 });
 
-class DummyA extends Component {
+class Dummy extends Component {
   render() {
-    return <div className="a" />;
+    return <div />;
   }
 }
 
-const getComponentA = (render = () => null) =>
+const getComponent = () =>
   class extends Component {
     render() {
-      return <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{render}</GraphQL>;
+      return <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{props => <Dummy {...props.query1} />}</GraphQL>;
     }
   };
 
-const getComponentWithDummyA = () =>
-  getComponentA(props => {
-    return <DummyA {...props.query1} />;
-  });
-
 test("loading props passed", async () => {
-  ComponentA = getComponentWithDummyA();
-  let obj = mount(<ComponentA a={1} unused={0} />);
+  ComponentToUse = getComponent();
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: true,
     loaded: false,
     data: null,
@@ -43,12 +37,12 @@ test("loading props passed", async () => {
 });
 
 test("Query resolves and data updated", async () => {
-  ComponentA = getComponentWithDummyA();
+  ComponentToUse = getComponent();
   let p = Promise.resolve({ data: { tasks: [] } });
   client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: true,
     loaded: false,
     data: null,
@@ -58,7 +52,7 @@ test("Query resolves and data updated", async () => {
   await p;
   obj.update();
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: false,
     loaded: true,
     data: { tasks: [] },
@@ -67,12 +61,12 @@ test("Query resolves and data updated", async () => {
 });
 
 test("Query resolves and errors updated", async () => {
-  ComponentA = getComponentWithDummyA();
+  ComponentToUse = getComponent();
   let p = Promise.resolve({ errors: [{ msg: "a" }] });
   client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: true,
     loaded: false,
     data: null,
@@ -82,7 +76,7 @@ test("Query resolves and errors updated", async () => {
   await p;
   obj.update();
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: false,
     loaded: true,
     data: null,
@@ -91,12 +85,12 @@ test("Query resolves and errors updated", async () => {
 });
 
 test("Error in promise", async () => {
-  ComponentA = getComponentWithDummyA();
+  ComponentToUse = getComponent();
   let p = Promise.reject({ message: "Hello" });
   client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: true,
     loaded: false,
     data: null,
@@ -108,7 +102,7 @@ test("Error in promise", async () => {
   } catch (e) {}
   obj.update();
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: false,
     loaded: true,
     data: null,
@@ -117,10 +111,10 @@ test("Error in promise", async () => {
 });
 
 test("Out of order promise handled", async () => {
-  ComponentA = getComponentWithDummyA();
+  ComponentToUse = getComponent();
   let p = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: -999 }] } }), 1000));
   client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
 
   client1.nextResult = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: 1 }] } }), 10));
   obj.setProps({ a: 2 });
@@ -128,7 +122,7 @@ test("Out of order promise handled", async () => {
   await p;
   obj.update();
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: false,
     loaded: true,
     data: { tasks: [{ id: 1 }] },
@@ -137,10 +131,10 @@ test("Out of order promise handled", async () => {
 });
 
 test("Out of order promise handled 2", async () => {
-  ComponentA = getComponentWithDummyA();
+  ComponentToUse = getComponent();
   let p = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: -999 }] } }), 10));
   client1.nextResult = p;
-  let obj = mount(<ComponentA a={1} unused={0} />);
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
 
   client1.nextResult = new Promise(res => setTimeout(() => res({ data: { tasks: [{ id: 1 }] } }), 1000));
   obj.setProps({ a: 2 });
@@ -148,7 +142,7 @@ test("Out of order promise handled 2", async () => {
   await p;
   obj.update();
 
-  verifyPropsFor(obj, DummyA, {
+  verifyPropsFor(obj, Dummy, {
     loading: true,
     loaded: false,
     data: null,
