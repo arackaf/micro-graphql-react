@@ -81,7 +81,7 @@ class QueryManager {
       })
       .catch(err => {
         this.cache[setResultsSymbol](promise, cacheKey, null, err);
-        this.handlerError(err);
+        this.updateState({ loaded: true, loading: false, data: null, error: err });
       });
   };
 }

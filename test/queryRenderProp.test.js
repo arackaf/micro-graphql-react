@@ -123,6 +123,32 @@ test("Query resolves and errors updated", async () => {
   });
 });
 
+test("Error in promise", async () => {
+  ComponentA = getComponentWithDummyA();
+  let p = Promise.reject({ message: "Hello" });
+  client1.nextResult = p;
+  let obj = mount(<ComponentA a={1} unused={0} />);
+
+  verifyPropsFor(obj, DummyA, {
+    loading: true,
+    loaded: false,
+    data: null,
+    error: null
+  });
+
+  try {
+    await p;
+  } catch (e) {}
+  obj.update();
+
+  verifyPropsFor(obj, DummyA, {
+    loading: false,
+    loaded: true,
+    data: null,
+    error: { message: "Hello" }
+  });
+});
+
 test("Basic query does not re-fire for unrelated prop change", () => {
   let obj = mount(<ComponentA a={1} unused={0} />);
 
