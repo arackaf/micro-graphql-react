@@ -9,3 +9,14 @@ import { basicQuery, basicQueryWithVariables } from "./graphqlConstants";
 import GraphQLComponent from "../src/gqlComponent";
 
 export { React, Component, mount, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, basicQueryWithVariables, GraphQL };
+
+export const getPropsFor = (obj, target) =>
+  obj
+    .children()
+    .find(target)
+    .props();
+
+export const verifyPropsFor = (obj, target, expected) => {
+  let props = getPropsFor(obj, target);
+  expect(props).toEqual(expected);
+};
