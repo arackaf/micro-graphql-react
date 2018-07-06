@@ -88,6 +88,21 @@ test("Run two queries second updates", () => {
   expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }], [queryB, { b: "2a" }]]);
 });
 
+test("Run two queries second updates, then hits cache", () => {
+  let obj = mount(<ComponentB a={1} b={2} unused={0} />);
+
+  expect(client1.queriesRun).toBe(2);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }]]);
+
+  obj.setProps({ b: "2a" });
+  expect(client1.queriesRun).toBe(3);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }], [queryB, { b: "2a" }]]);
+
+  obj.setProps({ b: 2 });
+  expect(client1.queriesRun).toBe(3);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }], [queryB, { b: "2a" }]]);
+});
+
 test("Run two queries unrelated prop changes don't matter", () => {
   let obj = mount(<ComponentB a={1} b={2} unused={0} />);
 
