@@ -14,18 +14,6 @@ beforeEach(() => {
   ComponentB = getComponentB();
 });
 
-const DEFAULT_CACHE_SIZE = 10;
-
-class DummyA extends Component {
-  render() {
-    return <div className="a" />;
-  }
-}
-
-const letUpdate = obj => {
-  return new Promise(res => setTimeout(res, 200)); //.then(() => obj.instance.forceUpdate());
-};
-
 const getComponentA = (render = () => null) =>
   class extends Component {
     render() {
@@ -38,17 +26,6 @@ const getComponentB = (render = () => null) =>
     render = () => <GraphQL query={{ query1: [queryA, { a: this.props.a }], query2: [queryB, { b: this.props.b }] }}>{render}</GraphQL>;
   };
 
-const getPropsFor = (obj, target) =>
-  obj
-    .children()
-    .find(target)
-    .props();
-
-const verifyPropsFor = (obj, target, expected) => {
-  let props = getPropsFor(obj, target);
-  expect(props).toEqual(expected);
-};
-
 test("Basic query fires on mount", () => {
   let obj = mount(<ComponentA a={1} unused={0} />);
 
@@ -57,21 +34,6 @@ test("Basic query fires on mount", () => {
   expect(client1.queriesRun).toBe(1);
   expect(client1.queryCalls).toEqual([[queryA, { a: 1 }]]);
 });
-
-const getComponentWithDummyA = () =>
-  getComponentA(props => {
-    return <DummyA {...props.query1} />;
-  });
-
-const getComponentWithDummyAAndDummyB = () =>
-  getComponentB(props => {
-    return (
-      <div>
-        <DummyA {...props.query1} />
-        <DummyB {...props.query2} />
-      </div>
-    );
-  });
 
 test("Basic query does not re-fire for unrelated prop change", () => {
   let obj = mount(<ComponentA a={1} unused={0} />);
@@ -111,6 +73,28 @@ test("Run two queries", () => {
 
   expect(client1.queriesRun).toBe(2);
 
+  expect(client1.queriesRun).toBe(2);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }]]);
+});
+
+test("Run two queries second updates", () => {
+  let obj = mount(<ComponentB a={1} b={2} unused={0} />);
+
+  expect(client1.queriesRun).toBe(2);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }]]);
+
+  obj.setProps({ b: "2a" });
+  expect(client1.queriesRun).toBe(3);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }], [queryB, { b: "2a" }]]);
+});
+
+test("Run two queries unrelated prop changes don't matter", () => {
+  let obj = mount(<ComponentB a={1} b={2} unused={0} />);
+
+  expect(client1.queriesRun).toBe(2);
+  expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }]]);
+
+  obj.setProps({ unused: 99 });
   expect(client1.queriesRun).toBe(2);
   expect(client1.queryCalls).toEqual([[queryA, { a: 1 }], [queryB, { b: 2 }]]);
 });
