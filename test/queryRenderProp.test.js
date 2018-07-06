@@ -58,24 +58,25 @@ test("Basic query fires on mount", () => {
   expect(client1.queryCalls).toEqual([[queryA, { a: 1 }]]);
 });
 
-test("loading props passed", async () => {
-  ComponentA = getComponentA(props => {
+const getComponentWithDummyA = () =>
+  getComponentA(props => {
     return <DummyA {...props.query1} />;
   });
+
+test("loading props passed", async () => {
+  ComponentA = getComponentWithDummyA();
   let obj = mount(<ComponentA a={1} unused={0} />);
 
   verifyPropsFor(obj, DummyA, {
     loading: true,
     loaded: false,
     data: null,
-    errors: null
+    error: null
   });
 });
 
-test("Query resolves and loading updated", async () => {
-  ComponentA = getComponentA(props => {
-    return <DummyA {...props.query1} />;
-  });
+test("Query resolves and data updated", async () => {
+  ComponentA = getComponentWithDummyA();
   let p = Promise.resolve({ data: { tasks: [] } });
   client1.nextResult = p;
   let obj = mount(<ComponentA a={1} unused={0} />);
@@ -84,7 +85,7 @@ test("Query resolves and loading updated", async () => {
     loading: true,
     loaded: false,
     data: null,
-    errors: null
+    error: null
   });
 
   await p;
@@ -94,7 +95,31 @@ test("Query resolves and loading updated", async () => {
     loading: false,
     loaded: true,
     data: { tasks: [] },
-    errors: null
+    error: null
+  });
+});
+
+test("Query resolves and errors updated", async () => {
+  ComponentA = getComponentWithDummyA();
+  let p = Promise.resolve({ errors: [{ msg: "a" }] });
+  client1.nextResult = p;
+  let obj = mount(<ComponentA a={1} unused={0} />);
+
+  verifyPropsFor(obj, DummyA, {
+    loading: true,
+    loaded: false,
+    data: null,
+    error: null
+  });
+
+  await p;
+  obj.update();
+
+  verifyPropsFor(obj, DummyA, {
+    loading: false,
+    loaded: true,
+    data: null,
+    error: [{ msg: "a" }]
   });
 });
 

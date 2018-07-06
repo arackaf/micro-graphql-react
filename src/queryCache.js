@@ -60,7 +60,7 @@ export default class QueryCache {
       cache.set(cacheKey, { data: null, error: err });
     } else {
       if (resp.errors) {
-        cache.set(cacheKey, { data: null, error: errors });
+        cache.set(cacheKey, { data: null, error: resp.errors });
       } else {
         cache.set(cacheKey, { data: resp.data, error: null });
       }
