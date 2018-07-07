@@ -99,3 +99,21 @@ test("Mutation listener misses without match", async () => {
 
   expect(runCount).toBe(0);
 });
+
+test("Mutation listener destroys at unmount", async () => {
+  let runCount = 0;
+  let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: "updateBook", run: () => runCount++ } }));
+  let obj = shallow(<Component page={1} />).dive();
+
+  client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
+  await obj.props().runMutation();
+  expect(runCount).toBe(1);
+
+  obj.unmount();
+
+  await client1.processMutation();
+  await client1.processMutation();
+  await client1.processMutation();
+
+  expect(runCount).toBe(1);
+});
