@@ -20,9 +20,10 @@ export default class Client {
     return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;
   }
   subscribeMutation(subscription, options) {
-    this[mutationListenersSymbol].add({ subscription, options });
+    const packet = { subscription, options };
+    this[mutationListenersSymbol].add(packet);
 
-    return () => this[mutationListenersSymbol].delete(subscription);
+    return () => this[mutationListenersSymbol].delete(packet);
   }
   processMutation(mutation, variables) {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
