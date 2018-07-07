@@ -1,11 +1,14 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
+import MutationManager from "./mutationManager";
 
 export default (mutation, packet = {}) => BaseComponent => {
   return class extends Component {
-    state = { running: false, finished: false };
+    state = { mutationProps: {} };
 
-    componentDidMount() {
+    constructor(props) {
+      super(props);
+
       let { mapProps = props => props, client: clientOption } = packet;
       let client = clientOption || defaultClientManager.getDefaultClient();
 
@@ -13,28 +16,15 @@ export default (mutation, packet = {}) => BaseComponent => {
         throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
       }
 
-      this.client = client;
+      let setState = state => this.setState({ mutationProps: state });
+      this.mutationManager = new MutationManager({ client, setState }, [mutation]);
+      this.state = { mutationProps: this.mutationManager.currentState };
     }
-
-    runMutation = variables => {
-      this.setState({
-        running: true,
-        finished: false
-      });
-
-      return this.client.processMutation(mutation, variables).then(resp => {
-        this.setState({
-          running: false,
-          finished: true
-        });
-        return resp;
-      });
-    };
 
     render() {
       let { mapProps = props => props } = packet;
-      let { running, finished } = this.state;
-      let clientPacket = mapProps({ running, finished, runMutation: this.runMutation });
+      let { running, finished } = this.mutationManager.currentState;
+      let clientPacket = mapProps({ running, finished, runMutation: this.mutationManager.runMutation });
 
       return <BaseComponent {...clientPacket} {...this.props} />;
     }

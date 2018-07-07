@@ -29,6 +29,7 @@ export default class GraphQL extends Component {
         this.setState(oldState => ({ mutations: { ...oldState.mutations, [k]: state } }));
       };
       this.mutationManagerMap[k] = new MutationManager({ client, setState }, packet);
+      this.mutationManagerMap[k].updateState();
     });
   }
   componentDidUpdate(prevProps, prevState) {
