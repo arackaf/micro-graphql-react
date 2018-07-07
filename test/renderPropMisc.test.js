@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "./testSuiteInitialize";
+import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, buildQuery } from "./testSuiteInitialize";
 import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, pause, dataPacket } from "./testUtils";
 
 const LOAD_TASKS = "A";
@@ -29,8 +29,11 @@ test("loading props passed initially", async () => {
     render() {
       return (
         <GraphQL
-          query={{ loadTasks: [LOAD_TASKS, { assignedTo: this.props.assignedTo }], loadUsers: [LOAD_USERS, { name: this.props.name }] }}
-          mutation={{ updateUser: [UPDATE_USER] }}
+          query={{
+            loadTasks: [LOAD_TASKS, { assignedTo: this.props.assignedTo }],
+            loadUsers: [LOAD_USERS, { name: this.props.name }]
+          }}
+          mutation={{ updateUser: UPDATE_USER }}
         >
           {props => {
             expect(typeof props.loadTasks.loading).toEqual("boolean");
