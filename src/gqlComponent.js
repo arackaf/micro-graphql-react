@@ -83,7 +83,7 @@ class QueryManager {
         cache: this.cache,
         softReset: () => {}, //this.softReset,
         hardReset: () => {}, //this.hardReset,
-        refresh: () => {}, //this.refresh,
+        refresh: this.refresh,
         currentResults: () => this.currentState.data
       });
     }
@@ -92,6 +92,9 @@ class QueryManager {
   updateState = newState => {
     Object.assign(this.currentState, newState);
     this.setState(this.currentState);
+  };
+  refresh = () => {
+    this.load();
   };
   load() {
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
