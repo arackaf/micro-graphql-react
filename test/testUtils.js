@@ -20,18 +20,18 @@ export const deferred = () => {
   return p;
 };
 
-export const resolveDeferred = async (p, val, obj) => {
+export const resolveDeferred = async (p, val, wrapper) => {
   p.resolve(val);
   await p;
-  obj.update();
+  wrapper.update();
 };
 
-export const rejectDeferred = async (p, val, obj) => {
+export const rejectDeferred = async (p, val, wrapper) => {
   p.reject(val);
   try {
     await p;
   } catch (er) {}
-  obj.update();
+  wrapper.update();
 };
 
 export const loadingPacket = {
@@ -55,10 +55,10 @@ export const errorPacket = error => ({
   data: null
 });
 
-export const pause = obj =>
+export const pause = wrapper =>
   new Promise(res =>
     setTimeout(() => {
-      obj.update();
+      wrapper.update();
       res();
     }, 10)
   );
