@@ -82,6 +82,9 @@ test("Resolve both promises in turn", async () => {
 
   let obj = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
+  verifyPropsFor(obj, DummyA, loadingPacket);
+  verifyPropsFor(obj, DummyB, loadingPacket);
+
   await resolveDeferred(a1, { data: { tasks: [{ name: "a1" }] } }, obj);
 
   verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
@@ -91,4 +94,16 @@ test("Resolve both promises in turn", async () => {
 
   verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
   verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: "b1" }] }));
+
+  obj.setProps({ a: 2, b: 2 });
+  obj.update();
+
+  verifyPropsFor(obj, DummyA, { ...dataPacket({ tasks: [{ name: "a1" }] }), loading: true });
+  verifyPropsFor(obj, DummyB, { ...dataPacket({ tasks: [{ name: "b1" }] }), loading: true });
+
+  await resolveDeferred(a2, { data: { tasks: [{ name: "a2" }] } }, obj);
+  await resolveDeferred(b2, { data: { tasks: [{ name: "b2" }] } }, obj);
+
+  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a2" }] }));
+  verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: "b2" }] }));
 });
