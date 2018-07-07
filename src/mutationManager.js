@@ -35,6 +35,5 @@ export default class MutationManager {
     this.client = client;
     this.setState = setState;
     this.mutation = mutation;
-    this.updateState();
   }
 }
