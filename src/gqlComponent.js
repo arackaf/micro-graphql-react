@@ -81,7 +81,7 @@ class QueryManager {
       }
       this.mutationSubscription = this.client.subscribeMutation(options.onMutation, {
         cache: this.cache,
-        softReset: () => {}, //this.softReset,
+        softReset: this.softReset,
         hardReset: () => {}, //this.hardReset,
         refresh: this.refresh,
         currentResults: () => this.currentState.data
@@ -95,6 +95,10 @@ class QueryManager {
   };
   refresh = () => {
     this.load();
+  };
+  softReset = newResults => {
+    this.cache.clearCache();
+    this.updateState({ data: newResults });
   };
   load() {
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
