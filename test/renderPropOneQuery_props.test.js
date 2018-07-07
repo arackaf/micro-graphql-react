@@ -1,5 +1,5 @@
 import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "./testSuiteInitialize";
-import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred } from "./testUtils";
+import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred, pause } from "./testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -114,4 +114,23 @@ test("Cached data handled", async () => {
   verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
   expect(client1.queriesRun).toBe(2);
+});
+
+test("Cached data while loading handled", async () => {
+  ComponentToUse = getComponent();
+  let pData = (client1.nextResult = deferred());
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
+
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, obj);
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+
+  pData = client1.nextResult = deferred();
+  obj.setProps({ a: 2 });
+  obj.update();
+  verifyPropsFor(obj, Dummy, { ...dataPacket({ tasks: [{ id: 1 }] }), loading: true });
+
+  await pause(obj);
+  obj.setProps({ a: 1 });
+  obj.update();
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 });
