@@ -4,8 +4,6 @@ import MutationManager from "./mutationManager";
 
 export default (mutation, packet = {}) => BaseComponent => {
   return class extends Component {
-    state = { mutationProps: {} };
-
     constructor(props) {
       super(props);
 
@@ -23,7 +21,7 @@ export default (mutation, packet = {}) => BaseComponent => {
 
     render() {
       let { mapProps = props => props } = packet;
-      let { running, finished } = this.mutationManager.currentState;
+      let { running, finished } = this.state.mutationProps;
       let clientPacket = mapProps({ running, finished, runMutation: this.mutationManager.runMutation });
 
       return <BaseComponent {...clientPacket} {...this.props} />;
