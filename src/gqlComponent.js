@@ -15,7 +15,7 @@ const deConstructQueryPacket = packet => {
     //TODO: ummm
     return [query, null];
   } else if (Array.isArray(packet)) {
-    return [packet[0], packet[1] || null];
+    return [packet[0], packet[1] || null, packet[2] || {}];
   }
 };
 
@@ -61,6 +61,7 @@ class MutationManager {
 }
 
 class QueryManager {
+  mutationSubscription = null;
   currentState = {
     loading: false,
     loaded: false,
@@ -68,12 +69,24 @@ class QueryManager {
     error: null
   };
   constructor({ client, setState }, packet) {
-    const [query, variables] = deConstructQueryPacket(packet);
+    const [query, variables, options] = deConstructQueryPacket(packet);
     this.client = client;
     this.setState = setState;
     this.cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
     this.query = query;
     this.variables = variables;
+    if (typeof options.onMutation === "object") {
+      if (!Array.isArray(options.onMutation)) {
+        options.onMutation = [options.onMutation];
+      }
+      this.mutationSubscription = this.client.subscribeMutation(options.onMutation, {
+        cache: this.cache,
+        softReset: () => {}, //this.softReset,
+        hardReset: () => {}, //this.hardReset,
+        refresh: () => {}, //this.refresh,
+        currentResults: () => this.currentState.data
+      });
+    }
     this.load();
   }
   updateState = newState => {
@@ -169,6 +182,6 @@ export default class GraphQL extends Component {
   render() {
     let { query = {}, mutation, children } = this.props;
 
-    return children({ ...this.state.queries, ...this.state.mutations });
+    return children ? children({ ...this.state.queries, ...this.state.mutations }) : null;
   }
 }
