@@ -82,7 +82,7 @@ class QueryManager {
       this.mutationSubscription = this.client.subscribeMutation(options.onMutation, {
         cache: this.cache,
         softReset: this.softReset,
-        hardReset: () => {}, //this.hardReset,
+        hardReset: this.hardReset,
         refresh: this.refresh,
         currentResults: () => this.currentState.data
       });
@@ -93,12 +93,25 @@ class QueryManager {
     Object.assign(this.currentState, newState);
     this.setState(this.currentState);
   };
+  updateIfNeeded(packet) {
+    const [query, variables] = deConstructQueryPacket(packet);
+    if (!shallowEqual(variables || {}, this.variables || {})) {
+      this.query = query;
+      this.variables = variables;
+      this.load();
+    }
+  }
   refresh = () => {
     this.load();
   };
   softReset = newResults => {
     this.cache.clearCache();
     this.updateState({ data: newResults });
+  };
+  hardReset = () => {
+    this.cache.clearCache();
+    let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
+    this.execute(graphqlQuery);
   };
   load() {
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
@@ -113,21 +126,14 @@ class QueryManager {
       cachedEntry => {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error, loading: false, loaded: true });
       },
-      () => {
-        this.updateState({ loading: true });
-        let promise = this.client.runQuery(this.query, this.variables);
-        this.cache[setPendingResultSymbol](graphqlQuery, promise);
-        this.handleExecution(promise, graphqlQuery);
-      }
+      () => this.execute(graphqlQuery)
     );
   }
-  updateIfNeeded(packet) {
-    const [query, variables] = deConstructQueryPacket(packet);
-    if (!shallowEqual(variables || {}, this.variables || {})) {
-      this.query = query;
-      this.variables = variables;
-      this.load();
-    }
+  execute(graphqlQuery) {
+    this.updateState({ loading: true });
+    let promise = this.client.runQuery(this.query, this.variables);
+    this.cache[setPendingResultSymbol](graphqlQuery, promise);
+    this.handleExecution(promise, graphqlQuery);
   }
   handleExecution = (promise, cacheKey) => {
     this.currentPromise = promise;
