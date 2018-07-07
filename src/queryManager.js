@@ -43,15 +43,14 @@ export default class QueryManager {
         currentResults: () => this.currentState.data
       });
     }
-    this.load();
   }
   updateState = newState => {
     Object.assign(this.currentState, newState);
     this.setState(this.currentState);
   };
-  updateIfNeeded(packet) {
+  updateIfNeeded(packet, force) {
     const [query, variables] = deConstructQueryPacket(packet);
-    if (!shallowEqual(variables || {}, this.variables || {})) {
+    if (force || !shallowEqual(variables || {}, this.variables || {})) {
       this.query = query;
       this.variables = variables;
       this.load();
@@ -66,6 +65,21 @@ export default class QueryManager {
   };
   hardReset = () => {
     this.cache.clearCache();
+    let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
+    this.execute(graphqlQuery);
+  };
+  clearCacheAndReload = () => {
+    this.cache.clearCache();
+    let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
+    this.execute(graphqlQuery);
+  };
+  reloadCurrentQuery(packet) {
+    this.updateIfNeeded(packet, true);
+  }
+  reload = packet => {
+    const [query, variables] = deConstructQueryPacket(packet);
+    this.query = query;
+    this.variables = variables;
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
     this.execute(graphqlQuery);
   };
