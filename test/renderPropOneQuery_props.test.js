@@ -12,6 +12,22 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
+test("Basic functionality with just string", async () => {
+  class ComponentToUse extends Component {
+    render() {
+      return <GraphQL query={{ query1: queryA }}>{props => <Dummy {...props.query1} />}</GraphQL>;
+    }
+  }
+
+  let p = (client1.nextResult = deferred());
+  let obj = mount(<ComponentToUse a={1} unused={0} />);
+
+  verifyPropsFor(obj, Dummy, loadingPacket);
+
+  await resolveDeferred(p, { data: { tasks: [] } }, obj);
+  verifyPropsFor(obj, Dummy, dataPacket({ tasks: [] }));
+});
+
 class Dummy extends Component {
   render() {
     return <div />;
