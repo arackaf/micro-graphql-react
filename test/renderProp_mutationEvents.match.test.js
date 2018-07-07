@@ -23,7 +23,7 @@ const getQueryAndMutationComponent = options =>
 test("Mutation listener runs with exact match", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ } });
-  let obj = mount(<Component page={1} />);
+  let wrapper = mount(<Component page={1} />);
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
   await latestProps.m1.runMutation();
@@ -37,7 +37,7 @@ test("Mutation listener runs with exact match twice", async () => {
   let Component = getQueryAndMutationComponent({
     onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: "updateBook", run: () => runCount2++ }]
   });
-  let obj = mount(<Component page={1} />);
+  let wrapper = mount(<Component page={1} />);
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
   await latestProps.m1.runMutation();
@@ -49,7 +49,7 @@ test("Mutation listener runs with exact match twice", async () => {
 test("Mutation listener runs with regex match", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent({ onMutation: { when: /update/, run: () => runCount++ } });
-  let obj = mount(<Component page={1} />);
+  let wrapper = mount(<Component page={1} />);
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
   await latestProps.m1.runMutation();
@@ -63,7 +63,7 @@ test("Mutation listener runs with regex match twice", async () => {
   let Component = getQueryAndMutationComponent({
     onMutation: [{ when: /book/i, run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
   });
-  let obj = mount(<Component page={1} />);
+  let wrapper = mount(<Component page={1} />);
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
   await latestProps.m1.runMutation();
@@ -78,7 +78,7 @@ test("Mutation listener runs either test match", async () => {
   let Component = getQueryAndMutationComponent({
     onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
   });
-  let obj = mount(<Component page={1} />);
+  let wrapper = mount(<Component page={1} />);
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
   await latestProps.m1.runMutation();
@@ -90,7 +90,7 @@ test("Mutation listener runs either test match", async () => {
 test("Mutation listener misses without match", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ } });
-  let obj = mount(<Component page={1} />);
+  let wrapper = mount(<Component page={1} />);
 
   client1.nextMutationResult = { updateAuthor: { Author: { name: "New Name" } } };
   await latestProps.m1.runMutation();
@@ -101,13 +101,13 @@ test("Mutation listener misses without match", async () => {
 test("Mutation listener destroys at unmount", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ } });
-  let obj = mount(<Component page={1} />);
+  let wrapper = mount(<Component page={1} />);
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
   await latestProps.m1.runMutation();
   expect(runCount).toBe(1);
 
-  obj.unmount();
+  wrapper.unmount();
 
   await client1.processMutation();
   await client1.processMutation();

@@ -24,28 +24,28 @@ const getComponent = (...args) =>
 const basicQueryWithVariablesPacket = [basicQuery, props => ({ page: props.page })];
 
 test("Static query never re-fires", () => {
-  let obj = shallow(<BasicQuery unused={0} />);
+  let wrapper = shallow(<BasicQuery unused={0} />);
 
   expect(client1.queriesRun).toBe(1);
 
-  obj.setProps({ unused: 1 });
+  wrapper.setProps({ unused: 1 });
   expect(client1.queriesRun).toBe(1);
 });
 
 test("Query with variables re-fires when props change", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = shallow(<Component page={1} />);
+  let wrapper = shallow(<Component page={1} />);
 
   expect(client1.queriesRun).toBe(1);
-  obj.setProps({ page: 2 });
+  wrapper.setProps({ page: 2 });
   expect(client1.queriesRun).toBe(2);
 });
 
 test("Query with variables does not re-fire when other props change", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket);
-  let obj = shallow(<Component page={1} unused={10} />);
+  let wrapper = shallow(<Component page={1} unused={10} />);
 
   expect(client1.queriesRun).toBe(1);
-  obj.setProps({ unused: 2 });
+  wrapper.setProps({ unused: 2 });
   expect(client1.queriesRun).toBe(1);
 });

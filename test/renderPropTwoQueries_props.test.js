@@ -43,22 +43,22 @@ const getComponent = () =>
 
 test("loading props passed", async () => {
   ComponentToUse = getComponent();
-  let obj = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
-  verifyPropsFor(obj, DummyA, loadingPacket);
-  verifyPropsFor(obj, DummyB, loadingPacket);
+  verifyPropsFor(wrapper, DummyA, loadingPacket);
+  verifyPropsFor(wrapper, DummyB, loadingPacket);
 });
 
 test("Resolve both promises", async () => {
   ComponentToUse = getComponent();
 
   client1.generateResponse = query => ({ data: { tasks: [{ name: query }] } });
-  let obj = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
-  await pause(obj);
+  await pause(wrapper);
 
-  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: queryA }] }));
-  verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: queryB }] }));
+  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: queryA }] }));
+  verifyPropsFor(wrapper, DummyB, dataPacket({ tasks: [{ name: queryB }] }));
 });
 
 const getDeferreds = howMany => Array.from({ length: howMany }, () => deferred());
@@ -80,30 +80,30 @@ test("Resolve both promises in turn", async () => {
   let [a1, a2, b1, b2] = getDeferreds(4);
   client1.generateResponse = getDataFunction([a2, a1], [b2, b1]);
 
-  let obj = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
-  verifyPropsFor(obj, DummyA, loadingPacket);
-  verifyPropsFor(obj, DummyB, loadingPacket);
+  verifyPropsFor(wrapper, DummyA, loadingPacket);
+  verifyPropsFor(wrapper, DummyB, loadingPacket);
 
-  await resolveDeferred(a1, { data: { tasks: [{ name: "a1" }] } }, obj);
+  await resolveDeferred(a1, { data: { tasks: [{ name: "a1" }] } }, wrapper);
 
-  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
-  verifyPropsFor(obj, DummyB, loadingPacket);
+  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
+  verifyPropsFor(wrapper, DummyB, loadingPacket);
 
-  await resolveDeferred(b1, { data: { tasks: [{ name: "b1" }] } }, obj);
+  await resolveDeferred(b1, { data: { tasks: [{ name: "b1" }] } }, wrapper);
 
-  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
-  verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: "b1" }] }));
+  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
+  verifyPropsFor(wrapper, DummyB, dataPacket({ tasks: [{ name: "b1" }] }));
 
-  obj.setProps({ a: 2, b: 2 });
-  obj.update();
+  wrapper.setProps({ a: 2, b: 2 });
+  wrapper.update();
 
-  verifyPropsFor(obj, DummyA, { ...dataPacket({ tasks: [{ name: "a1" }] }), loading: true });
-  verifyPropsFor(obj, DummyB, { ...dataPacket({ tasks: [{ name: "b1" }] }), loading: true });
+  verifyPropsFor(wrapper, DummyA, { ...dataPacket({ tasks: [{ name: "a1" }] }), loading: true });
+  verifyPropsFor(wrapper, DummyB, { ...dataPacket({ tasks: [{ name: "b1" }] }), loading: true });
 
-  await resolveDeferred(a2, { data: { tasks: [{ name: "a2" }] } }, obj);
-  await resolveDeferred(b2, { data: { tasks: [{ name: "b2" }] } }, obj);
+  await resolveDeferred(a2, { data: { tasks: [{ name: "a2" }] } }, wrapper);
+  await resolveDeferred(b2, { data: { tasks: [{ name: "b2" }] } }, wrapper);
 
-  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a2" }] }));
-  verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: "b2" }] }));
+  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: "a2" }] }));
+  verifyPropsFor(wrapper, DummyB, dataPacket({ tasks: [{ name: "b2" }] }));
 });

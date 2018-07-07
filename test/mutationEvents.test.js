@@ -32,21 +32,21 @@ test("Mutation listener updates cache", async () => {
   );
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let obj = shallow(<Component query="a" />).dive();
-  await waitAndUpdate(obj);
+  let wrapper = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(wrapper);
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }] } };
-  await setPropsAndWait(obj, { query: "b" });
+  await setPropsAndWait(wrapper, { query: "b" });
 
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(client1.queriesRun).toBe(2); //run for new query args
 
-  await setPropsAndWait(obj, { query: "a" });
+  await setPropsAndWait(wrapper, { query: "a" });
 
   expect(client1.queriesRun).toBe(2); //still loads from cache
-  expect(obj.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
+  expect(wrapper.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
 test("Mutation listener updates cache with mutation args - string", async () => {
@@ -65,22 +65,22 @@ test("Mutation listener updates cache with mutation args - string", async () => 
   );
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] } };
-  let obj = shallow(<Component query="a" />).dive();
-  await waitAndUpdate(obj);
+  let wrapper = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(wrapper);
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }] } };
-  await setPropsAndWait(obj, { query: "b" });
+  await setPropsAndWait(wrapper, { query: "b" });
 
   client1.nextMutationResult = { deleteBook: { success: true } };
-  await obj.props().runMutation({ id: 1 });
+  await wrapper.props().runMutation({ id: 1 });
 
   expect(client1.queriesRun).toBe(2); //run for new query args
-  expect(obj.props().data).toEqual({ Books: [] }); //loads updated data
+  expect(wrapper.props().data).toEqual({ Books: [] }); //loads updated data
 
-  await setPropsAndWait(obj, { query: "a" });
+  await setPropsAndWait(wrapper, { query: "a" });
 
   expect(client1.queriesRun).toBe(2); //still loads from cache
-  expect(obj.props().data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
+  expect(wrapper.props().data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
 test("Mutation listener updates cache with mutation args - regex", async () => {
@@ -99,22 +99,22 @@ test("Mutation listener updates cache with mutation args - regex", async () => {
   );
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] } };
-  let obj = shallow(<Component query="a" />).dive();
-  await waitAndUpdate(obj);
+  let wrapper = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(wrapper);
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }] } };
-  await setPropsAndWait(obj, { query: "b" });
+  await setPropsAndWait(wrapper, { query: "b" });
 
   client1.nextMutationResult = { deleteBook: { success: true } };
-  await obj.props().runMutation({ id: 1 });
+  await wrapper.props().runMutation({ id: 1 });
 
   expect(client1.queriesRun).toBe(2); //run for new query args
-  expect(obj.props().data).toEqual({ Books: [] }); //loads updated data
+  expect(wrapper.props().data).toEqual({ Books: [] }); //loads updated data
 
-  await setPropsAndWait(obj, { query: "a" });
+  await setPropsAndWait(wrapper, { query: "a" });
 
   expect(client1.queriesRun).toBe(2); //still loads from cache
-  expect(obj.props().data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
+  expect(wrapper.props().data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
 test("Mutation listener updates cache then refreshes from cache", async () => {
@@ -143,15 +143,15 @@ test("Mutation listener updates cache then refreshes from cache", async () => {
   );
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let obj = shallow(<Component query="a" />).dive();
-  await waitAndUpdate(obj);
+  let wrapper = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(wrapper);
 
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await obj.props().runMutation();
-  await waitAndUpdate(obj);
+  await wrapper.props().runMutation();
+  await waitAndUpdate(wrapper);
 
   expect(client1.queriesRun).toBe(1); //refreshed from cache
-  expect(obj.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //refreshed with updated data
+  expect(wrapper.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //refreshed with updated data
 });
 
 test("Mutation listener - soft reset - props right, cache cleared", async () => {
@@ -171,14 +171,14 @@ test("Mutation listener - soft reset - props right, cache cleared", async () => 
   );
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let obj = shallow(<Component query="a" />).dive();
-  await waitAndUpdate(obj);
+  let wrapper = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(wrapper);
 
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(componentsCache.entries.length).toBe(0); //cache is cleared!
-  expect(obj.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
+  expect(wrapper.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
 });
 
 test("Mutation listener - hard reset - props right, cache cleared, client qeried", async () => {
@@ -196,22 +196,19 @@ test("Mutation listener - hard reset - props right, cache cleared, client qeried
   );
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let obj = shallow(<Component query="a" />).dive();
-  await waitAndUpdate(obj);
+  let wrapper = shallow(<Component query="a" />).dive();
+  await waitAndUpdate(wrapper);
 
   expect(client1.queriesRun).toBe(1); //just the one
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] } };
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await obj.props().runMutation();
-  await waitAndUpdate(obj);
+  await wrapper.props().runMutation();
+  await waitAndUpdate(wrapper);
 
   expect(componentsCache.entries.length).toBe(1); //just the most recent entry
-  expect(obj.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
+  expect(wrapper.props().data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
   expect(client1.queriesRun).toBe(2); //run from the hard reset
 });
-
-//console.log("current query", obj.instance().currentGraphqlQuery);
-//console.log("instance", obj.props());
 
 async function setPropsAndWait(renderedComponent, props) {
   renderedComponent.setProps(props);
