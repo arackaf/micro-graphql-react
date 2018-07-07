@@ -155,6 +155,9 @@ class QueryManager {
         this.updateState({ loaded: true, loading: false, data: null, error: err });
       });
   };
+  dispose() {
+    this.mutationSubscription && this.mutationSubscription();
+  }
 }
 
 export default class GraphQL extends Component {
@@ -191,6 +194,9 @@ export default class GraphQL extends Component {
       let packet = query[k];
       queryManager.updateIfNeeded(packet);
     });
+  }
+  componentWillUnmount() {
+    Object.keys(this.queryManagerMap).forEach(k => this.queryManagerMap[k].dispose());
   }
   render() {
     let { query = {}, mutation, children } = this.props;
