@@ -1,59 +1,26 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
-import QueryCache, {
-  setPendingResultSymbol,
-  setResultsSymbol,
-  getFromCacheSymbol,
-  noCachingSymbol,
-  cacheSymbol,
-  DEFAULT_CACHE_SIZE
-} from "./queryCache";
+import QueryCache, { DEFAULT_CACHE_SIZE } from "./queryCache";
+import QueryManager from "./queryManager";
 
 export default (query, variablesFn, packet = {}) => BaseComponent => {
   if (typeof variablesFn === "object") {
     packet = variablesFn;
     variablesFn = null;
   }
-  const { shouldQueryUpdate, mapProps = props => props, client: clientOption } = packet;
+  const { mapProps = props => props, client: clientOption } = packet;
   let { onMutation } = packet;
   if (typeof onMutation === "object" && !Array.isArray(onMutation)) {
     onMutation = [onMutation];
   }
 
-  const queryFn = props => {
-    return {
-      query,
-      variables: variablesFn ? variablesFn(props) : null
-    };
-  };
+  const getQueryPacket = props => [query, variablesFn ? variablesFn(props) : null, { onMutation }];
 
   return class extends Component {
-    state = { loading: false, loaded: false, data: null, error: null };
-    currentGraphqlQuery = null;
-    currentQuery = null;
-    currentVariables = null;
+    state = { queryState: {} };
 
-    softReset = newResults => {
-      this.cache.clearCache();
-      this.setState({ data: newResults });
-    };
-
-    hardReset = () => {
-      this.cache.clearCache();
-      this.reloadCurrentQuery();
-    };
-
-    refresh = () => {
-      let queryPacket = queryFn(this.props);
-      this.loadQuery(queryPacket);
-    };
-
-    reloadCurrentQuery = () => {
-      let queryPacket = queryFn(this.props);
-      this.execute(queryPacket);
-    };
-
-    componentDidMount() {
+    constructor(props) {
+      super(props);
       let client = clientOption || defaultClientManager.getDefaultClient();
       let cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
       if (!client) {
@@ -62,133 +29,26 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       this.client = client;
       this.cache = cache;
 
-      let queryPacket = queryFn(this.props);
-      this.loadQuery(queryPacket);
-      if (onMutation) {
-        this.__mutationSubscription = this.client.subscribeMutation(onMutation, {
-          cache: this.cache,
-          softReset: this.softReset,
-          hardReset: this.hardReset,
-          refresh: this.refresh,
-          currentResults: () => this.state.data
-        });
-      }
+      let setState = queryState => this.setState({ queryState });
+      this.queryManager = new QueryManager({ client, setState }, getQueryPacket(this.props));
+    }
+    componentDidMount() {
+      this.queryManager.load();
     }
     componentDidUpdate(prevProps, prevState) {
-      let queryPacket = queryFn(this.props);
-      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
-      if (this.isDirty(queryPacket)) {
-        if (shouldQueryUpdate) {
-          if (
-            shouldQueryUpdate({
-              prevProps,
-              props: this.props,
-              prevQuery: this.currentGraphqlQuery,
-              query: graphqlQuery,
-              prevVariables: this.currentVariables,
-              variables: queryPacket.variables
-            })
-          ) {
-            this.loadQuery(queryPacket);
-          }
-        } else {
-          this.loadQuery(queryPacket);
-        }
-      }
+      this.queryManager.updateIfNeeded(getQueryPacket(this.props));
     }
 
     componentWillUnmount() {
-      this.__mutationSubscription && this.__mutationSubscription();
+      this.queryManager.dispose();
     }
-
-    isDirty(queryPacket) {
-      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
-      return graphqlQuery !== this.currentGraphqlQuery;
-    }
-
-    loadQuery(queryPacket) {
-      let graphqlQuery = this.client.getGraphqlQuery(queryPacket);
-      this.currentGraphqlQuery = graphqlQuery;
-      this.currentQuery = queryPacket.query;
-      this.currentVariables = queryPacket.variables;
-
-      this.cache[getFromCacheSymbol](
-        graphqlQuery,
-        promise => {
-          Promise.resolve(promise).then(() => {
-            //cache should now be updated, unless it was cleared. Either way, re-run this method
-            this.loadQuery(queryPacket);
-          });
-        },
-        cachedEntry => {
-          this.setCurrentState(cachedEntry.data, cachedEntry.error);
-        },
-        () => this.execute(queryPacket)
-      );
-    }
-
-    execute({ query, variables }) {
-      if (!this.state.loading || this.state.loaded) {
-        this.setState({
-          loading: true,
-          loaded: false
-        });
-      }
-      let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-      let promise = this.client.runQuery(query, variables);
-      this.cache[setPendingResultSymbol](graphqlQuery, promise);
-      this.handleExecution(promise, graphqlQuery);
-    }
-
-    handleExecution = (promise, cacheKey) => {
-      Promise.resolve(promise)
-        .then(resp => {
-          this.cache[setResultsSymbol](promise, cacheKey, resp);
-          if (resp.errors) {
-            this.handlerError(resp.errors);
-          } else {
-            this.setCurrentState(resp.data, null);
-          }
-        })
-        .catch(err => {
-          this.cache[setResultsSymbol](promise, cacheKey, null, err);
-          this.handlerError(err);
-        });
-    };
-
-    handlerError = err => {
-      this.setCurrentState(null, err);
-    };
-
-    setCurrentState = (data, error) => {
-      this.setState({
-        loading: false,
-        loaded: true,
-        data,
-        error
-      });
-    };
-
-    executeNow = () => {
-      let queryPacket = queryFn(this.props);
-      this.execute(queryPacket);
-    };
-
-    clearCacheAndReload = () => {
-      this.cache.clearCache();
-      this.executeNow();
-    };
 
     render() {
-      let { loading, loaded, data, error } = this.state;
       let packet = mapProps({
-        loading,
-        loaded,
-        data,
-        error,
-        reload: this.executeNow,
+        ...this.state.queryState,
+        reload: this.queryManager.reload,
         clearCache: () => this.cache.clearCache(),
-        clearCacheAndReload: this.clearCacheAndReload
+        clearCacheAndReload: this.queryManager.clearCacheAndReload
       });
 
       return <BaseComponent {...packet} {...this.props} />;

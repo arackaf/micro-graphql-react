@@ -21,6 +21,7 @@ export default class GraphQL extends Component {
         this.setState(oldState => ({ queries: { ...oldState.queries, [k]: state } }));
       };
       this.queryManagerMap[k] = new QueryManager({ client, setState }, packet);
+      this.queryManagerMap[k].load();
     });
     Object.keys(mutation).forEach(k => {
       let packet = mutation[k];
