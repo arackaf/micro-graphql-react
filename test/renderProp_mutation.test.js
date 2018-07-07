@@ -36,8 +36,8 @@ const getComponentB = (render = props => <Dummy {...props} />) =>
   };
 
 test("Mutation function exists", () => {
-  let obj = mount(<ComponentA />);
-  let props = getPropsFor(obj, Dummy);
+  let wrapper = mount(<ComponentA />);
+  let props = getPropsFor(wrapper, Dummy);
 
   expect(typeof props.mutation1.runMutation).toBe("function");
   expect(props.mutation1.running).toBe(false);
@@ -45,8 +45,8 @@ test("Mutation function exists", () => {
 });
 
 test("Mutation function calls", () => {
-  let obj = mount(<ComponentA />);
-  let props = getPropsFor(obj, Dummy);
+  let wrapper = mount(<ComponentA />);
+  let props = getPropsFor(wrapper, Dummy);
   props.mutation1.runMutation();
 
   expect(client1.mutationsRun).toBe(1);

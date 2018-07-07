@@ -19,10 +19,10 @@ const queryPacket = [basicQuery, props => ({ page: props.page })];
 test("Mutation listener runs with exact match", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: "updateBook", run: () => runCount++ } }));
-  let obj = shallow(<Component page={1} />).dive();
+  let wrapper = shallow(<Component page={1} />).dive();
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(runCount).toBe(1);
 });
@@ -35,10 +35,10 @@ test("Mutation listener runs with exact match twice", async () => {
       onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: "updateBook", run: () => runCount2++ }]
     })
   );
-  let obj = shallow(<Component page={1} />).dive();
+  let wrapper = shallow(<Component page={1} />).dive();
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(runCount).toBe(1);
   expect(runCount2).toBe(1);
@@ -47,10 +47,10 @@ test("Mutation listener runs with exact match twice", async () => {
 test("Mutation listener runs with regex match", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: /update/, run: () => runCount++ } }));
-  let obj = shallow(<Component page={1} />).dive();
+  let wrapper = shallow(<Component page={1} />).dive();
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(runCount).toBe(1);
 });
@@ -63,10 +63,10 @@ test("Mutation listener runs with regex match twice", async () => {
       onMutation: [{ when: /book/i, run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
     })
   );
-  let obj = shallow(<Component page={1} />).dive();
+  let wrapper = shallow(<Component page={1} />).dive();
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(runCount).toBe(1);
   expect(runCount2).toBe(1);
@@ -80,10 +80,10 @@ test("Mutation listener runs either test match", async () => {
       onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
     })
   );
-  let obj = shallow(<Component page={1} />).dive();
+  let wrapper = shallow(<Component page={1} />).dive();
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Name" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(runCount).toBe(1);
   expect(runCount2).toBe(1);
@@ -92,10 +92,10 @@ test("Mutation listener runs either test match", async () => {
 test("Mutation listener misses without match", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: "updateBook", run: () => runCount++ } }));
-  let obj = shallow(<Component page={1} />).dive();
+  let wrapper = shallow(<Component page={1} />).dive();
 
   client1.nextMutationResult = { updateAuthor: { Author: { name: "New Name" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
 
   expect(runCount).toBe(0);
 });
@@ -103,13 +103,13 @@ test("Mutation listener misses without match", async () => {
 test("Mutation listener destroys at unmount", async () => {
   let runCount = 0;
   let Component = getQueryAndMutationComponent(queryPacket.concat({ onMutation: { when: "updateBook", run: () => runCount++ } }));
-  let obj = shallow(<Component page={1} />).dive();
+  let wrapper = shallow(<Component page={1} />).dive();
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
-  await obj.props().runMutation();
+  await wrapper.props().runMutation();
   expect(runCount).toBe(1);
 
-  obj.unmount();
+  wrapper.unmount();
 
   await client1.processMutation();
   await client1.processMutation();

@@ -23,9 +23,9 @@ test("Map props 1", () => {
   let Component = getComponent(...basicQueryWithVariablesPacket, {
     mapProps: ({ loading, loaded, data, error }) => ({ loadingX: loading, loadedX: loaded, dataX: data, errorX: error })
   });
-  let obj = shallow(<Component />);
+  let wrapper = shallow(<Component />);
 
-  expect(obj.props()).toMatchObject({
+  expect(wrapper.props()).toMatchObject({
     loadingX: true,
     loadedX: false,
     dataX: null,
@@ -40,8 +40,8 @@ test("Map props 2", async () => {
   let results = { data: { allBooks: [{ title: "Hello" }] } };
   client1.nextResult = new Promise(res => res(results));
 
-  let obj = shallow(<Component />);
-  expect(obj.props()).toMatchObject({
+  let wrapper = shallow(<Component />);
+  expect(wrapper.props()).toMatchObject({
     loadingX: true,
     loadedX: false,
     dataX: null,
@@ -50,8 +50,8 @@ test("Map props 2", async () => {
 
   await client1.nextResult;
 
-  obj.update();
-  expect(obj.props()).toMatchObject({
+  wrapper.update();
+  expect(wrapper.props()).toMatchObject({
     loadingX: false,
     loadedX: true,
     dataX: results.data,
@@ -66,8 +66,8 @@ test("Map props 3", async () => {
   let results = { data: { allBooks: [{ title: "Hello" }] } };
   client1.nextResult = new Promise(res => res(results));
 
-  let obj = shallow(<Component />);
-  expect(obj.props().packet).toMatchObject({
+  let wrapper = shallow(<Component />);
+  expect(wrapper.props().packet).toMatchObject({
     loading: true,
     loaded: false,
     data: null,
@@ -76,8 +76,8 @@ test("Map props 3", async () => {
 
   await client1.nextResult;
 
-  obj.update();
-  expect(obj.props().packet).toMatchObject({
+  wrapper.update();
+  expect(wrapper.props().packet).toMatchObject({
     loading: false,
     loaded: true,
     data: results.data,
