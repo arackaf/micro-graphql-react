@@ -12,25 +12,22 @@ import QueryCache, {
 
 const deConstructQueryPacket = packet => {
   if (typeof packet === "string") {
+    //TODO: ummm
     return [query, null];
   } else if (Array.isArray(packet)) {
     return [packet[0], packet[1] || null];
   }
 };
 
-class MutationManager {
-  currentState = {
-    loading: false,
-    loaded: false,
-    data: null,
-    error: null
-  };
-  constructor({ client, setState }, mutation) {
-    this.client = client;
-    this.setState = setState;
-    this.mutation = mutation;
-    this.cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
+const deConstructMutationPacket = packet => {
+  if (typeof packet === "string") {
+    return [packet, null];
+  } else if (Array.isArray(packet)) {
+    return [packet[0], packet[1] || null];
   }
+};
+
+class MutationManager {
   runMutation = variables => {
     this.setState({
       running: true,
@@ -45,6 +42,22 @@ class MutationManager {
       return resp;
     });
   };
+  currentState = {
+    running: false,
+    finished: false,
+    runMutation: this.runMutation
+  };
+  updateState = (newState = {}) => {
+    Object.assign(this.currentState, newState);
+    this.setState(this.currentState);
+  };
+  constructor({ client, setState }, packet) {
+    const [mutation, options] = deConstructMutationPacket(packet);
+    this.client = client;
+    this.setState = setState;
+    this.mutation = mutation;
+    this.updateState();
+  }
 }
 
 class QueryManager {
@@ -119,9 +132,9 @@ class QueryManager {
 }
 
 export default class GraphQL extends Component {
-  state = { queries: {} };
+  state = { queries: {}, mutations: {} };
   queryManagerMap = {};
-  mutationMap = {};
+  mutationManagerMap = {};
   get client() {
     return this.props.client || defaultClientManager.getDefaultClient();
   }
@@ -136,6 +149,13 @@ export default class GraphQL extends Component {
       };
       this.queryManagerMap[k] = new QueryManager({ client, setState }, packet);
     });
+    Object.keys(mutation).forEach(k => {
+      let packet = mutation[k];
+      let setState = state => {
+        this.setState(oldState => ({ mutations: { ...oldState.mutations, [k]: state } }));
+      };
+      this.mutationManagerMap[k] = new MutationManager({ client, setState }, packet);
+    });
   }
   componentDidUpdate(prevProps, prevState) {
     let { query = {} } = this.props;
@@ -149,6 +169,6 @@ export default class GraphQL extends Component {
   render() {
     let { query = {}, mutation, children } = this.props;
 
-    return children({ ...this.state.queries });
+    return children({ ...this.state.queries, ...this.state.mutations });
   }
 }
