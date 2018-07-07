@@ -12,8 +12,7 @@ import QueryCache, {
 
 const deConstructQueryPacket = packet => {
   if (typeof packet === "string") {
-    //TODO: ummm
-    return [query, null];
+    return [packet, null, {}];
   } else if (Array.isArray(packet)) {
     return [packet[0], packet[1] || null, packet[2] || {}];
   }
