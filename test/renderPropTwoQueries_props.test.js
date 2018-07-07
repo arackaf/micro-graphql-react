@@ -60,3 +60,35 @@ test("Resolve both promises", async () => {
   verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: queryA }] }));
   verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: queryB }] }));
 });
+
+const getDeferreds = howMany => Array.from({ length: howMany }, () => deferred());
+
+const getDataFunction = (As, Bs) => query => {
+  let A = As;
+  let B = Bs;
+
+  if (query == queryA) {
+    return A.pop();
+  } else if (query == queryB) {
+    return B.pop();
+  }
+};
+
+test("Resolve both promises in turn", async () => {
+  ComponentToUse = getComponent();
+
+  let [a1, a2, b1, b2] = getDeferreds(4);
+  client1.generateResponse = getDataFunction([a2, a1], [b2, b1]);
+
+  let obj = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+
+  await resolveDeferred(a1, { data: { tasks: [{ name: "a1" }] } }, obj);
+
+  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
+  verifyPropsFor(obj, DummyB, loadingPacket);
+
+  await resolveDeferred(b1, { data: { tasks: [{ name: "b1" }] } }, obj);
+
+  verifyPropsFor(obj, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
+  verifyPropsFor(obj, DummyB, dataPacket({ tasks: [{ name: "b1" }] }));
+});
