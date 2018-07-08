@@ -17,8 +17,6 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
   const getQueryPacket = props => [query, variablesFn ? variablesFn(props) : null, { onMutation }];
 
   return class extends Component {
-    state = { queryState: {} };
-
     constructor(props) {
       super(props);
       let client = clientOption || defaultClientManager.getDefaultClient();
@@ -28,6 +26,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
 
       let setState = queryState => this.setState({ queryState });
       this.queryManager = new QueryManager({ client, setState, cache: packet.cache }, getQueryPacket(this.props));
+      this.state = { queryState: this.queryManager.currentState };
     }
     componentDidMount() {
       this.queryManager.load();
@@ -35,11 +34,9 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     componentDidUpdate(prevProps, prevState) {
       this.queryManager.updateIfNeeded(getQueryPacket(this.props));
     }
-
     componentWillUnmount() {
       this.queryManager.dispose();
     }
-
     render() {
       let packet = mapProps({
         ...this.state.queryState,
