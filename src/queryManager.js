@@ -76,13 +76,6 @@ export default class QueryManager {
   reloadCurrentQuery(packet) {
     this.updateIfNeeded(packet, true);
   }
-  reload = packet => {
-    const [query, variables] = deConstructQueryPacket(packet);
-    this.query = query;
-    this.variables = variables;
-    let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
-    this.execute(graphqlQuery);
-  };
   load() {
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
     this.cache[getFromCacheSymbol](
