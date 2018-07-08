@@ -5,7 +5,7 @@ export const noCachingSymbol = Symbol("noCaching");
 export const cacheSymbol = Symbol("cache");
 
 export default class QueryCache {
-  constructor(cacheSize = 0) {
+  constructor(cacheSize = DEFAULT_CACHE_SIZE) {
     this.cacheSize = cacheSize;
   }
   [cacheSymbol] = new Map([]);
