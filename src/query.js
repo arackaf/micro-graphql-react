@@ -43,7 +43,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     render() {
       let packet = mapProps({
         ...this.state.queryState,
-        reload: this.queryManager.reload,
+        reload: this.queryManager.refresh,
         clearCache: () => this.queryManager.cache.clearCache(),
         clearCacheAndReload: this.queryManager.clearCacheAndReload
       });
