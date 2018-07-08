@@ -18,7 +18,13 @@ const getMutationComponent = () => {
   @mutation(`someMutation{}`)
   class C extends Component {
     render() {
-      let { running, finished, runMutation } = this.props;
+      let props = this.props;
+      let { running, finished, runMutation } = props;
+
+      expect(typeof props.runMutation).toBe("function");
+      expect(props.running).toBe(false);
+      expect(props.finished).toBe(false);
+
       return <Dummy {...{ running, finished, runMutation }} />;
     }
   }
@@ -29,9 +35,4 @@ const getMutationComponent = () => {
 test("Everything exists when rendered", () => {
   let Component = getMutationComponent();
   let wrapper = mount(<Component />);
-  let props = getPropsFor(wrapper, Dummy);
-
-  expect(typeof props.runMutation).toBe("function");
-  expect(props.running).toBe(false);
-  expect(props.finished).toBe(false);
 });
