@@ -1,4 +1,4 @@
-import { React, Component, shallow, mount, ClientMock, GraphQL, setDefaultClient, basicQuery } from "./testSuiteInitialize";
+import { React, Component, shallow, mount, ClientMock, GraphQL, setDefaultClient, basicQuery } from "../testSuiteInitialize";
 
 let client1;
 let latestProps;
