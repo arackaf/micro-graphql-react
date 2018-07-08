@@ -252,7 +252,7 @@ The onMutation option that `query` takes is an object, or array of objects, of t
 | `currentResults` | The current results that are passed as your `data` prop |
 | `hardReset` | Clears the cache, and re-load the current query from the network|
 | `cache`  | The actual cache object. You can enumerate its entries, and update whatever you need.|
-| `refresh`   | Refreshes the current query from cache. You'll likely want to call this after modifying the cache.  |
+| `refresh`   | Refreshes the current query, from cache if present. You'll likely want to call this after modifying the cache.  |
 
 Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
