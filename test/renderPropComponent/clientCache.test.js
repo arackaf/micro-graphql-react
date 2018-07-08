@@ -1,5 +1,5 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "./testSuiteInitialize";
-import { verifyPropsFor, deferred, resolveDeferred } from "./testUtils";
+import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
+import { verifyPropsFor, deferred, resolveDeferred } from "../testUtils";
 
 const queryA = "A";
 const queryB = "B";
