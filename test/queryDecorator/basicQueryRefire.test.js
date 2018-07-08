@@ -70,5 +70,5 @@ test("Manually reload query", async () => {
   expect(client1.queriesRun).toBe(1);
   props.reload();
 
-  expect(client1.queriesRun).toBe(1);
+  expect(client1.queriesRun).toBe(2);
 });

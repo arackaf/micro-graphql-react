@@ -65,11 +65,13 @@ export default class QueryManager {
   };
   hardReset = () => {
     this.cache.clearCache();
-    let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
-    this.execute(graphqlQuery);
+    this.reload();
   };
   clearCacheAndReload = () => {
     this.cache.clearCache();
+    this.reload();
+  };
+  reload = () => {
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
     this.execute(graphqlQuery);
   };
