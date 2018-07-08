@@ -24,11 +24,11 @@ export default class QueryManager {
     data: null,
     error: null
   };
-  constructor({ client, setState }, packet) {
+  constructor({ client, setState, cache }, packet) {
     const [query, variables, options] = deConstructQueryPacket(packet);
     this.client = client;
     this.setState = setState;
-    this.cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
+    this.cache = cache || client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
     this.query = query;
     this.variables = variables;
     if (typeof options.onMutation === "object") {

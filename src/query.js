@@ -22,15 +22,12 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     constructor(props) {
       super(props);
       let client = clientOption || defaultClientManager.getDefaultClient();
-      let cache = client.getCache(query) || client.setCache(query, new QueryCache(DEFAULT_CACHE_SIZE));
       if (!client) {
         throw "[micro-graphql-error]: No client is configured. See the docs for info on how to do this.";
       }
-      this.client = client;
-      this.cache = cache;
 
       let setState = queryState => this.setState({ queryState });
-      this.queryManager = new QueryManager({ client, setState }, getQueryPacket(this.props));
+      this.queryManager = new QueryManager({ client, setState, cache: packet.cache }, getQueryPacket(this.props));
     }
     componentDidMount() {
       this.queryManager.load();
@@ -47,7 +44,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
       let packet = mapProps({
         ...this.state.queryState,
         reload: this.queryManager.reload,
-        clearCache: () => this.cache.clearCache(),
+        clearCache: () => this.queryManager.cache.clearCache(),
         clearCacheAndReload: this.queryManager.clearCacheAndReload
       });
 

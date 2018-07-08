@@ -1,4 +1,4 @@
-import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery } from "./testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, QueryCache } from "./testSuiteInitialize";
 
 let client1;
 let client2;
@@ -75,19 +75,22 @@ test("Second component shares the same cache", async () => {
   expect(client1.queriesRun).toBe(10);
 });
 
-// test("Override cache size", async () => {
-//   let Component = getComponent(...basicQueryWithVariablesPacket, { cacheSize: 2 });
-//   let wrapper = shallow(<Component page={1} unused={10} />);
+test("Override cache size", async () => {
+  let cacheOverride = new QueryCache(2);
+  let Component = getComponent(...basicQueryWithVariablesPacket, { cache: cacheOverride });
+  let wrapper = shallow(<Component page={1} unused={10} />);
 
-//   //3 is a cache ejection, cache is now 2,3
-//   Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
-//   expect(client1.queriesRun).toBe(3);
+  //3 is a cache ejection, cache is now 2,3
+  Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
+  expect(client1.queriesRun).toBe(3);
 
-//   //call 2, cache hit, cache is now 2,3
-//   //call 1, cache miss
-//   Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: 3 - i - 1 }));
-//   expect(client1.queriesRun).toBe(4);
-// });
+  //call 2, cache hit, cache is now 2,3
+  //call 1, cache miss
+  Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: 3 - i - 1 }));
+  expect(client1.queriesRun).toBe(4);
+
+  expect(cacheOverride.entries.length).toBe(2);
+});
 
 test("Default cache size with overridden client", async () => {
   let Component = getComponent(...basicQueryWithVariablesPacket, { client: client2 });
@@ -100,16 +103,18 @@ test("Default cache size with overridden client", async () => {
   expect(client2.queriesRun).toBe(10);
 });
 
-// test("Override cache size with overridden client", async () => {
-//   let Component = getComponent(...basicQueryWithVariablesPacket, { cacheSize: 2, client: client2 });
-//   let wrapper = shallow(<Component page={1} unused={10} />);
+test("Override cache size with overridden client", async () => {
+  let cacheOverride = new QueryCache(2);
+  let Component = getComponent(...basicQueryWithVariablesPacket, { cache: cacheOverride, client: client2 });
+  let wrapper = shallow(<Component page={1} unused={10} />);
 
-//   //3 is a cache ejection, cache is now 2,3
-//   Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
-//   expect(client2.queriesRun).toBe(3);
+  //3 is a cache ejection, cache is now 2,3
+  Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
+  expect(client2.queriesRun).toBe(3);
 
-//   //call 2, cache hit, cache is now 2,3
-//   //call 1, cache miss
-//   Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: 3 - i - 1 }));
-//   expect(client2.queriesRun).toBe(4);
-// });
+  //call 2, cache hit, cache is now 2,3
+  //call 1, cache miss
+  Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: 3 - i - 1 }));
+  expect(client2.queriesRun).toBe(4);
+  expect(cacheOverride.entries.length).toBe(2);
+});
