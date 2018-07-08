@@ -15,7 +15,10 @@ const getQueryAndMutationComponent = options =>
     render() {
       let props = this.props;
       return (
-        <GraphQL query={{ q1: [basicQuery, { page: props.page }, options] }} mutation={{ m1: ["someMutation{}", { client: client2 }] }}>
+        <GraphQL
+          query={{ q1: [basicQuery, { page: props.page }, { ...options, client: client2 }] }}
+          mutation={{ m1: ["someMutation{}", { client: client2 }] }}
+        >
           {props => ((latestProps = props), null)}
         </GraphQL>
       );
@@ -24,7 +27,7 @@ const getQueryAndMutationComponent = options =>
 
 test("Mutation listener runs with exact match", async () => {
   let runCount = 0;
-  let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ }, client: client2 });
+  let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ } });
   let wrapper = mount(<Component page={1} />);
 
   client2.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
@@ -37,8 +40,7 @@ test("Mutation listener runs with exact match twice", async () => {
   let runCount = 0;
   let runCount2 = 0;
   let Component = getQueryAndMutationComponent({
-    onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: "updateBook", run: () => runCount2++ }],
-    client: client2
+    onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: "updateBook", run: () => runCount2++ }]
   });
   let wrapper = mount(<Component page={1} />);
 
@@ -51,7 +53,7 @@ test("Mutation listener runs with exact match twice", async () => {
 
 test("Mutation listener runs with regex match", async () => {
   let runCount = 0;
-  let Component = getQueryAndMutationComponent({ onMutation: { when: /update/, run: () => runCount++ }, client: client2 });
+  let Component = getQueryAndMutationComponent({ onMutation: { when: /update/, run: () => runCount++ } });
   let wrapper = mount(<Component page={1} />);
 
   client2.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
@@ -64,8 +66,7 @@ test("Mutation listener runs with regex match twice", async () => {
   let runCount = 0;
   let runCount2 = 0;
   let Component = getQueryAndMutationComponent({
-    onMutation: [{ when: /book/i, run: () => runCount++ }, { when: /update/, run: () => runCount2++ }],
-    client: client2
+    onMutation: [{ when: /book/i, run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
   });
   let wrapper = mount(<Component page={1} />);
 
@@ -80,8 +81,7 @@ test("Mutation listener runs either test match", async () => {
   let runCount = 0;
   let runCount2 = 0;
   let Component = getQueryAndMutationComponent({
-    onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: /update/, run: () => runCount2++ }],
-    client: client2
+    onMutation: [{ when: "updateBook", run: () => runCount++ }, { when: /update/, run: () => runCount2++ }]
   });
   let wrapper = mount(<Component page={1} />);
 
@@ -94,7 +94,7 @@ test("Mutation listener runs either test match", async () => {
 
 test("Mutation listener misses without match", async () => {
   let runCount = 0;
-  let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ }, client: client2 });
+  let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ } });
   let wrapper = mount(<Component page={1} />);
 
   client2.nextMutationResult = { updateAuthor: { Author: { name: "New Name" } } };
@@ -105,7 +105,7 @@ test("Mutation listener misses without match", async () => {
 
 test("Mutation listener destroys at unmount", async () => {
   let runCount = 0;
-  let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ }, client: client2 });
+  let Component = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ } });
   let wrapper = mount(<Component page={1} />);
 
   client2.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
