@@ -1,11 +1,11 @@
-export const getPropsFor = (obj, target) =>
-  obj
+export const getPropsFor = (wrapper, target) =>
+  wrapper
     .children()
     .find(target)
     .props();
 
-export const verifyPropsFor = (obj, target, expected) => {
-  let props = getPropsFor(obj, target);
+export const verifyPropsFor = (wrapper, target, expected) => {
+  let props = getPropsFor(wrapper, target);
   expect(props).toEqual(expected);
 };
 
