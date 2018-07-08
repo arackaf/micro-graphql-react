@@ -16,7 +16,6 @@ export default class GraphQL extends Component {
     super(props);
 
     this.state = { queries: {}, mutations: {} };
-    let client = this.client;
     let { query = {}, mutation = {} } = this.props;
 
     Object.keys(query).forEach(k => {
@@ -24,7 +23,8 @@ export default class GraphQL extends Component {
       let setState = state => {
         this.setState(oldState => ({ queries: { ...oldState.queries, [k]: state } }));
       };
-      this.queryManagerMap[k] = new QueryManager({ client, setState }, packet);
+      let options = packet[2] || {};
+      this.queryManagerMap[k] = new QueryManager({ client: options.client || this.client, setState, cache: options.cache }, packet);
       this.state.queries[k] = this.queryManagerMap[k].currentState;
     });
     Object.keys(mutation).forEach(k => {
@@ -32,7 +32,7 @@ export default class GraphQL extends Component {
       let setState = state => {
         this.setState(oldState => ({ mutations: { ...oldState.mutations, [k]: state } }));
       };
-      this.mutationManagerMap[k] = new MutationManager({ client, setState }, packet);
+      this.mutationManagerMap[k] = new MutationManager({ client: this.client, setState }, packet);
       this.state.mutations[k] = this.mutationManagerMap[k].currentState;
     });
   }
