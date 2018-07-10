@@ -5,7 +5,7 @@ var webpack = require("webpack");
 
 module.exports = {
   entry: {
-    "micro-graphql-react": "./index-local.js"
+    "micro-graphql-react": "./index.js"
   },
   output: {
     filename: "[name]-bundle.js",

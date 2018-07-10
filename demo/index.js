@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
-import { Client, query, mutation, setDefaultClient } from "../index-local";
+import { Client, query, mutation, setDefaultClient } from "../index";
 
 import BasicQuery from "./basicQuery";
 import TwoQueries from "./twoQueries";
