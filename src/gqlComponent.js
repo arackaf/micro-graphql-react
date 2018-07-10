@@ -5,6 +5,7 @@ import QueryManager from "./queryManager";
 import MutationManager from "./mutationManager";
 
 export const buildQuery = (queryText, variables, options) => [queryText, variables, options];
+export const buildMutation = (mutation, options) => [mutation, options];
 
 export default class GraphQL extends Component {
   queryManagerMap = {};

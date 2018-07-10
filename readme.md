@@ -14,7 +14,10 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 
 <!-- TOC -->
 
-- [Queries](#queries)
+- [Create a client](#create-a-client)
+- [Running queries and mutations](#running-queries-and-mutations)
+  - [Queries](#queries)
+- [The query decorator](#the-query-decorator)
   - [props passed to your component](#props-passed-to-your-component)
   - [Other options](#other-options)
 - [Mutations](#mutations)
@@ -34,7 +37,9 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 
 <!-- /TOC -->
 
-## Queries
+## Create a client
+
+Before you do anything, you'll need to create a client. You can do that like this
 
 ```javascript
 import { Client, query, compress, setDefaultClient } from "micro-graphql-react";
@@ -45,7 +50,39 @@ const client = new Client({
 });
 
 setDefaultClient(client);
+```
 
+Now that client operation will be used by default, everywhere, unless you manually pass in a different client into any components, as discussed below.
+
+## Running queries and mutations
+
+The most flexible way of running GraphQL operations is with the `GraphQL` component.
+
+```javascript
+import { GraphQL, buildQuery, buildMutation } from "micro-graphql-react";
+
+<GraphQL
+  query={{
+    loadBooks: buildQuery(LOAD_BOOKS, { title: this.state.titleSearch }, { onMutation: hardResetStrategy("Book") })
+  }}
+  mutation={{ updateBook: buildMutation(UPDATE_BOOK) }}
+>
+  {({ loadBooks: { loading, loaded, data, error }, updateBook: { runMutation } }) => (
+    <div>
+      {loading ? <span>Loading...</span> : null}
+      {loaded && data && data.allBooks ? <DisplayBooks books={data.allBooks.Books} editBook={this.editBook} /> : null}
+      <br />
+      {this.state.editingBook ? <UpdateBook book={this.state.editingBook} updateBook={runMutation} /> : null}
+    </div>
+  )}
+</GraphQL>;
+```
+
+### Queries
+
+## The query decorator
+
+```javascript
 @query(
   compress`query ALL_BOOKS ($page: Int) {
     allBooks(PAGE: $page, PAGE_SIZE: 3) {
@@ -95,9 +132,8 @@ The decorator can also take a third argument of options (or second argument, if 
 | -------| ----------- |
 | `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
 | `mapProps`| Allows you to adjust the props passed to your component. If specified, a single object with all your GraphQL props will be passed to this function, and the result will be spread into your component's props |
-| `cacheSize` | Overrides the default cache size of 10. Pass in 0 to disable caching completely |
-| `shouldQueryUpdate` | Take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above. <br/><br/><ul><li>`prevProps` - previous component props</li><li>`props` - current component props</li><li>`prevVariables` - previous graphql variables produced</li><li>`variables` - current graphql variables produced</li></ul> |
 | `client`  | Manually pass in a client to be used for this component|
+| `cache`  | Manually pass in a cache object to be used for this component|
 
 An example of `mapProps` and `cacheSize`
 
