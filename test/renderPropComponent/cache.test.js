@@ -1,4 +1,5 @@
 import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, QueryCache } from "../testSuiteInitialize";
+import { verifyPropsFor, deferred, dataPacket } from "../testUtils";
 
 let client1;
 let client2;
@@ -11,10 +12,16 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
+class Dummy extends Component {
+  render() {
+    return <div />;
+  }
+}
+
 const getComponent = options =>
   class extends Component {
     render() {
-      return <GraphQL query={{ query1: [basicQuery, { page: this.props.page }, options] }} />;
+      return <GraphQL query={{ query1: [basicQuery, { page: this.props.page }, options] }}>{props => <Dummy {...props} />}</GraphQL>;
     }
   };
 
@@ -27,6 +34,21 @@ test("Default cache size", async () => {
 
   Array.from({ length: 9 }).forEach((x, i) => wrapper.setProps({ page: 10 - i - 1 }));
   expect(client1.queriesRun).toBe(10);
+});
+
+test("Pick up in-progress query", async () => {
+  let Component = getComponent();
+  let p = (client1.nextResult = deferred());
+
+  let wrapper1 = mount(<Component page={1} unused={10} />);
+  let wrapper2 = mount(<Component page={1} unused={10} />);
+
+  await p.resolve({ data: { tasks: [{ id: 9 }] } });
+
+  verifyPropsFor(wrapper1, Dummy, dataPacket({ tasks: [{ id: 9 }] }));
+  verifyPropsFor(wrapper2, Dummy, dataPacket({ tasks: [{ id: 9 }] }));
+
+  expect(client1.queriesRun).toBe(1);
 });
 
 test("Cache accessible by query in client", async () => {
