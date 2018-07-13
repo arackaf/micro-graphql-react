@@ -1,4 +1,4 @@
-import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, QueryCache } from "../testSuiteInitialize";
+import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, Cache } from "../testSuiteInitialize";
 
 let client1;
 let client2;
@@ -76,7 +76,7 @@ test("Second component shares the same cache", async () => {
 });
 
 test("Override cache size", async () => {
-  let cacheOverride = new QueryCache(2);
+  let cacheOverride = new Cache(2);
   let Component = getComponent(...basicQueryWithVariablesPacket, { cache: cacheOverride });
   let wrapper = shallow(<Component page={1} unused={10} />);
 
@@ -104,7 +104,7 @@ test("Default cache size with overridden client", async () => {
 });
 
 test("Override cache size with overridden client", async () => {
-  let cacheOverride = new QueryCache(2);
+  let cacheOverride = new Cache(2);
   let Component = getComponent(...basicQueryWithVariablesPacket, { cache: cacheOverride, client: client2 });
   let wrapper = shallow(<Component page={1} unused={10} />);
 
