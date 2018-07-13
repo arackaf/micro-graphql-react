@@ -43,6 +43,9 @@ export default class QueryManager {
         currentResults: () => this.currentState.data
       });
     }
+    this.currentState.reload = this.reload;
+    this.currentState.clearCache = () => this.cache.clearCache();
+    this.currentState.clearCacheAndReload = this.clearCacheAndReload;
   }
   updateState = newState => {
     Object.assign(this.currentState, newState);
