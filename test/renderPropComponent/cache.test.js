@@ -21,7 +21,7 @@ class Dummy extends Component {
 const getComponent = options =>
   class extends Component {
     render() {
-      return <GraphQL query={{ query1: [basicQuery, { page: this.props.page }, options] }}>{props => <Dummy {...props} />}</GraphQL>;
+      return <GraphQL query={{ query1: [basicQuery, { page: this.props.page }, options] }}>{props => <Dummy {...props.query1} />}</GraphQL>;
     }
   };
 
@@ -44,6 +44,8 @@ test("Pick up in-progress query", async () => {
   let wrapper2 = mount(<Component page={1} unused={10} />);
 
   await p.resolve({ data: { tasks: [{ id: 9 }] } });
+  wrapper1.update();
+  wrapper2.update();
 
   verifyPropsFor(wrapper1, Dummy, dataPacket({ tasks: [{ id: 9 }] }));
   verifyPropsFor(wrapper2, Dummy, dataPacket({ tasks: [{ id: 9 }] }));

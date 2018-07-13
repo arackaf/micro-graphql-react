@@ -85,7 +85,7 @@ export default class QueryManager {
       promise => {
         Promise.resolve(promise).then(() => {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
-          this.loadQuery(queryPacket);
+          this.load();
         });
       },
       cachedEntry => {
