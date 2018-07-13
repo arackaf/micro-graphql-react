@@ -1,3 +1,5 @@
+import Cache, { DEFAULT_CACHE_SIZE } from "./cache";
+
 const mutationListenersSymbol = Symbol("mutationListeners");
 
 export default class Client {
@@ -9,9 +11,13 @@ export default class Client {
   getCache(query) {
     return this.caches.get(query);
   }
+  newCacheForQuery(query) {
+    let newCache = new Cache(DEFAULT_CACHE_SIZE);
+    this.setCache(query, newCache);
+    return newCache;
+  }
   setCache(query, cache) {
     this.caches.set(query, cache);
-    return cache;
   }
   runQuery(query, variables) {
     return fetch(this.getGraphqlQuery({ query, variables }), this.fetchOptions || void 0).then(resp => resp.json());
