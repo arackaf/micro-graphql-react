@@ -6,7 +6,7 @@ export const getPropsFor = (wrapper, target) =>
 
 export const verifyPropsFor = (wrapper, target, expected) => {
   let props = getPropsFor(wrapper, target);
-  expect(props).toEqual(expected);
+  expect(props).toMatchObject(expected);
 };
 
 export const deferred = () => {

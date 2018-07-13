@@ -1,5 +1,5 @@
 import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, QueryCache } from "../testSuiteInitialize";
-import { verifyPropsFor, deferred, dataPacket } from "../testUtils";
+import { getPropsFor, verifyPropsFor, deferred, dataPacket } from "../testUtils";
 
 let client1;
 let client2;
@@ -34,6 +34,41 @@ test("Default cache size", async () => {
 
   Array.from({ length: 9 }).forEach((x, i) => wrapper.setProps({ page: 10 - i - 1 }));
   expect(client1.queriesRun).toBe(10);
+});
+
+test("Reload query", async () => {
+  let Component = getComponent();
+  let wrapper = mount(<Component page={1} unused={10} />);
+  expect(client1.queriesRun).toBe(1);
+
+  let props = getPropsFor(wrapper, Dummy);
+  props.reload();
+  expect(client1.queriesRun).toBe(2);
+});
+
+test("Clear cache", async () => {
+  let Component = getComponent();
+  let wrapper = mount(<Component page={1} unused={10} />);
+
+  let cache = client1.getCache(basicQuery);
+  expect(cache.entries.length).toBe(1);
+
+  let props = getPropsFor(wrapper, Dummy);
+  props.clearCache();
+  expect(cache.entries.length).toBe(0);
+});
+
+test("Clear cache and reload", async () => {
+  let Component = getComponent();
+  let wrapper = mount(<Component page={1} unused={10} />);
+
+  let cache = client1.getCache(basicQuery);
+  expect(cache.entries.length).toBe(1);
+
+  let props = getPropsFor(wrapper, Dummy);
+  props.clearCacheAndReload();
+  expect(cache.entries.length).toBe(1);
+  expect(client1.queriesRun).toBe(2);
 });
 
 test("Pick up in-progress query", async () => {

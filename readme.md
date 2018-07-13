@@ -42,7 +42,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 Before you do anything, you'll need to create a client. You can do that like this
 
 ```javascript
-import { Client, query, compress, setDefaultClient } from "micro-graphql-react";
+import { Client, setDefaultClient } from "micro-graphql-react";
 
 const client = new Client({
   endpoint: "/graphql",
