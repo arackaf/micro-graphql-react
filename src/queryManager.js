@@ -1,12 +1,5 @@
 import shallowEqual from "shallow-equal/objects";
-import QueryCache, {
-  setPendingResultSymbol,
-  setResultsSymbol,
-  getFromCacheSymbol,
-  noCachingSymbol,
-  cacheSymbol,
-  DEFAULT_CACHE_SIZE
-} from "./queryCache";
+import QueryCache, { setPendingResultSymbol, setResultsSymbol, getFromCacheSymbol, noCachingSymbol, cacheSymbol, DEFAULT_CACHE_SIZE } from "./cache";
 
 const deConstructQueryPacket = packet => {
   if (typeof packet === "string") {
