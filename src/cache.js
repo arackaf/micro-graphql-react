@@ -4,7 +4,7 @@ export const getFromCacheSymbol = Symbol("getFromCache");
 export const noCachingSymbol = Symbol("noCaching");
 export const cacheSymbol = Symbol("cache");
 
-export default class QueryCache {
+export default class Cache {
   constructor(cacheSize = DEFAULT_CACHE_SIZE) {
     this.cacheSize = cacheSize;
   }

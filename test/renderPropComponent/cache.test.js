@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, QueryCache } from "../testSuiteInitialize";
+import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, Cache } from "../testSuiteInitialize";
 import { getPropsFor, verifyPropsFor, deferred, dataPacket } from "../testUtils";
 
 let client1;
@@ -132,7 +132,7 @@ test("Second component shares the same cache", async () => {
 });
 
 test("Override cache size", async () => {
-  let cacheOverride = new QueryCache(2);
+  let cacheOverride = new Cache(2);
   let Component = getComponent({ cache: cacheOverride });
   let wrapper = mount(<Component page={1} unused={10} />);
 
@@ -160,7 +160,7 @@ test("Default cache size with overridden client", async () => {
 });
 
 test("Override cache size with overridden client", async () => {
-  let cacheOverride = new QueryCache(2);
+  let cacheOverride = new Cache(2);
   let Component = getComponent({ cache: cacheOverride, client: client2 });
   let wrapper = mount(<Component page={1} unused={10} />);
 
