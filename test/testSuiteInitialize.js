@@ -7,7 +7,7 @@ import ClientMock from "./clientMock";
 import { query, mutation, setDefaultClient, GraphQL } from "../index-local";
 import { basicQuery, basicQueryWithVariables } from "./graphqlConstants";
 import GraphQLComponent, { buildQuery } from "../src/gqlComponent";
-import QueryCache from "../src/queryCache";
+import QueryCache from "../src/cache";
 
 export {
   React,

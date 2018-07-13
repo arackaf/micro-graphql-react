@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { defaultClientManager } from "./client";
-import QueryCache, { DEFAULT_CACHE_SIZE } from "./queryCache";
+import QueryCache, { DEFAULT_CACHE_SIZE } from "./cache";
 import QueryManager from "./queryManager";
 
 export default (query, variablesFn, packet = {}) => BaseComponent => {
