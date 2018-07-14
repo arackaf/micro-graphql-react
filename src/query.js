@@ -38,10 +38,7 @@ export default (query, variablesFn, packet = {}) => BaseComponent => {
     }
     render() {
       let packet = mapProps({
-        ...this.state.queryState,
-        reload: this.queryManager.reload,
-        clearCache: () => this.queryManager.cache.clearCache(),
-        clearCacheAndReload: this.queryManager.clearCacheAndReload
+        ...this.state.queryState
       });
 
       return <BaseComponent {...packet} {...this.props} />;
