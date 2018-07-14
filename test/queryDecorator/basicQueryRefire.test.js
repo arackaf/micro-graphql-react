@@ -72,3 +72,28 @@ test("Manually reload query", async () => {
 
   expect(client1.queriesRun).toBe(2);
 });
+
+test("Manually clear cache and reload query", async () => {
+  let Component = getComponent(...basicQueryWithVariablesPacket);
+  let wrapper = mount(<Component page={1} unused={10} />);
+  let props = getPropsFor(wrapper, Dummy);
+
+  expect(client1.queriesRun).toBe(1);
+  props.clearCacheAndReload();
+
+  expect(client1.getCache(basicQuery).entries.length).toBe(1);
+  expect(client1.queriesRun).toBe(2);
+});
+
+test("Manually clear cache", async () => {
+  let Component = getComponent(...basicQueryWithVariablesPacket);
+  let wrapper = mount(<Component page={1} unused={10} />);
+  let props = getPropsFor(wrapper, Dummy);
+
+  expect(client1.queriesRun).toBe(1);
+
+  props.clearCache();
+
+  expect(client1.getCache(basicQuery).entries.length).toBe(0);
+  expect(client1.queriesRun).toBe(1);
+});
