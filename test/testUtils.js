@@ -23,7 +23,7 @@ export const deferred = () => {
 export const resolveDeferred = async (p, val, wrapper) => {
   p.resolve(val);
   await p;
-  wrapper.update();
+  wrapper && wrapper.update();
 };
 
 export const rejectDeferred = async (p, val, wrapper) => {

@@ -4,15 +4,29 @@ const mutationListenersSymbol = Symbol("mutationListeners");
 
 export default class Client {
   constructor(props) {
+    if (props.noCaching != null && props.cacheSize != null) {
+      throw "Both noCaching, and cacheSize are specified. At most one of these options can be included";
+    }
+
+    if (props.noCaching) {
+      props.cacheSize = 0;
+    }
+
     Object.assign(this, props);
     this.caches = new Map([]);
     this[mutationListenersSymbol] = new Set([]);
+  }
+  get cacheSizeToUse() {
+    if (this.cacheSize != null) {
+      return this.cacheSize;
+    }
+    return DEFAULT_CACHE_SIZE;
   }
   getCache(query) {
     return this.caches.get(query);
   }
   newCacheForQuery(query) {
-    let newCache = new Cache(DEFAULT_CACHE_SIZE);
+    let newCache = new Cache(this.cacheSizeToUse);
     this.setCache(query, newCache);
     return newCache;
   }

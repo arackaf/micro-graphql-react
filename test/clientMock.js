@@ -1,9 +1,8 @@
 import ClientBase from "../src/client";
 
 export default class Client extends ClientBase {
-  constructor(endpoint) {
-    super(endpoint);
-    this.endpoint = endpoint;
+  constructor(props) {
+    super(props);
     this.reset();
   }
   reset = () => {

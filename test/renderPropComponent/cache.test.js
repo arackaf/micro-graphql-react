@@ -1,5 +1,5 @@
 import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, Cache } from "../testSuiteInitialize";
-import { getPropsFor, verifyPropsFor, deferred, dataPacket } from "../testUtils";
+import { getPropsFor, verifyPropsFor, deferred, dataPacket, resolveDeferred } from "../testUtils";
 
 let client1;
 let client2;
