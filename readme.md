@@ -1,6 +1,6 @@
 # micro-graphql-react
 
-A light (2.6K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
+A light (3.4K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
 Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
 
