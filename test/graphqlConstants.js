@@ -10,7 +10,7 @@ export const basicQuery = `
   }`;
 
 export const basicQueryWithVariables = `
-  query ALL_BOOKS {
+  query ALL_BOOKS ($var1: Int) {
     allBooks(PAGE: 1, PAGE_SIZE: 3) {
       Books { 
         _id 

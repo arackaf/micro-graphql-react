@@ -1,5 +1,6 @@
 import React, { StatelessComponent, ComponentClass, ClassicComponentClass } from "react";
 import compress from "./src/compress";
+import { buildQuery, buildMutation } from "./src/gqlComponent";
 
 type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
 
@@ -13,10 +14,12 @@ declare function setDefaultClient(client: Client): void;
 
 export { compress, Client, setDefaultClient };
 
+declare var Cache: any;
+
+export { Cache };
+
 //options you can pass to the query decorator
 export interface QueryOptions {
-  shouldQueryUpdate?: ({ prevProps: any, props: any, prevQuery: string, query: string, prevVariables: any, variables: any }) => boolean;
-  cacheSize?: number = 10;
   client?: Client;
   mapProps?: (props: any) => any;
 }
@@ -53,3 +56,6 @@ export function query(
 
 //mutation decorator
 export function mutation(mutation: string, options?: MutationOptions): <T extends IReactComponent>(input: T) => T;
+
+export declare class GraphQL extends React.Component<{ query?: any; mutation?: any }, any> {}
+export { buildQuery, buildMutation };

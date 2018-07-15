@@ -1,6 +1,6 @@
 # micro-graphql-react
 
-A light (2.6K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
+A light (3.4K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
 Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
 
@@ -14,30 +14,39 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 
 <!-- TOC -->
 
-- [Queries](#queries)
+- [Creating a client](#creating-a-client)
+  - [Client options](#client-options)
+- [Running queries and mutations](#running-queries-and-mutations)
+  - [Building queries](#building-queries)
+  - [Props passed for each query](#props-passed-for-each-query)
+  - [Building mutations](#building-mutations)
+  - [Props passed for each mutation](#props-passed-for-each-mutation)
+- [The query decorator](#the-query-decorator)
   - [props passed to your component](#props-passed-to-your-component)
   - [Other options](#other-options)
-- [Mutations](#mutations)
+- [Mutation decorator](#mutation-decorator)
   - [props passed to your component](#props-passed-to-your-component-1)
   - [Other options](#other-options-1)
 - [Cache invalidation](#cache-invalidation)
   - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
   - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
   - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
-- [Cache API](#cache-api)
+- [The cache object](#the-cache-object)
+  - [The cache api](#the-cache-api)
 - [Manually running queries or mutations](#manually-running-queries-or-mutations)
   - [Client api](#client-api)
 - [Transpiling decorators](#transpiling-decorators)
   - [But I don't like decorators](#but-i-dont-like-decorators)
 - [Use in old browsers](#use-in-old-browsers)
-- [What's next](#whats-next)
 
 <!-- /TOC -->
 
-## Queries
+## Creating a client
+
+Before you do anything, you'll need to create a client. You can do that like this
 
 ```javascript
-import { Client, query, compress, setDefaultClient } from "micro-graphql-react";
+import { Client, setDefaultClient } from "micro-graphql-react";
 
 const client = new Client({
   endpoint: "/graphql",
@@ -45,15 +54,95 @@ const client = new Client({
 });
 
 setDefaultClient(client);
+```
 
-@query(
-  compress`query ALL_BOOKS ($page: Int) {
-    allBooks(PAGE: $page, PAGE_SIZE: 3) {
-      Books { _id title }
-    }
-  }`,
-  props => ({ page: props.page })
-)
+Now that client operation will be used by default, everywhere, unless you manually pass in a different client into any components, as discussed below.
+
+### Client options
+
+<!-- prettier-ignore -->
+| Option  | Description |
+| -------| ----------- |
+| `endpoint` | URL for your GraphQL endpoint |
+| `fetchOptions`  | Options to send along with all fetches|
+| `cacheSize`  | Default cache size to use for all caches created by this client, as needed, for all queries it processes|
+| `noCaching`  | If true, this will turn off caching altogether for all queries it processes|
+
+## Running queries and mutations
+
+The most flexible way of running GraphQL operations is with the `GraphQL` component.
+
+```javascript
+import { GraphQL, buildQuery, buildMutation } from "micro-graphql-react";
+
+<GraphQL
+  query={{
+    loadBooks: buildQuery(LOAD_BOOKS, { title: this.state.titleSearch }, { onMutation: hardResetStrategy("Book") })
+  }}
+  mutation={{ updateBook: buildMutation(UPDATE_BOOK) }}
+>
+  {({ loadBooks: { loading, loaded, data, error }, updateBook: { runMutation } }) => (
+    <div>
+      {loading ? <span>Loading...</span> : null}
+      {loaded && data && data.allBooks ? <DisplayBooks books={data.allBooks.Books} editBook={this.editBook} /> : null}
+      <br />
+      {this.state.editingBook ? <UpdateBook book={this.state.editingBook} updateBook={runMutation} /> : null}
+    </div>
+  )}
+</GraphQL>;
+```
+
+### Building queries
+
+Construct each query with the `buildQuery` method. The first argument is the query text itself. The second, optional argument, is the query's variables. You can also pass a third options argument, which can contain any of the following properties:
+
+<!-- prettier-ignore -->
+| Option  | Description |
+| -------| ----------- |
+| `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
+| `client`  | Manually pass in a client to be used for this query, which will override the default client|
+| `cache`  | Manually pass in a cache object to be used for this query|
+
+Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—just wrap any inline string parameters you may have in `${}` - for more information, see [here](./readme-compress.md).
+
+### Props passed for each query
+
+For each query you specify, an object will be passed in the component's props by that same name, with the following properties.
+
+<!-- prettier-ignore -->
+| Props | Description |
+| ----- | ----------- |
+|`loading`|Fetch is executing for your query|
+|`loaded`|Fetch has finished executing for your query|
+|`data`|If the last fetch finished successfully, this will contain the data returned, else null|
+|`error`|If the last fetch did not finish successfully, this will contain the errors that were returned, else `null`|
+|`reload`|A function you can call to manually re-fetch the current query|
+|`clearCache`|Clear the cache for this component|
+|`clearCacheAndReload`|Calls `clearCache`, followed by `reload`|
+
+### Building mutations
+
+Construct each mutation with the `buildMutation` method. The first argument is the mutation text. The second, optional options argument can accept only a `client` property, which will override the client default, same as with queries.
+
+### Props passed for each mutation
+
+For each mutation you specify, an object will be passed in the component's props by that same name, with the following properties.
+
+<!-- prettier-ignore -->
+| Props         | Description  |
+| ------------- | --------- |
+| `running`     | Mutation is executing |
+| `finished`    | Mutation has finished executing|
+| `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
+
+## The query decorator
+
+The `query` decorator is not as flexible as the GraphQL component, but it can be simpler for less complex use cases.
+
+```javascript
+import { query } from "micro-graphql-react";
+
+@query(LOAD_BOOKS, props => ({ page: props.page }))
 export default class BasicQuery extends Component {
   render() {
     let { loading, loaded, data } = this.props;
@@ -70,8 +159,6 @@ export default class BasicQuery extends Component {
 ```
 
 The `query` decorator is passed the GraphQL query, and an optional function mapping the component's props to a variables object. When the component first mounts, this query will be executed. When the component updates, the variables function will re-run with the new props, and the query will re-fetch **if** the newly-created GraphQL query is different. Of course if your query has no variables, it'll never update.
-
-Be sure to use the `compress` tag to remove un-needed whitespace from your query, since it will be sent via HTTP GET—just wrap any inline string parameters you may have in `${}` - for more information, see [here](./readme-compress.md).
 
 ### props passed to your component
 
@@ -95,31 +182,14 @@ The decorator can also take a third argument of options (or second argument, if 
 | -------| ----------- |
 | `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
 | `mapProps`| Allows you to adjust the props passed to your component. If specified, a single object with all your GraphQL props will be passed to this function, and the result will be spread into your component's props |
-| `cacheSize` | Overrides the default cache size of 10. Pass in 0 to disable caching completely |
-| `shouldQueryUpdate` | Take control over whether your query re-runs, rather than having it re-run whenever the produced graphql query changes. This function is passed a single object with the properties listed below. If specified, your query will only re-run when it returns true, though you can always manually re-load your query with the reload prop, discussed above. <br/><br/><ul><li>`prevProps` - previous component props</li><li>`props` - current component props</li><li>`prevVariables` - previous graphql variables produced</li><li>`variables` - current graphql variables produced</li></ul> |
 | `client`  | Manually pass in a client to be used for this component|
+| `cache`  | Manually pass in a cache object to be used for this component|
 
-An example of `mapProps` and `cacheSize`
+An example of `mapProps`
 
 ```javascript
-@query(
-  compress`query ALL_BOOKS($title_contains: String) {
-      allBooks(title_contains: $title_contains, SORT: {title: 1}, PAGE_SIZE: 1, PAGE: 1) {
-        Books { _id title }
-      }
-    }`,
-  props => ({ title_contains: props.title_contains }),
-  { mapProps: props => ({ firstBookProps: props }), cacheSize: 3 }
-)
-@query(
-  compress`query ALL_BOOKS($title_contains: String) {
-    allBooks(title_contains: $title_contains, SORT: {title: -1}, PAGE_SIZE: 1, PAGE: 1) {
-      Books { _id title }
-    }
-  }`,
-  props => ({ title_contains: props.title_contains }),
-  { mapProps: props => ({ lastBookProps: props }), cacheSize: 3 }
-)
+@query(LOAD_BOOKS_FIRST, props => ({ title_contains: props.title_contains }), { mapProps: props => ({ firstBookProps: props }) })
+@query(LOAD_BOOKS_SECOND, props => ({ title_contains: props.title_contains }), { mapProps: props => ({ lastBookProps: props }) })
 class TwoQueries extends Component {
   render() {
     let { firstBookProps, lastBookProps } = this.props;
@@ -135,14 +205,12 @@ class TwoQueries extends Component {
 }
 ```
 
-## Mutations
+## Mutation decorator
 
 ```javascript
-@mutation(`mutation modifyBook($title: String) {
-    updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
-      Book { _id title }
-    }
-  }`)
+import { query } from "micro-graphql-react";
+
+@mutation(MODIFY_BOOK)
 class BasicMutation extends Component {
   render() {
     let { running, finished, runMutation } = this.props;
@@ -175,27 +243,9 @@ Same idea as `query`, pass a string for your mutation and you'll get a `runMutat
 Like `query`, you can pass a second argument to your `mutation` decorator. Here, this object only supports the `mapProps`, and `client` options, which work the same as for queries.
 
 ```javascript
-@query(
-  `
-    query ALL_BOOKS($page: Int) {
-      allBooks(PAGE: $page, PAGE_SIZE: 3) {
-        Books { _id title pages }
-      }
-    }`,
-  props => ({ page: props.page })
-)
-@mutation(
-  `mutation modifyBook($_id: String, $title: String) {
-    updateBook(_id: $_id, Updates: { title: $title }) { success }
-  }`,
-  { mapProps: props => ({ titleMutation: props }) }
-)
-@mutation(
-  `mutation modifyBook($_id: String, $pages: Int) {
-    updateBook(_id: $_id, Updates: { pages: $pages }) { success }
-  }`,
-  { mapProps: props => ({ pagesMutation: props }) }
-)
+@query(LOAD_BOOKS, props => ({ page: props.page }))
+@mutation(MODIFY_BOOK_TITLE, { mapProps: props => ({ titleMutation: props }) })
+@mutation(MODIFY_BOOK_PAGES, { mapProps: props => ({ pagesMutation: props }) })
 class TwoMutationsAndQuery extends Component {
   state = { editingId: "", editingOriginaltitle: "" };
   edit = book => {
@@ -241,9 +291,9 @@ class TwoMutationsAndQuery extends Component {
 
 ## Cache invalidation
 
-The onMutation option that `query` takes is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
+The onMutation option that query options take is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
-`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: the mutations variables object, the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
+`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: the mutation's variables object, the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
 
 <!-- prettier-ignore -->
 | Arg  | Description  |
@@ -252,11 +302,13 @@ The onMutation option that `query` takes is an object, or array of objects, of t
 | `currentResults` | The current results that are passed as your `data` prop |
 | `hardReset` | Clears the cache, and re-load the current query from the network|
 | `cache`  | The actual cache object. You can enumerate its entries, and update whatever you need.|
-| `refresh`   | Refreshes the current query from cache. You'll likely want to call this after modifying the cache.  |
+| `refresh`   | Refreshes the current query, from cache if present. You'll likely want to call this after modifying the cache.  |
 
 Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
 The code below was tested on an actual GraphQL endpoint created by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter)
+
+All examples use the `query` decorator, but the format is identical with the `GraphQL` component.
 
 ### Use Case 1: Hard reset and reload after any mutation
 
@@ -432,7 +484,23 @@ export class BookQueryComponent extends Component {
 
 It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back. The whole cache api is listed below
 
-## Cache API
+## The cache object
+
+You can import the `Cache` class like so
+
+```javascript
+import { Cache } from "micro-graphql-react";
+```
+
+When instantiating a new cache object, you can optionally pass in a cache size.
+
+```javascript
+let cache = new Cache(15);
+```
+
+To turn caching off for a given query, just create a cache with size `0`, and pass that in for a given query. Or as noted above, you can create a client with the `noCaching` option set to true, to turn caching off for all queries processed by that client.
+
+### The cache api
 
 The cache object has the following properties and methods
 
@@ -447,7 +515,7 @@ The cache object has the following properties and methods
 
 ## Manually running queries or mutations
 
-It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The component decorators run their queries and mutations through the client object you're already setting via `setDefaultClient`. You can call those methods yourself, in your state manager (or anywhere).
+It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The `GraphQL` component, component decorators run their queries and mutations through the client object you're already setting via `setDefaultClient`. You can call those methods yourself, in your state manager (or anywhere).
 
 ### Client api
 
@@ -502,7 +570,7 @@ class BasicQueryNoDecorators extends Component {
   }
 }
 const BasicQueryConnected = query(
-  `
+  compress`
     query ALL_BOOKS($page: Int) {
       allBooks(PAGE: $page, PAGE_SIZE: 3) {
         Books {
@@ -531,7 +599,3 @@ By default this library ships standard ES6, which should work in all modern brow
     modules: [path.resolve("./"), path.resolve("./node_modules")]
   }
 ```
-
-## What's next
-
-- Add a render prop API
