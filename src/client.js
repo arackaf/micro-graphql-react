@@ -1,17 +1,37 @@
+import Cache, { DEFAULT_CACHE_SIZE } from "./cache";
+
 const mutationListenersSymbol = Symbol("mutationListeners");
 
 export default class Client {
   constructor(props) {
+    if (props.noCaching != null && props.cacheSize != null) {
+      throw "Both noCaching, and cacheSize are specified. At most one of these options can be included";
+    }
+
+    if (props.noCaching) {
+      props.cacheSize = 0;
+    }
+
     Object.assign(this, props);
     this.caches = new Map([]);
     this[mutationListenersSymbol] = new Set([]);
   }
+  get cacheSizeToUse() {
+    if (this.cacheSize != null) {
+      return this.cacheSize;
+    }
+    return DEFAULT_CACHE_SIZE;
+  }
   getCache(query) {
     return this.caches.get(query);
   }
+  newCacheForQuery(query) {
+    let newCache = new Cache(this.cacheSizeToUse);
+    this.setCache(query, newCache);
+    return newCache;
+  }
   setCache(query, cache) {
     this.caches.set(query, cache);
-    return cache;
   }
   runQuery(query, variables) {
     return fetch(this.getGraphqlQuery({ query, variables }), this.fetchOptions || void 0).then(resp => resp.json());
@@ -20,9 +40,10 @@ export default class Client {
     return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;
   }
   subscribeMutation(subscription, options) {
-    this[mutationListenersSymbol].add({ subscription, options });
+    const packet = { subscription, options };
+    this[mutationListenersSymbol].add(packet);
 
-    return () => this[mutationListenersSymbol].delete(subscription);
+    return () => this[mutationListenersSymbol].delete(packet);
   }
   processMutation(mutation, variables) {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
