@@ -14,6 +14,10 @@ declare function setDefaultClient(client: Client): void;
 
 export { compress, Client, setDefaultClient };
 
+declare var Cache: any;
+
+export { Cache };
+
 //options you can pass to the query decorator
 export interface QueryOptions {
   client?: Client;
