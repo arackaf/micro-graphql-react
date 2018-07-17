@@ -1,8 +1,8 @@
 const deConstructMutationPacket = packet => {
   if (typeof packet === "string") {
-    return [packet, null];
+    return [packet];
   } else if (Array.isArray(packet)) {
-    return [packet[0], packet[1] || null];
+    return [packet[0]];
   }
 };
 
@@ -31,7 +31,7 @@ export default class MutationManager {
     this.setState(this.currentState);
   };
   constructor({ client, setState }, packet) {
-    const [mutation, options] = deConstructMutationPacket(packet);
+    const [mutation] = deConstructMutationPacket(packet);
     this.client = client;
     this.setState = setState;
     this.mutation = mutation;
