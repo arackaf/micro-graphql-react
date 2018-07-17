@@ -53,11 +53,11 @@ export default class Client {
         subscription.forEach(singleSubscription => {
           if (typeof singleSubscription.when === "string") {
             if (mutationKeysLookup.has(singleSubscription.when)) {
-              singleSubscription.run(variables, resp, { currentResults: currentResults(), ...rest });
+              singleSubscription.run({ currentResults: currentResults(), ...rest }, resp, variables);
             }
           } else if (typeof singleSubscription.when === "object" && singleSubscription.when.test) {
             if ([...mutationKeysLookup].some(k => singleSubscription.when.test(k))) {
-              singleSubscription.run(variables, resp, { currentResults: currentResults(), ...rest });
+              singleSubscription.run({ currentResults: currentResults(), ...rest }, resp, variables);
             }
           }
         });
