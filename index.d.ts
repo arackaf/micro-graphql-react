@@ -13,21 +13,21 @@ type MutationHandlerPayload = {
   refresh: () => void;
 };
 
-class Cache {
+declare class Cache {
   constructor(cacheSize?: number);
-  get entries(): [string, object][];
+  entries: [string, object][];
   get(key): object;
   set(key, results): void;
   delete(key): void;
   clearCache(): void;
 }
 
-class Client {
+declare class Client {
   constructor(options: { endpoint: string; noCaching?: boolean; cacheSize?: number; fetchOptions?: object });
-  runQuery(query: string, variables: object = null): Promise<any>;
-  getGraphqlQuery({ query: string, variables: object = null }): string;
+  runQuery(query: string, variables?: object): Promise<any>;
+  getGraphqlQuery({ query: string, variables: object }): string;
   processMutation(mutation: string, variables?: object): Promise<any>;
-  runMutation(mutation: string, variables?: object = null): Promise<any>;
+  runMutation(mutation: string, variables?: object): Promise<any>;
   getCache(query: string): Cache;
   newCacheForQuery(query: string): Cache;
   setCache(query: string, cache: Cache): void;
