@@ -49,7 +49,7 @@ test("Mutation listener updates cache", async () => {
   let Component = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
-      run: (args, { updateBook: { Book } }, { cache }) => {
+      run: ({ cache }, { updateBook: { Book } }) => {
         cache.entries.forEach(([key, results]) => {
           let CachedBook = results.data.Books.find(b => b.id == Book.id);
           CachedBook && Object.assign(CachedBook, Book);
@@ -81,7 +81,7 @@ test("Mutation listener updates cache with mutation args - string", async () => 
   let Component = getQueryAndMutationComponent({
     onMutation: {
       when: "deleteBook",
-      run: (args, resp, { cache, refresh }) => {
+      run: ({ cache, refresh }, resp, args) => {
         cache.entries.forEach(([key, results]) => {
           results.data.Books = results.data.Books.filter(b => b.id != args.id);
           refresh();
@@ -113,7 +113,7 @@ test("Mutation listener updates cache with mutation args - regex", async () => {
   let Component = getQueryAndMutationComponent({
     onMutation: {
       when: /deleteBook/,
-      run: (args, resp, { cache, refresh }) => {
+      run: ({ cache, refresh }, resp, args) => {
         cache.entries.forEach(([key, results]) => {
           results.data.Books = results.data.Books.filter(b => b.id != args.id);
           refresh();
@@ -145,7 +145,7 @@ test("Mutation listener updates cache then refreshes from cache", async () => {
   let Component = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
-      run: (args, { updateBook: { Book } }, { cache, refresh }) => {
+      run: ({ cache, refresh }, { updateBook: { Book } }, args) => {
         cache.entries.forEach(([key, results]) => {
           let newBooks = results.data.Books.map(b => {
             if (b.id == Book.id) {
@@ -181,7 +181,7 @@ test("Mutation listener - soft reset - props right, cache cleared", async () => 
   let Component = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
-      run: (args, { updateBook: { Book } }, { cache, softReset, currentResults }) => {
+      run: ({ cache, softReset, currentResults }, { updateBook: { Book } }) => {
         componentsCache = cache;
         let CachedBook = currentResults.Books.find(b => b.id == Book.id);
         CachedBook && Object.assign(CachedBook, Book);
@@ -206,7 +206,7 @@ test("Mutation listener - hard reset - props right, cache cleared, client qeried
   let Component = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
-      run: (args, Resp, { cache, hardReset, currentResults }) => {
+      run: ({ cache, hardReset, currentResults }) => {
         componentsCache = cache;
         hardReset();
       }
