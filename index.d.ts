@@ -1,22 +1,45 @@
 import React, { StatelessComponent, ComponentClass, ClassicComponentClass } from "react";
 import compress from "./src/compress";
-import { buildQuery, buildMutation } from "./src/gqlComponent";
+import { buildMutation } from "./src/gqlComponent";
 
-type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
+import Cache from "./src/cache";
 
 class Client {
-  constructor(options: any);
-  runQuery(query: string, variables: any = null): any;
-  getGraphqlQuery({ query: string, variables: any = null }): any;
-  runMutation(mutation: string, variables: any = null): any;
+  constructor(options: { endpoint: string; noCaching?: boolean; cacheSize?: number; fetchOptions?: object });
+  runQuery(query: string, variables: any = null): Promise<any>;
+  getGraphqlQuery({ query: string, variables: any = null }): string;
+  processMutation(mutation, variables): Promise<any>;
+  runMutation(mutation: string, variables: any = null): Promise<any>;
+  getCache(query): Cache;
+  newCacheForQuery(query): Cache;
+  setCache(query, cache): void;
+  subscribeMutation(subscription, options): () => void;
 }
-declare function setDefaultClient(client: Client): void;
 
-export { compress, Client, setDefaultClient };
+export { compress, Client, Cache };
+export const setDefaultClient: (client: Client) => void;
 
-declare var Cache: any;
+type MutationHandlerPayload = {
+  currentResults: object;
+  cache: Cache;
+  softReset: () => void;
+  hardReset: () => void;
+  refresh: () => void;
+};
 
-export { Cache };
+type MutationHandler = {
+  when: string | RegExp;
+  run: (variables: object, resp: object, payload: MutationHandlerPayload) => any;
+};
+
+type BuildQueryOptions = {
+  onMutation?: MutationHandler | MutationHandler[];
+  client?: Client;
+  cache?: Cache;
+};
+declare var buildQuery: (queryText: string, variables?: object, options?: BuildQueryOptions) => any;
+
+type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
 
 //options you can pass to the query decorator
 export interface QueryOptions {
