@@ -2,7 +2,7 @@ import React, { StatelessComponent, ComponentClass, ClassicComponentClass } from
 
 type MutationSubscription = {
   when: string | RegExp;
-  run: (variables: object, resp: object, payload: MutationHandlerPayload) => any;
+  run: (payload: MutationHandlerPayload, resp: object, variables: object) => any;
 };
 
 type MutationHandlerPayload = {
