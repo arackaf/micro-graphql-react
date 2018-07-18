@@ -13,7 +13,7 @@ type MutationHandlerPayload = {
   refresh: () => void;
 };
 
-declare class Cache {
+export class Cache {
   constructor(cacheSize?: number);
   entries: [string, object][];
   get(key): object;
@@ -22,7 +22,7 @@ declare class Cache {
   clearCache(): void;
 }
 
-declare class Client {
+export class Client {
   constructor(options: { endpoint: string; noCaching?: boolean; cacheSize?: number; fetchOptions?: object });
   runQuery(query: string, variables?: object): Promise<any>;
   getGraphqlQuery({ query: string, variables: object }): string;
@@ -43,14 +43,12 @@ type BuildMutationOptions = {
   client?: Client;
 };
 
-declare var buildQuery: (queryText: string, variables?: object, options?: BuildQueryOptions) => any;
-declare var buildMutation: (mutationText: string, options?: BuildQueryOptions) => any;
+export const buildQuery: (queryText: string, variables?: object, options?: BuildQueryOptions) => any;
+export const buildMutation: (mutationText: string, options?: BuildQueryOptions) => any;
 
 type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
 
-declare var compress: any;
-
-export { compress, buildQuery, buildMutation, Client, Cache };
+export const compress: any;
 export const setDefaultClient: (client: Client) => void;
 
 //props that are passed to your decorated query component
@@ -93,4 +91,4 @@ export function query(
 //mutation decorator
 export function mutation(mutation: string, options?: MutationOptions): <T extends IReactComponent>(input: T) => T;
 
-export declare class GraphQL extends React.Component<{ query?: any; mutation?: any }, any> {}
+export class GraphQL extends React.Component<{ query?: any; mutation?: any }, any> {}
