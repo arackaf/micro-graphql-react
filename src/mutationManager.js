@@ -10,13 +10,15 @@ export default class MutationManager {
   runMutation = variables => {
     this.setState({
       running: true,
-      finished: false
+      finished: false,
+      runMutation: this.runMutation
     });
 
     return this.client.processMutation(this.mutation, variables).then(resp => {
       this.setState({
         running: false,
-        finished: true
+        finished: true,
+        runMutation: this.runMutation
       });
       return resp;
     });
