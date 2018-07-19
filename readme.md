@@ -293,7 +293,7 @@ class TwoMutationsAndQuery extends Component {
 
 The onMutation option that query options take is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
-`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: the mutation's variables object, the entire mutation result, and an object with these propertes: `{ softReset, currentResults, hardReset, cache, refresh }`
+`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: an object with these propertes, described below, `{ softReset, currentResults, hardReset, cache, refresh }`; the entire mutation result; and the mutation's variables object.
 
 <!-- prettier-ignore -->
 | Arg  | Description  |
@@ -318,7 +318,7 @@ The hard reload method that's passed makes this easy. Let's see how to use this 
 
 ```javascript
 @query(BOOKS_QUERY, props => ({ page: props.page }), {
-  onMutation: { when: /(update|create|delete)Books?/, run: (args, resp, { hardReset }) => hardReset() }
+  onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() }
 })
 export class BookQueryComponent extends Component {
   render() {
@@ -332,7 +332,7 @@ Here we specify a regex matching every kind of book mutation we have, and upon c
 
 ```javascript
 @query(SUBJECTS_QUERY, props => ({ page: props.page }), {
-  onMutation: { when: /(update|create|delete)Subjects?/, run: (args, resp, { hardReset }) => hardReset() }
+  onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
 })
 export class SubjectQueryComponent extends Component {
   render() {
@@ -347,7 +347,7 @@ Assuming our GraphQL operations have a consistent naming structure—and they sh
 ```javascript
 const hardResetStrategy = name => ({
   when: new RegExp(`(update|create|delete)${name}s?`),
-  run: (args, resp, { hardReset }) => hardReset()
+  run: ({ hardReset }) => hardReset()
 });
 ```
 
@@ -381,7 +381,7 @@ Here's the same books component as above, but with our new cache strategy
 @query(BOOKS_QUERY, props => ({ page: props.page }), {
   onMutation: {
     when: "updateBook",
-    run: (args, { updateBook: { Book } }, { softReset, currentResults }) => {
+    run: ({ softReset, currentResults }, { updateBook: { Book } }) => {
       let CachedBook = currentResults.allBooks.Books.find(b => b._id == Book._id);
       CachedBook && Object.assign(CachedBook, Book);
       softReset(currentResults);
@@ -404,7 +404,7 @@ This seems like a lot of boilerplate, but again, lets look at the subjects compo
 @query(SUBJECTS_QUERY, props => ({ page: props.page }), {
   onMutation: {
     when: "updateSubject",
-    run: (args, { updateSubject: { Subject } }, { softReset, currentResults }) => {
+    run: ({ softReset, currentResults }, { updateSubject: { Subject } }) => {
       let CachedSubject = currentResults.allSubjects.Subjects.find(s => s._id == Subject._id);
       CachedSubject && Object.assign(CachedSubject, Subject);
       softReset(currentResults);
@@ -424,7 +424,7 @@ As before, since we've named our GraphQL operations consistently, there's some p
 ```javascript
 const standardUpdateSingleStrategy = name => ({
   when: `update${name}`,
-  run: ({ [`update${name}`]: { [name]: updatedItem } }, { softReset, currentResults }) => {
+  run: ({ softReset, currentResults }, { [`update${name}`]: { [name]: updatedItem } }) => {
     let CachedItem = currentResults[`all${name}s`][`${name}s`].find(x => x._id == updatedItem._id);
     CachedItem && Object.assign(CachedItem, updatedItem);
     softReset(currentResults);
@@ -466,7 +466,7 @@ This example shows how you can remove a deleted book from every cache result.
 @query(BOOKS_QUERY, props => ({ page: props.page }), {
   onMutation: {
     when: "deleteBook",
-    run: (args, mutationResponse, { cache, refresh }) => {
+    run: ({ cache, refresh }, mutationResponse, args) => {
       cache.entries.forEach(([key, results]) => {
         results.data.allBooks.Books = results.data.allBooks.Books.filter(b => b._id != args._id);
       });

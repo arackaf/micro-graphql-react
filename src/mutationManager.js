@@ -1,8 +1,8 @@
 const deConstructMutationPacket = packet => {
   if (typeof packet === "string") {
-    return [packet, null];
+    return [packet];
   } else if (Array.isArray(packet)) {
-    return [packet[0], packet[1] || null];
+    return [packet[0]];
   }
 };
 
@@ -10,13 +10,15 @@ export default class MutationManager {
   runMutation = variables => {
     this.setState({
       running: true,
-      finished: false
+      finished: false,
+      runMutation: this.runMutation
     });
 
     return this.client.processMutation(this.mutation, variables).then(resp => {
       this.setState({
         running: false,
-        finished: true
+        finished: true,
+        runMutation: this.runMutation
       });
       return resp;
     });
@@ -31,7 +33,7 @@ export default class MutationManager {
     this.setState(this.currentState);
   };
   constructor({ client, setState }, packet) {
-    const [mutation, options] = deConstructMutationPacket(packet);
+    const [mutation] = deConstructMutationPacket(packet);
     this.client = client;
     this.setState = setState;
     this.mutation = mutation;

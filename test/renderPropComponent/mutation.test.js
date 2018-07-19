@@ -51,3 +51,15 @@ test("Mutation function calls", () => {
 
   expect(client1.mutationsRun).toBe(1);
 });
+
+test("Mutation function calls twice", () => {
+  let wrapper = mount(<ComponentA />);
+  let props = getPropsFor(wrapper, Dummy);
+  props.mutation1.runMutation();
+
+  wrapper.update();
+  props = getPropsFor(wrapper, Dummy);
+  props.mutation1.runMutation();
+
+  expect(client1.mutationsRun).toBe(2);
+});
