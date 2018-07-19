@@ -78,7 +78,9 @@ export type MutationProps = {
 //options you can pass to the query decorator
 export interface QueryOptions {
   client?: Client;
+  cache?: Cache;
   mapProps?: (props: object) => object;
+  onMutation?: MutationSubscription | MutationSubscription[];
 }
 
 //query decorator
