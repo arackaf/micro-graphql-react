@@ -1,6 +1,6 @@
 # GraphQL Cache Invalidation
 
-This page describes how other GraphQL libraries handle client-side caching, how those solutions fail for me, and how this library handles it instead.
+This page describes how other GraphQL libraries handle client-side caching, how those solutions fail at times, and how this library handles it instead.
 
 ## Apollo
 

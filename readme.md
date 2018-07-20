@@ -2,13 +2,15 @@
 
 A light (3.4K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
-Wrapped components maintain a basic client-side cache of your query history. The cache is LRU with a default size of 10, and stored at the level of the specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found. This project is intended to be small and simple, and, unlike other GraphQL libraries, allow you to cache at the Service Worker level, discussed below.
+Queries are fetched via HTTP GET, so while the client-side caching is in some ways not as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
 
-Queries are fetched via HTTP GET, so while the client-side caching is not nearly as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
+**Live Demo**
+
+To see a live demo of this library managing GraphQL requests, check out this [Code Sandbox](https://codesandbox.io/s/l2z74x2687)
 
 **A note on cache invalidation**
 
-This library will not automatically add metadata requests to your query, and attempt to update your cached results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which will allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. This is all explained at length, below.
+This library will not automatically add metadata requests to your query, and attempt to update your cached results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which will allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. This is all explained at length below.
 
 For more information on the difficulties of GraphQL caching, see [this explanation](./readme-cache.md)
 
@@ -21,18 +23,19 @@ For more information on the difficulties of GraphQL caching, see [this explanati
   - [Props passed for each query](#props-passed-for-each-query)
   - [Building mutations](#building-mutations)
   - [Props passed for each mutation](#props-passed-for-each-mutation)
-- [The query decorator](#the-query-decorator)
+- [Query decorator](#query-decorator)
   - [props passed to your component](#props-passed-to-your-component)
   - [Other options](#other-options)
 - [Mutation decorator](#mutation-decorator)
   - [props passed to your component](#props-passed-to-your-component-1)
   - [Other options](#other-options-1)
-- [Cache invalidation](#cache-invalidation)
-  - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
-  - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
-  - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
-- [The cache object](#the-cache-object)
-  - [The cache api](#the-cache-api)
+- [Caching](#caching)
+  - [Cache object](#cache-object)
+    - [Cache api](#cache-api)
+  - [Cache invalidation](#cache-invalidation)
+    - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
+    - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
+    - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
 - [Manually running queries or mutations](#manually-running-queries-or-mutations)
   - [Client api](#client-api)
 - [Transpiling decorators](#transpiling-decorators)
@@ -135,7 +138,7 @@ For each mutation you specify, an object will be passed in the component's props
 | `finished`    | Mutation has finished executing|
 | `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
 
-## The query decorator
+## Query decorator
 
 The `query` decorator is not as flexible as the GraphQL component, but it can be simpler for less complex use cases.
 
@@ -289,7 +292,40 @@ class TwoMutationsAndQuery extends Component {
 }
 ```
 
-## Cache invalidation
+## Caching
+
+The client object maintains a cache of each query it comes across, when processing your components. The cache is LRU with a default size of 10 and, again, stored at the level of the specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found.
+
+### Cache object
+
+You can import the `Cache` class like so
+
+```javascript
+import { Cache } from "micro-graphql-react";
+```
+
+When instantiating a new cache object, you can optionally pass in a cache size.
+
+```javascript
+let cache = new Cache(15);
+```
+
+To turn caching off for a given query, just create a cache with size `0`, and pass that in for a given query. Or as noted above, you can create a client with the `noCaching` option set to true, to turn caching off for all queries processed by that client.
+
+#### Cache api
+
+The cache object has the following properties and methods
+
+<!-- prettier-ignore -->
+| Member | Description  |
+| ----- | --------- |
+| `get entries()`   | An array of the current entries. Each entry is an array of length 2, of the form `[key, value]`. The cache entry key is the actual GraphQL url query that was run. If you'd like to inspect it, see the variables that were sent, etc, just use your favorite url parsing utility, like `url-parse`. And of course the cache value itself is whatever the server sent back for that query. If the query is still pending, then the entry will be a promise for that request. |
+| `get(key)` | Gets the cache entry for a particular key      |
+| `set(key, value)` | Sets the cache entry for a particular key  |
+| `delete(key)`     | Deletes the cache entry for a particular key |
+| `clearCache()`    | Clears all entries from the cache |
+
+### Cache invalidation
 
 The onMutation option that query options take is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
@@ -310,7 +346,7 @@ The code below was tested on an actual GraphQL endpoint created by my [mongo-gra
 
 All examples use the `query` decorator, but the format is identical with the `GraphQL` component.
 
-### Use Case 1: Hard reset and reload after any mutation
+#### Use Case 1: Hard reset and reload after any mutation
 
 Let's say that whenever a mutation happens, we want to immediately invalidate any related queries' caches, and reload the current queries from the network, in order to see the latest results. We understand that this may cause a book that we just edited to immediately disappear from our current search results, since it no longer matches our search criteria, but that's what we want.
 
@@ -371,7 +407,7 @@ export class SubjectQueryComponent extends Component {
 }
 ```
 
-### Use Case 2: Update current results, but otherwise clear the cache
+#### Use Case 2: Update current results, but otherwise clear the cache
 
 Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone", but one of the current results was clearly written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
 
@@ -454,7 +490,7 @@ export class SubjectQueryComponent extends Component {
 
 And if you have multiple mutations, just pass them in an array
 
-### Use Case 3: Manually update all affected cache entries
+#### Use Case 3: Manually update all affected cache entries
 
 Let's say you want to intercept mutation results, and manually update your cache. This is difficult to get right, so be careful.
 
@@ -483,35 +519,6 @@ export class BookQueryComponent extends Component {
 ```
 
 It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back. The whole cache api is listed below
-
-## The cache object
-
-You can import the `Cache` class like so
-
-```javascript
-import { Cache } from "micro-graphql-react";
-```
-
-When instantiating a new cache object, you can optionally pass in a cache size.
-
-```javascript
-let cache = new Cache(15);
-```
-
-To turn caching off for a given query, just create a cache with size `0`, and pass that in for a given query. Or as noted above, you can create a client with the `noCaching` option set to true, to turn caching off for all queries processed by that client.
-
-### The cache api
-
-The cache object has the following properties and methods
-
-<!-- prettier-ignore -->
-| Member | Description  |
-| ----- | --------- |
-| `get entries()`   | An array of the current entries. Each entry is an array of length 2, of the form `[key, value]`. The cache entry key is the actual GraphQL url query that was run. If you'd like to inspect it, see the variables that were sent, etc, just use your favorite url parsing utility, like `url-parse`. And of course the cache value itself is whatever the server sent back for that query. If the query is still pending, then the entry will be a promise for that request. |
-| `get(key)` | Gets the cache entry for a particular key      |
-| `set(key, value)` | Sets the cache entry for a particular key  |
-| `delete(key)`     | Deletes the cache entry for a particular key |
-| `clearCache()`    | Clears all entries from the cache |
 
 ## Manually running queries or mutations
 
