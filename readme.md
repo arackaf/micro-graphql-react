@@ -10,7 +10,7 @@ To see a live demo of this library managing GraphQL requests, check out this [Co
 
 **A note on cache invalidation**
 
-This library will not automatically add metadata requests to your query, and attempt to update your cached results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which will allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad at all. This is all explained at length below.
+This library will _not_ add metadata to your queries, and attempt to automatically update your cached entries from mutation results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad. This is all explained at length below.
 
 For more information on the difficulties of GraphQL caching, see [this explanation](./readme-cache.md)
 
@@ -46,7 +46,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 
 ## Creating a client
 
-Before you do anything, you'll need to create a client. You can do that like this
+Before you do anything, you'll need to create a client.
 
 ```javascript
 import { Client, setDefaultClient } from "micro-graphql-react";
@@ -59,7 +59,7 @@ const client = new Client({
 setDefaultClient(client);
 ```
 
-Now that client operation will be used by default, everywhere, unless you manually pass in a different client into any components, as discussed below.
+Now that client will be used by default, everywhere, unless you manually pass in a different client to a component's options, as discussed below.
 
 ### Client options
 
@@ -106,7 +106,9 @@ Construct each query with the `buildQuery` method. The first argument is the que
 | `client`  | Manually pass in a client to be used for this query, which will override the default client|
 | `cache`  | Manually pass in a cache object to be used for this query|
 
-Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—just wrap any inline string parameters you may have in `${}` - for more information, see [here](./readme-compress.md).
+Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./readme-compress.md).
+
+An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your nextwork requests altogether, but also from our bundled code.
 
 ### Props passed for each query
 
@@ -140,7 +142,7 @@ For each mutation you specify, an object will be passed in the component's props
 
 ## Query decorator
 
-The `query` decorator is not as flexible as the GraphQL component, but it can be simpler for less complex use cases.
+The `query` decorator is not as flexible as the GraphQL component, but it can be ideal for less complex use cases.
 
 ```javascript
 import { query } from "micro-graphql-react";
@@ -329,7 +331,7 @@ The cache object has the following properties and methods
 
 The onMutation option that query options take is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
-`when` is a string or regular expression that's tested against each result set of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: an object with these propertes, described below, `{ softReset, currentResults, hardReset, cache, refresh }`; the entire mutation result; and the mutation's variables object.
+`when` is a string or regular expression that's tested against each result of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: an object with these propertes, described below, `{ softReset, currentResults, hardReset, cache, refresh }`; the entire mutation result; and the mutation's variables object.
 
 <!-- prettier-ignore -->
 | Arg  | Description  |
@@ -340,15 +342,15 @@ The onMutation option that query options take is an object, or array of objects,
 | `cache`  | The actual cache object. You can enumerate its entries, and update whatever you need.|
 | `refresh`   | Refreshes the current query, from cache if present. You'll likely want to call this after modifying the cache.  |
 
-Many use cases follow. They'll all be based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
+Many use cases follow. They're based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
 The code below was tested on an actual GraphQL endpoint created by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter)
 
-All examples use the `query` decorator, but the format is identical with the `GraphQL` component.
+All examples use the `query` decorator, but the format is identical to the `GraphQL` component.
 
 #### Use Case 1: Hard reset and reload after any mutation
 
-Let's say that whenever a mutation happens, we want to immediately invalidate any related queries' caches, and reload the current queries from the network, in order to see the latest results. We understand that this may cause a book that we just edited to immediately disappear from our current search results, since it no longer matches our search criteria, but that's what we want.
+Let's say that whenever a mutation happens, we want to immediately invalidate any related queries' caches, and reload the current queries from the network. We understand that this may cause a book that we just edited to immediately disappear from our current search results, since it no longer matches our search criteria, but that's what we want.
 
 The hard reload method that's passed makes this easy. Let's see how to use this in a (contrived) component that queries, and displays some books.
 
@@ -409,7 +411,7 @@ export class SubjectQueryComponent extends Component {
 
 #### Use Case 2: Update current results, but otherwise clear the cache
 
-Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone", but one of the current results was clearly written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
+Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone," but one of the current results was clearly written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
 
 Here's the same books component as above, but with our new cache strategy
 
@@ -432,7 +434,7 @@ export class BookQueryComponent extends Component {
 }
 ```
 
-The interesting work is being done on line 2 above, in `onMutation`. Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing our cache, including the current cache result; so if you page up, then come back down to where you were, a **new** network request will be run, and your edited book will no longer be there, as expected. Note that in this example we're actually mutating our current result; that's fine.
+Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing our cache, including the current cache result; so if you page up, then come back down to where you were, a **new** network request will be run, and your edited book will no longer be there, as expected. Note that in this example we're actually mutating our current cache result; that's fine.
 
 This seems like a lot of boilerplate, but again, lets look at the subjects component and see if any patterns emerge.
 
@@ -494,7 +496,7 @@ And if you have multiple mutations, just pass them in an array
 
 Let's say you want to intercept mutation results, and manually update your cache. This is difficult to get right, so be careful.
 
-There's a `cache` object passed to the `run` callback, with an `entries` you can iterate, and update. As before, it's fine to just mutate the cached entries directly; just don't forget to call the `refresh` method when done, so your current results will update.
+There's a `cache` object passed to the `run` callback, with an `entries` property you can iterate, and update. As before, it's fine to just mutate the cached entries directly; just don't forget to call the `refresh` method when done, so your current results will update.
 
 This example shows how you can remove a deleted book from every cache result.
 
@@ -518,11 +520,11 @@ export class BookQueryComponent extends Component {
 }
 ```
 
-It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back. The whole cache api is listed below
+It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back.
 
 ## Manually running queries or mutations
 
-It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The `GraphQL` component, component decorators run their queries and mutations through the client object you're already setting via `setDefaultClient`. You can call those methods yourself, in your state manager (or anywhere).
+It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The `GraphQL` component, and component decorators run their queries and mutations through the client object you're already setting via `setDefaultClient`. You can call those methods yourself, in your state manager (or anywhere).
 
 ### Client api
 
@@ -596,7 +598,7 @@ But really, don't be afraid to give decorators a try: they're awesome!
 
 ## Use in old browsers
 
-By default this library ships standard ES6, which should work in all modern browsers. If you have to support older, non-ES6 browsers like IE, then just add the following alias to your webpack's resolve section
+By default this library ships modern, standard JavaScript, which should work in all decent browsers. If you have to support older browsers like IE, then just add the following alias to your webpack's resolve section
 
 ```javascript
   resolve: {
