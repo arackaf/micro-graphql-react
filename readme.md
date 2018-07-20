@@ -294,11 +294,11 @@ class TwoMutationsAndQuery extends Component {
 
 ## Caching
 
-The client object maintains a cache of each query it comes across, when processing your components. The cache is LRU with a default size of 10 and, again, stored at the level of the specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries, and will be used if found.
+The client object maintains a cache of each query it comes across when processing your components. The cache is LRU with a default size of 10 and, again, stored at the level of each specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries.
 
 ### Cache object
 
-You can import the `Cache` class like so
+You can import the `Cache` class like this
 
 ```javascript
 import { Cache } from "micro-graphql-react";
@@ -310,7 +310,7 @@ When instantiating a new cache object, you can optionally pass in a cache size.
 let cache = new Cache(15);
 ```
 
-To turn caching off for a given query, just create a cache with size `0`, and pass that in for a given query. Or as noted above, you can create a client with the `noCaching` option set to true, to turn caching off for all queries processed by that client.
+To turn caching off for a given query, just create a cache with size `0`, and pass that in for the query. Or as noted above, you can create a client with the `noCaching` option set to true, to turn caching off for all queries processed by that client.
 
 #### Cache api
 
