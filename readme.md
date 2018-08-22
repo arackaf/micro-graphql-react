@@ -1,3 +1,5 @@
+[![npm version](https://img.shields.io/npm/v/micro-graphql-react.svg?style=flat)](https://www.npmjs.com/package/micro-graphql-react) [![Build Status](https://travis-ci.com/arackaf/micro-graphql-react.svg?branch=master)](https://travis-ci.com/arackaf/micro-graphql-react) [![codecov](https://codecov.io/gh/arackaf/micro-graphql-react/branch/master/graph/badge.svg)](https://codecov.io/gh/arackaf/micro-graphql-react) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
 # micro-graphql-react
 
 A light (3.4K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
@@ -156,7 +158,13 @@ export default class BasicQuery extends Component {
       <div>
         {loading ? <div>LOADING</div> : null}
         {loaded ? <div>LOADED</div> : null}
-        {data ? <ul>{booksArr.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}
+        {data ? (
+          <ul>
+            {booksArr.map(b => (
+              <li key={b._id}>{b.title}</li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     );
   }
@@ -202,8 +210,20 @@ class TwoQueries extends Component {
       <div>
         {firstBookProps.loading || lastBookProps.loading ? <div>LOADING</div> : null}
         {firstBookProps.loaded || lastBookProps.loaded ? <div>LOADED</div> : null}
-        {firstBookProps.data ? <ul>{firstBookProps.data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-        {lastBookProps.data ? <ul>{lastBookProps.data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+        {firstBookProps.data ? (
+          <ul>
+            {firstBookProps.data.allBooks.Books.map(book => (
+              <li key={book._id}>{book.title}</li>
+            ))}
+          </ul>
+        ) : null}
+        {lastBookProps.data ? (
+          <ul>
+            {lastBookProps.data.allBooks.Books.map(book => (
+              <li key={book._id}>{book.title}</li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     );
   }
@@ -361,7 +381,17 @@ The hard reload method that's passed makes this easy. Let's see how to use this 
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(b => (
+              <li key={b._id}>{b.title}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 ```
@@ -375,7 +405,17 @@ Here we specify a regex matching every kind of book mutation we have, and upon c
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allSubjects.Subjects.map(s => (
+              <li key={s._id}>{s.name}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 ```
@@ -396,7 +436,17 @@ and then apply it like so
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(b => (
+              <li key={b._id}>{b.title}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 
@@ -404,7 +454,17 @@ export class BookQueryComponent extends Component {
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allSubjects.Subjects.map(s => (
+              <li key={s._id}>{s.name}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 ```
@@ -429,7 +489,17 @@ Here's the same books component as above, but with our new cache strategy
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(b => (
+              <li key={b._id}>{b.title}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 ```
@@ -452,7 +522,17 @@ This seems like a lot of boilerplate, but again, lets look at the subjects compo
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allSubjects.Subjects.map(s => (
+              <li key={s._id}>{s.name}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 ```
@@ -477,7 +557,17 @@ Now we can clean up all that boilerplate from before
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(b => <li key={b._id}>{b.title}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(b => (
+              <li key={b._id}>{b.title}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 
@@ -485,7 +575,17 @@ export class BookQueryComponent extends Component {
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allSubjects.Subjects.map(s => <li key={s._id}>{s.name}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allSubjects.Subjects.map(s => (
+              <li key={s._id}>{s.name}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 ```
@@ -515,7 +615,17 @@ This example shows how you can remove a deleted book from every cache result.
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
-    return <div>{data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}</div>;
+    return (
+      <div>
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(book => (
+              <li key={book._id}>{book.title}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    );
   }
 }
 ```
@@ -573,7 +683,13 @@ class BasicQueryNoDecorators extends Component {
       <div>
         {loading ? <div>LOADING</div> : null}
         {loaded ? <div>LOADED</div> : null}
-        {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
+        {data ? (
+          <ul>
+            {data.allBooks.Books.map(book => (
+              <li key={book._id}>{book.title}</li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     );
   }
