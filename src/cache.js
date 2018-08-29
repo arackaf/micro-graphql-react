@@ -17,16 +17,8 @@ export default class Cache {
     return [...this[cacheSymbol]];
   }
 
-  get(key) {
-    return this[cacheSymbol].get(key);
-  }
-
   set(key, results) {
     this[cacheSymbol].set(key, results);
-  }
-
-  delete(key) {
-    this[cacheSymbol].delete(key);
   }
 
   clearCache() {
