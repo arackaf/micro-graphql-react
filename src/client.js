@@ -3,7 +3,7 @@ import Cache, { DEFAULT_CACHE_SIZE } from "./cache";
 const mutationListenersSymbol = Symbol("mutationListeners");
 
 export default class Client {
-  constructor(props) {
+  constructor(props = { cacheSize: DEFAULT_CACHE_SIZE }) {
     if (props.noCaching != null && props.cacheSize != null) {
       throw "Both noCaching, and cacheSize are specified. At most one of these options can be included";
     }
