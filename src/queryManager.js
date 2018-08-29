@@ -71,9 +71,6 @@ export default class QueryManager {
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
     this.execute(graphqlQuery);
   };
-  reloadCurrentQuery(packet) {
-    this.updateIfNeeded(packet, true);
-  }
   load() {
     let graphqlQuery = this.client.getGraphqlQuery({ query: this.query, variables: this.variables || null });
     this.cache[getFromCacheSymbol](
