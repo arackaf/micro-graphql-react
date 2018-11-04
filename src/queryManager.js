@@ -11,12 +11,14 @@ const deConstructQueryPacket = packet => {
 
 export default class QueryManager {
   mutationSubscription = null;
-  currentState = {
+  static initialState = {
     loading: false,
     loaded: false,
     data: null,
     error: null
   };
+  currentState = { ...QueryManager.initialState };
+
   constructor({ client, setState, cache }, packet) {
     const [query, variables, options] = deConstructQueryPacket(packet);
     this.client = client;
