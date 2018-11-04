@@ -30,16 +30,15 @@ beforeEach(() => {
 
 test("Basic functionality with just string", async () => {
   function HookUser(props) {
-    //let queryProps = useQuery([queryA, { a: props.a }]);
-    //console.log("XXXXXXXXXXXXXXXXXXX", queryProps);
-    return <div />;
+    let queryProps = useQuery([queryA, { a: props.a }]);
+    return <Dummy {...queryProps} />;
   }
   class ComponentToUse extends Component {
     render() {
       return (
         <div>
           <div>
-            <HookUser {...this.props} />
+            <HookUser />
           </div>
         </div>
       );
@@ -47,17 +46,12 @@ test("Basic functionality with just string", async () => {
   }
 
   let p = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+  let wrapper = mount(<HookUser a={1} unused={0} />);
 
-  console.log("A", wrapper.find(Dummy).length);
-  console.log("B", wrapper.children().find(Dummy).length);
-  console.log("A", wrapper.find(HookUser).length);
-  console.log("B", wrapper.children().find(HookUser).length);
-
-  //verifyPropsFor(wrapper, Dummy, loadingPacket);
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
 
   await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
-  //verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
 });
 
 // test("loading props passed", async () => {
