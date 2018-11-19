@@ -5,20 +5,32 @@ const queryA = "A";
 const queryB = "B";
 
 let client1;
-let ComponentToUse;
+
+class Dummy extends Component {
+  render() {
+    return <div />;
+  }
+}
+
+class ComponentToUse extends Component {
+  render() {
+    return <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{props => <Dummy {...props.query1} />}</GraphQL>;
+  }
+}
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
 });
 
-test("Basic functionality with just string", async () => {
-  class ComponentToUse extends Component {
-    render() {
-      return <GraphQL query={{ query1: queryA }}>{props => <Dummy {...props.query1} />}</GraphQL>;
-    }
-  }
+test("Initial loading state", async () => {
+  let p = (client1.nextResult = deferred());
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
+});
+
+test("Basic functionality with just string", async () => {
   let p = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
@@ -28,28 +40,13 @@ test("Basic functionality with just string", async () => {
   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
 });
 
-class Dummy extends Component {
-  render() {
-    return <div />;
-  }
-}
-
-const getComponent = () =>
-  class extends Component {
-    render() {
-      return <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{props => <Dummy {...props.query1} />}</GraphQL>;
-    }
-  };
-
 test("loading props passed", async () => {
-  ComponentToUse = getComponent();
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   verifyPropsFor(wrapper, Dummy, loadingPacket);
 });
 
 test("Query resolves and data updated", async () => {
-  ComponentToUse = getComponent();
   let p = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
@@ -60,7 +57,6 @@ test("Query resolves and data updated", async () => {
 });
 
 test("Query resolves and errors updated", async () => {
-  ComponentToUse = getComponent();
   let p = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
@@ -71,7 +67,6 @@ test("Query resolves and errors updated", async () => {
 });
 
 test("Error in promise", async () => {
-  ComponentToUse = getComponent();
   let p = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
@@ -82,7 +77,6 @@ test("Error in promise", async () => {
 });
 
 test("Out of order promise handled", async () => {
-  ComponentToUse = getComponent();
   let pFirst = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
@@ -97,7 +91,6 @@ test("Out of order promise handled", async () => {
 });
 
 test("Out of order promise handled 2", async () => {
-  ComponentToUse = getComponent();
   let pFirst = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
@@ -112,7 +105,6 @@ test("Out of order promise handled 2", async () => {
 });
 
 test("Cached data handled", async () => {
-  ComponentToUse = getComponent();
   let pData = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
@@ -133,7 +125,6 @@ test("Cached data handled", async () => {
 });
 
 test("Cached data while loading handled", async () => {
-  ComponentToUse = getComponent();
   let pData = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 

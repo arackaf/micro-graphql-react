@@ -5,53 +5,34 @@ const queryA = "A";
 const queryB = "B";
 
 let client1;
-let ComponentToUse;
-
-class Dummy extends Component {
-  render() {
-    return <div />;
-  }
-}
-
-const getComponent = () =>
-  function Component() {
-    let queryProps = useQuery([queryA, { a: this.props.a }]);
-    return (
-      <div>
-        <Dummy {...queryProps} />
-      </div>
-    );
-  };
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
 });
 
-test("Basic functionality with just string", async () => {
-  function HookUser(props) {
-    let queryProps = useQuery([queryA, { a: props.a }]);
-    return <Dummy {...queryProps} />;
-  }
-  class ComponentToUse extends Component {
-    render() {
-      return (
-        <div>
-          <div>
-            <HookUser />
-          </div>
-        </div>
-      );
-    }
-  }
+const Dummy = () => <div />;
 
+function ComponentToUse(props) {
+  let queryProps = useQuery([queryA, { a: props.a }]);
+  return <Dummy {...queryProps} />;
+}
+
+test("Initial loading state is right", async () => {
   let p = (client1.nextResult = deferred());
-  let wrapper = mount(<HookUser a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
+});
+
+test("Basic functionality with just string", async () => {
+  let p = (client1.nextResult = deferred());
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   verifyPropsFor(wrapper, Dummy, loadingPacket);
 
-  await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
+  //await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
+  //verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
 });
 
 // test("loading props passed", async () => {

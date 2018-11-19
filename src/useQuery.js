@@ -8,17 +8,15 @@ export default function useQuery(packet) {
   let [query, variables, options = {}] = packet;
   let client = options.client || defaultClientManager.getDefaultClient();
 
-  let queryManager = useMemo(() => {
-    let queryManager = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
-    queryManager.load();
-    return queryManager;
-  });
   let [queryState, setQueryState] = useState(QueryManager.currentState);
-
-  useEffect(() => {
-    console.log("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWww");
-    queryManager.load();
-  }, []);
+  let queryManager = useMemo(
+    () => {
+      let queryManager = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
+      queryManager.load();
+      return queryManager;
+    },
+    [0]
+  );
 
   return queryState;
 }
