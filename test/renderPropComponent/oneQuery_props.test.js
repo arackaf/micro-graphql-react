@@ -23,23 +23,6 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-test("Initial loading state", async () => {
-  let p = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
-
-  verifyPropsFor(wrapper, Dummy, loadingPacket);
-});
-
-test("Basic functionality with just string", async () => {
-  let p = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
-
-  verifyPropsFor(wrapper, Dummy, loadingPacket);
-
-  await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
-});
-
 test("loading props passed", async () => {
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 

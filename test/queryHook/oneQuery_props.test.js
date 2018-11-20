@@ -18,129 +18,103 @@ function ComponentToUse(props) {
   return <Dummy {...queryProps} />;
 }
 
-test("Initial loading state is right", async () => {
+test("loading props passed", async () => {
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
+});
+
+test("Query resolves and data updated", async () => {
   let p = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   verifyPropsFor(wrapper, Dummy, loadingPacket);
+
+  await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
 });
 
-test("Basic functionality with just string", async () => {
+test("Query resolves and errors updated", async () => {
   let p = (client1.nextResult = deferred());
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   verifyPropsFor(wrapper, Dummy, loadingPacket);
 
-  //await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
-  //verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
+  await resolveDeferred(p, { errors: [{ msg: "a" }] }, wrapper);
+  verifyPropsFor(wrapper, Dummy, errorPacket([{ msg: "a" }]));
 });
 
-// test("loading props passed", async () => {
-//   ComponentToUse = getComponent();
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+test("Error in promise", async () => {
+  let p = (client1.nextResult = deferred());
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-//   verifyPropsFor(wrapper, Dummy, loadingPacket);
-// });
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
 
-// test("Query resolves and data updated", async () => {
-//   ComponentToUse = getComponent();
-//   let p = (client1.nextResult = deferred());
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+  await rejectDeferred(p, { message: "Hello" }, wrapper);
+  verifyPropsFor(wrapper, Dummy, errorPacket({ message: "Hello" }));
+});
 
-//   verifyPropsFor(wrapper, Dummy, loadingPacket);
+test("Out of order promise handled", async () => {
+  let pFirst = (client1.nextResult = deferred());
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-//   await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
-// });
+  let pSecond = (client1.nextResult = deferred());
+  wrapper.setProps({ a: 2 });
 
-// test("Query resolves and errors updated", async () => {
-//   ComponentToUse = getComponent();
-//   let p = (client1.nextResult = deferred());
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+  await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
-//   verifyPropsFor(wrapper, Dummy, loadingPacket);
+  await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+});
 
-//   await resolveDeferred(p, { errors: [{ msg: "a" }] }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, errorPacket([{ msg: "a" }]));
-// });
+test("Out of order promise handled 2", async () => {
+  let pFirst = (client1.nextResult = deferred());
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-// test("Error in promise", async () => {
-//   ComponentToUse = getComponent();
-//   let p = (client1.nextResult = deferred());
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+  let pSecond = (client1.nextResult = deferred());
+  wrapper.setProps({ a: 2 });
 
-//   verifyPropsFor(wrapper, Dummy, loadingPacket);
+  await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
 
-//   await rejectDeferred(p, { message: "Hello" }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, errorPacket({ message: "Hello" }));
-// });
+  await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+});
 
-// test("Out of order promise handled", async () => {
-//   ComponentToUse = getComponent();
-//   let pFirst = (client1.nextResult = deferred());
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+test("Cached data handled", async () => {
+  let pData = (client1.nextResult = deferred());
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-//   let pSecond = (client1.nextResult = deferred());
-//   wrapper.setProps({ a: 2 });
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
-//   await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+  pData = client1.nextResult = deferred();
+  wrapper.setProps({ a: 2 });
 
-//   await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
-// });
+  await resolveDeferred(pData, { data: { tasks: [{ id: 2 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 2 }] }));
 
-// test("Out of order promise handled 2", async () => {
-//   ComponentToUse = getComponent();
-//   let pFirst = (client1.nextResult = deferred());
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+  wrapper.setProps({ a: 1 });
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
-//   let pSecond = (client1.nextResult = deferred());
-//   wrapper.setProps({ a: 2 });
+  expect(client1.queriesRun).toBe(2);
+});
 
-//   await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, loadingPacket);
+test("Cached data while loading handled", async () => {
+  let pData = (client1.nextResult = deferred());
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-//   await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
-// });
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
-// test("Cached data handled", async () => {
-//   ComponentToUse = getComponent();
-//   let pData = (client1.nextResult = deferred());
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
+  pData = client1.nextResult = deferred();
+  wrapper.setProps({ a: 2 });
+  wrapper.update();
+  verifyPropsFor(wrapper, Dummy, { ...dataPacket({ tasks: [{ id: 1 }] }), loading: true });
 
-//   await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
-
-//   pData = client1.nextResult = deferred();
-//   wrapper.setProps({ a: 2 });
-
-//   await resolveDeferred(pData, { data: { tasks: [{ id: 2 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 2 }] }));
-
-//   wrapper.setProps({ a: 1 });
-//   await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
-
-//   expect(client1.queriesRun).toBe(2);
-// });
-
-// test("Cached data while loading handled", async () => {
-//   ComponentToUse = getComponent();
-//   let pData = (client1.nextResult = deferred());
-//   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
-
-//   await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
-
-//   pData = client1.nextResult = deferred();
-//   wrapper.setProps({ a: 2 });
-//   wrapper.update();
-//   verifyPropsFor(wrapper, Dummy, { ...dataPacket({ tasks: [{ id: 1 }] }), loading: true });
-
-//   await pause(wrapper);
-//   wrapper.setProps({ a: 1 });
-//   wrapper.update();
-//   verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
-// });
+  await pause(wrapper);
+  wrapper.setProps({ a: 1 });
+  wrapper.update();
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+});
