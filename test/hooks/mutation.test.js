@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
+import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, useMutation } from "../testSuiteInitialize";
 import { getPropsFor, deferred, resolveDeferred } from "../testUtils";
 
 let client1;
@@ -10,18 +10,12 @@ beforeEach(() => {
   ComponentA = getComponentA();
 });
 
-class Dummy extends Component {
-  render() {
-    return null;
-  }
-}
+const Dummy = () => <div />;
 
-const getComponentA = (render = props => <Dummy {...props} />) =>
-  class extends Component {
-    render() {
-      return <GraphQL mutation={{ mutation1: "A" }}>{render}</GraphQL>;
-    }
-  };
+const getComponentA = () => props => {
+  let mutationState = useMutation(["A"]);
+  return <Dummy mutation1={{ ...mutationState }} />;
+};
 
 test("Mutation function exists", () => {
   let wrapper = mount(<ComponentA />);
