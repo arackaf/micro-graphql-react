@@ -23,9 +23,12 @@ export default class MutationManager {
       return resp;
     });
   };
-  currentState = {
+  static initialState = {
     running: false,
-    finished: false,
+    finished: false
+  };
+  currentState = {
+    ...MutationManager.initialState,
     runMutation: this.runMutation
   };
   updateState = (newState = {}) => {

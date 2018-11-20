@@ -8,6 +8,7 @@ import { query, mutation, setDefaultClient, GraphQL } from "../index-local";
 import { basicQuery, basicQueryWithVariables } from "./graphqlConstants";
 import GraphQLComponent, { buildQuery } from "../src/gqlComponent";
 import useQuery from "../src/useQuery";
+import useMutation from "../src/useMutation";
 import Cache from "../src/cache";
 
 export {
@@ -24,5 +25,6 @@ export {
   GraphQL,
   buildQuery,
   Cache,
-  useQuery
+  useQuery,
+  useMutation
 };

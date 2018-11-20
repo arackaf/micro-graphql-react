@@ -9,7 +9,7 @@ export default function useQuery(packet) {
   let client = options.client || defaultClientManager.getDefaultClient();
   let isInitial = useRef(true);
 
-  let [queryState, setQueryState] = useState(QueryManager.currentState);
+  let [queryState, setQueryState] = useState(QueryManager.initialState);
   let queryManager = useMemo(() => {
     let queryManager = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
     queryManager.load();
