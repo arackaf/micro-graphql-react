@@ -11,16 +11,8 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-class DummyA extends Component {
-  render() {
-    return <div />;
-  }
-}
-class DummyB extends Component {
-  render() {
-    return <div />;
-  }
-}
+const DummyA = () => <div />;
+const DummyB = () => <div />;
 
 function ComponentToUse(props) {
   let query1Props = useQuery([queryA, { a: props.a }]);
