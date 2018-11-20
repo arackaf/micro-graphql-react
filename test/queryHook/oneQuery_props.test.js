@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
+import { React, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
 import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred, pause } from "../testUtils";
 
 const queryA = "A";
