@@ -1,5 +1,5 @@
 import React from "react";
-const { useState, useEffect, useMemo } = React;
+const { useState, useRef, useMemo } = React;
 
 import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";
@@ -7,6 +7,7 @@ import QueryManager from "./queryManager";
 export default function useQuery(packet) {
   let [query, variables, options = {}] = packet;
   let client = options.client || defaultClientManager.getDefaultClient();
+  let isInitial = useRef(true);
 
   let [queryState, setQueryState] = useState(QueryManager.currentState);
   let queryManager = useMemo(
@@ -17,6 +18,7 @@ export default function useQuery(packet) {
     },
     [0]
   );
+  !isInitial.current ? queryManager.updateIfNeeded(packet) : (isInitial.current = false);
 
   return queryState;
 }
