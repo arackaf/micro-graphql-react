@@ -10,15 +10,16 @@ export default function useQuery(packet) {
   let isInitial = useRef(true);
 
   let [queryState, setQueryState] = useState(QueryManager.currentState);
-  let queryManager = useMemo(
-    () => {
-      let queryManager = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
-      queryManager.load();
-      return queryManager;
-    },
-    [0]
-  );
-  !isInitial.current ? queryManager.updateIfNeeded(packet) : (isInitial.current = false);
+  let queryManager = useMemo(() => {
+    let queryManager = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
+    queryManager.load();
+    return queryManager;
+  }, []);
 
+  if (!isInitial.current) {
+    queryManager.updateIfNeeded(packet);
+  } else {
+    isInitial.current = false;
+  }
   return queryState;
 }
