@@ -1,5 +1,5 @@
 import React from "react";
-const { useState, useRef, useMemo } = React;
+const { useState, useRef, useMemo, useEffect } = React;
 
 import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";
@@ -15,6 +15,7 @@ export default function useQuery(packet) {
     queryManager.load();
     return queryManager;
   }, []);
+  useEffect(() => () => queryManager.dispose(), []);
 
   if (!isInitial.current) {
     queryManager.updateIfNeeded(packet);

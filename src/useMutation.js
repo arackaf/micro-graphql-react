@@ -6,7 +6,7 @@ import MutationManager from "./mutationManager";
 
 export default function useQuery(packet) {
   let [mutation, options = {}] = packet;
-  let [mutationState, setMutationState] = useState(MutationManager.initialState);
+  let [mutationState, setMutationState] = useState(null);
 
   let client = options.client || defaultClientManager.getDefaultClient();
   let mutationManager = useMemo(() => {
@@ -15,5 +15,5 @@ export default function useQuery(packet) {
     return mutationManager;
   }, []);
 
-  return mutationState;
+  return mutationState || mutationManager.currentState;
 }
