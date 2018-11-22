@@ -7,20 +7,19 @@ import QueryManager from "./queryManager";
 export default function useQuery(packet) {
   let [query, variables, options = {}] = packet;
   let client = options.client || defaultClientManager.getDefaultClient();
-  let isInitial = useRef(true);
-
   let [queryState, setQueryState] = useState(QueryManager.initialState);
-  let queryManager = useMemo(() => {
-    let queryManager = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
-    queryManager.load();
-    return queryManager;
-  }, []);
-  useEffect(() => () => queryManager.dispose(), []);
+  let [queryManager, setQueryManager] = useState(null);
 
-  if (!isInitial.current) {
-    queryManager.updateIfNeeded(packet);
-  } else {
-    isInitial.current = false;
-  }
+  useEffect(() => {
+    if (!queryManager) {
+      let queryManager = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
+      queryManager.load();
+      setQueryManager(queryManager);
+    } else {
+      queryManager.updateIfNeeded(packet);
+    }
+    return () => queryManager && queryManager.dispose();
+  });
+
   return queryState;
 }
