@@ -1,17 +1,18 @@
 import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
-import { Client, query, mutation, setDefaultClient } from "../index";
+import { Client, setDefaultClient } from "../index-local";
+import { BookQueryComponent } from "./newComponents/useCase1/bookQueryComponent";
 
-import BasicQuery from "./basicQuery";
-import TwoQueries from "./twoQueries";
-import TwoMutationsAndQuery from "./twoMutationsAndQuery";
+//import BasicQuery from "./basicQuery";
+//import TwoQueries from "./twoQueries";
+//import TwoMutationsAndQuery from "./twoMutationsAndQuery";
 
-import BookGruntWork from "./bookGruntWork";
-import SubjectGruntWork from "./subjectGruntWork";
+//import BookGruntWork from "./bookGruntWork";
+//import SubjectGruntWork from "./subjectGruntWork";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation1";
 //import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidation2";
-import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidationC";
-import BasicQueryNoDecorators from "./basicQueryNoDecorators";
+// import { BookQueryComponent, SubjectQueryComponent } from "./cacheInvalidationC";
+//import BasicQueryNoDecorators from "./basicQueryNoDecorators";
 
 const client = new Client({
   endpoint: "/graphql",
@@ -139,7 +140,8 @@ class TestingSandbox1 extends Component {
         {this.state.version}
         <input value={this.state.title} onChange={e => this.setState({ title: e.target.value })} />
 
-        <BasicQuery page={this.state.page} />
+        <BookQueryComponent page={this.state.page} />
+        {/* <BasicQuery page={this.state.page} /> */}
         <br />
         <hr />
         {/*<TwoQueries title_contains="Sec" />
@@ -150,8 +152,8 @@ class TestingSandbox1 extends Component {
         <BasicQueryNoDecorators page={2} />
         <TwoMutationsAndQuery page={1} />
         */}
-        <BookQueryComponent page={this.state.page} />
-        <BookGruntWork page={this.state.page} />
+        {/* <BookQueryComponent page={this.state.page} /> */}
+        {/* <BookGruntWork page={this.state.page} /> */}
 
         {/*
         <SubjectQueryComponent page={this.state.page} />
