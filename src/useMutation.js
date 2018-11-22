@@ -9,6 +9,7 @@ export default function useQuery(packet) {
   let [mutationState, setMutationState] = useState(null);
 
   let client = options.client || defaultClientManager.getDefaultClient();
+
   let mutationManager = useMemo(() => {
     let mutationManager = new MutationManager({ client, setState: setMutationState }, packet);
     mutationManager.updateState();

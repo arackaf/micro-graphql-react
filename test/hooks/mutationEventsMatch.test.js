@@ -101,6 +101,7 @@ test("Mutation listener destroys at unmount", async () => {
 
   client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
   await latestProps.m1.runMutation();
+
   expect(runCount).toBe(1);
 
   wrapper.unmount();
