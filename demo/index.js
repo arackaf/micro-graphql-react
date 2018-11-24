@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
 import { Client, setDefaultClient } from "../index-local";
-import { BookQueryComponent } from "./newComponents/useCase1/bookQueryComponent";
+import { BookQueryComponent1 as BookQueryComponent, BookEditing } from "./newComponents/useCase1";
 
 //import BasicQuery from "./basicQuery";
 //import TwoQueries from "./twoQueries";
@@ -26,103 +26,6 @@ const client2 = new Client({
 
 setDefaultClient(client2);
 
-// class ManualMutation extends Component {
-//   loadManual = () => {
-//     client.runQuery(
-//       `query ALL_BOOKS ($page: Int) {
-//         allBooks(PAGE: $page, PAGE_SIZE: 3) {
-//           Books {
-//             _id
-//             title
-//           }
-//         }
-//       }`,
-//       { title: 1 }
-//     );
-//   };
-//   save = () => {
-//     client.runMutation(
-//       `mutation modifyBook($title: String) {
-//         updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
-//           Book {
-//             _id
-//             title
-//           }
-//         }
-//       }`,
-//       { title: this.el.value }
-//     );
-//   };
-//   render() {
-//     let { running, finished, runMutation } = this.props;
-//     return (
-//       <div>
-//         <button onClick={this.loadManual}>LOAD</button>
-//         <input ref={el => (this.el = el)} placeholder="New manual title here!" />
-//         <button onClick={this.save}>Save</button>
-//       </div>
-//     );
-//   }
-// }
-
-// @mutation(
-//   client,
-//   `mutation modifyBook($title: String) {
-//     updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
-//       Book {
-//         _id
-//         title
-//       }
-//     }
-//   }`
-// )
-// class BasicMutation extends Component {
-//   render() {
-//     let { running, finished, runMutation } = this.props;
-//     return (
-//       <div>
-//         {running ? <div>RUNNING</div> : null}
-//         {finished ? <div>SAVED</div> : null}
-
-//         <input ref={el => (this.el = el)} placeholder="New title here!" />
-//         <button onClick={() => runMutation({ title: this.el.value })}>Save</button>
-//       </div>
-//     );
-//   }
-// }
-
-// @query(client, props => ({
-//   query: `
-//     query ALL_BOOKS {
-//       ${props.page % 2 ? "allBooks" : "allBooksX"}(PAGE: ${props.page}, PAGE_SIZE: 3) {
-//         Books {
-//           _id
-//           title
-//         }
-//       }
-//     }`
-// }))
-// class BasicQueryWithError extends Component {
-//   render() {
-//     let { loading, loaded, data, error } = this.props;
-//     return (
-//       <div>
-//         {loading ? <div>LOADING</div> : null}
-//         {loaded ? <div>LOADED</div> : null}
-//         {data ? <ul>{data.allBooks.Books.map(book => <li key={book._id}>{book.title}</li>)}</ul> : null}
-//         {error ? (
-//           <div>
-//             {error
-//               .map(e => e.message)
-//               .join(",")
-//               .toString()}
-//           </div>
-//         ) : null}
-//       </div>
-//     );
-//   }
-// }
-
 class TestingSandbox1 extends Component {
   state = { page: 1, shown: true, pageConflict1: 1, pageConflict2: 1, version: 0, title: "" };
   render() {
@@ -141,6 +44,10 @@ class TestingSandbox1 extends Component {
         <input value={this.state.title} onChange={e => this.setState({ title: e.target.value })} />
 
         <BookQueryComponent page={this.state.page} />
+        <br />
+        <br />
+        <br />
+        <BookEditing page={this.state.page} />
         {/* <BasicQuery page={this.state.page} /> */}
         <br />
         <hr />
