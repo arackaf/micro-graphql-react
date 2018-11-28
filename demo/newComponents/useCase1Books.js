@@ -1,28 +1,51 @@
 import React, { Component, Fragment } from "react";
 import { GraphQL, buildQuery, buildMutation } from "../../index-local";
 import { BOOKS_QUERY, MODIFY_BOOK_TITLE, MODIFY_BOOK_PAGE } from "../savedQueries";
+import { hardResetStrategy } from "./strategies";
 
-export class BookQueryComponent1 extends Component {
-  render() {
-    return (
-      <div>
-        <GraphQL query={{ books: buildQuery(BOOKS_QUERY, { page: this.props.page }) }}>
-          {({ books: { data } }) =>
-            data ? (
-              <ul>
-                {data.allBooks.Books.map(b => (
-                  <li key={b._id}>
-                    {b.title} - {b.pages}
-                  </li>
-                ))}
-              </ul>
-            ) : null
-          }
-        </GraphQL>
-      </div>
-    );
-  }
-}
+export const BookQueryComponent1 = props => (
+  <div>
+    <GraphQL
+      query={{
+        books: buildQuery(
+          BOOKS_QUERY,
+          { page: props.page },
+          { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
+        )
+      }}
+    >
+      {({ books: { data } }) =>
+        data ? (
+          <ul>
+            {data.allBooks.Books.map(b => (
+              <li key={b._id}>
+                {b.title} - {b.pages}
+              </li>
+            ))}
+          </ul>
+        ) : null
+      }
+    </GraphQL>
+  </div>
+);
+
+export const BookQueryComponent2 = props => (
+  <div>
+    <GraphQL query={{ books: buildQuery(BOOKS_QUERY, { page: props.page }, { onMutation: hardResetStrategy("Book") }) }}>
+      {({ books: { data } }) =>
+        data ? (
+          <ul>
+            {data.allBooks.Books.map(b => (
+              <li key={b._id}>
+                {b.title} - {b.pages}
+              </li>
+            ))}
+          </ul>
+        ) : null
+      }
+    </GraphQL>
+  </div>
+);
 
 //-------------------------------------------------------------------------------------------------
 

@@ -197,49 +197,59 @@ Let's say that whenever a mutation happens, we want to immediately invalidate an
 The hard reload method that's passed makes this easy. Let's see how to use this in a (contrived) component that queries, and displays some books.
 
 ```javascript
-@query(BOOKS_QUERY, props => ({ page: props.page }), {
-  onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() }
-})
-export class BookQueryComponent extends Component {
-  render() {
-    let { data } = this.props;
-    return (
-      <div>
-        {data ? (
+export const BookQueryComponent = props => (
+  <div>
+    <GraphQL
+      query={{
+        books: buildQuery(
+          BOOKS_QUERY,
+          { page: props.page },
+          { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
+        )
+      }}
+    >
+      {({ books: { data } }) =>
+        data ? (
           <ul>
             {data.allBooks.Books.map(b => (
-              <li key={b._id}>{b.title}</li>
+              <li key={b._id}>
+                {b.title} - {b.pages}
+              </li>
             ))}
           </ul>
-        ) : null}
-      </div>
-    );
-  }
-}
+        ) : null
+      }
+    </GraphQL>
+  </div>
+);
 ```
 
 Here we specify a regex matching every kind of book mutation we have, and upon completion, we just clear the cache, and reload by calling `hardReset()`. It's hard not to be at least a littler dissatisfied with this solution; the boilerplate is non-trivial. Let's take a look at a similar (again contrived) component, but for the subjects we can apply to books
 
 ```javascript
-@query(SUBJECTS_QUERY, props => ({ page: props.page }), {
-  onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
-})
-export class SubjectQueryComponent extends Component {
-  render() {
-    let { data } = this.props;
-    return (
-      <div>
-        {data ? (
+export const SubjectQueryComponent = props => (
+  <div>
+    <GraphQL
+      query={{
+        subjects: buildQuery(
+          SUBJECTS_QUERY,
+          { page: props.page },
+          { onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() } }
+        )
+      }}
+    >
+      {({ subjects: { data } }) =>
+        data ? (
           <ul>
             {data.allSubjects.Subjects.map(s => (
               <li key={s._id}>{s.name}</li>
             ))}
           </ul>
-        ) : null}
-      </div>
-    );
-  }
-}
+        ) : null
+      }
+    </GraphQL>
+  </div>
+);
 ```
 
 Assuming our GraphQL operations have a consistent naming structure—and they should—then some pretty obvious patterns emerge. We can auto-generate this structure just from the name of our type, like so
@@ -254,41 +264,39 @@ const hardResetStrategy = name => ({
 and then apply it like so
 
 ```javascript
-@query(BOOKS_QUERY, props => ({ page: props.page }), { onMutation: hardResetStrategy("Book") })
-export class BookQueryComponent extends Component {
-  render() {
-    let { data } = this.props;
-    return (
-      <div>
-        {data ? (
+export const BookQueryComponent = props => (
+  <div>
+    <GraphQL query={{ books: buildQuery(BOOKS_QUERY, { page: props.page }, { onMutation: hardResetStrategy("Book") }) }}>
+      {({ books: { data } }) =>
+        data ? (
           <ul>
             {data.allBooks.Books.map(b => (
-              <li key={b._id}>{b.title}</li>
+              <li key={b._id}>
+                {b.title} - {b.pages}
+              </li>
             ))}
           </ul>
-        ) : null}
-      </div>
-    );
-  }
-}
+        ) : null
+      }
+    </GraphQL>
+  </div>
+);
 
-@query(SUBJECTS_QUERY, props => ({ page: props.page }), { onMutation: hardResetStrategy("Subject") })
-export class SubjectQueryComponent extends Component {
-  render() {
-    let { data } = this.props;
-    return (
-      <div>
-        {data ? (
+export const SubjectQueryComponent = props => (
+  <div>
+    <GraphQL query={{ subjects: buildQuery(SUBJECTS_QUERY, { page: props.page }, { onMutation: hardResetStrategy("Subject") }) }}>
+      {({ subjects: { data } }) =>
+        data ? (
           <ul>
             {data.allSubjects.Subjects.map(s => (
               <li key={s._id}>{s.name}</li>
             ))}
           </ul>
-        ) : null}
-      </div>
-    );
-  }
-}
+        ) : null
+      }
+    </GraphQL>
+  </div>
+);
 ```
 
 #### Use Case 2: Update current results, but otherwise clear the cache
