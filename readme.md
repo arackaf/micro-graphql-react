@@ -2,7 +2,7 @@
 
 # micro-graphql-react
 
-A light (3.4K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
+A light (3.3K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
 Queries are fetched via HTTP GET, so while the client-side caching is in some ways not as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
 
@@ -25,6 +25,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
   - [Props passed for each query](#props-passed-for-each-query)
   - [Building mutations](#building-mutations)
   - [Props passed for each mutation](#props-passed-for-each-mutation)
+- [Hooks](#hooks)
 - [Caching](#caching)
   - [Cache object](#cache-object)
     - [Cache api](#cache-api)
@@ -133,6 +134,19 @@ For each mutation you specify, an object will be passed in the component's props
 | `running`     | Mutation is executing |
 | `finished`    | Mutation has finished executing|
 | `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
+
+## Hooks
+
+This project exports a `useQuery` and `useMutation` hook, which receive the same options, and return the same props that queries and mutations do in the `GraphQL` component above. For example
+
+```javascript
+const ComponentWithQueryAndMutation = props => {
+  let { loading, loaded, data } = useQuery(buildQuery(basicQuery, { query: props.query }, options));
+  let { running, finished, runMutation } = useMutation(buildMutation("someMutation{}"));
+
+  return <DoStuff {...props} {...{ loading, loaded, data, running, runMutation }} />;
+};
+```
 
 ## Caching
 
