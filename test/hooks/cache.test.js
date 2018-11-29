@@ -1,4 +1,5 @@
-import { React, Component, shallow, ClientMock, query, mutation, setDefaultClient, basicQuery, Cache } from "../testSuiteInitialize";
+import { React, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, Cache, useQuery } from "../testSuiteInitialize";
+import { getPropsFor, verifyPropsFor, deferred, dataPacket, resolveDeferred } from "../testUtils";
 
 let client1;
 let client2;
@@ -11,19 +12,17 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-const DEFAULT_CACHE_SIZE = 10;
+const Dummy = () => <div />;
 
-const getComponent = (...args) =>
-  @query(...args)
-  class extends Component {
-    render = () => null;
-  };
+const getComponent = options => props => {
+  let queryProps = useQuery([basicQuery, { page: props.page }, options]);
+  return <Dummy {...queryProps} />;
+};
 
-const basicQueryWithVariablesPacket = [basicQuery, props => ({ page: props.page })];
+const Component = getComponent();
 
 test("Default cache size", async () => {
-  let Component = getComponent(...basicQueryWithVariablesPacket);
-  let wrapper = shallow(<Component page={1} unused={10} />);
+  let wrapper = mount(<Component page={1} unused={10} />);
 
   Array.from({ length: 9 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
   expect(client1.queriesRun).toBe(10);
@@ -32,16 +31,62 @@ test("Default cache size", async () => {
   expect(client1.queriesRun).toBe(10);
 });
 
+test("Reload query", async () => {
+  let wrapper = mount(<Component page={1} unused={10} />);
+  expect(client1.queriesRun).toBe(1);
+
+  let props = getPropsFor(wrapper, Dummy);
+  props.reload();
+  expect(client1.queriesRun).toBe(2);
+});
+
+test("Clear cache", async () => {
+  let wrapper = mount(<Component page={1} unused={10} />);
+
+  let cache = client1.getCache(basicQuery);
+  expect(cache.entries.length).toBe(1);
+
+  let props = getPropsFor(wrapper, Dummy);
+  props.clearCache();
+  expect(cache.entries.length).toBe(0);
+});
+
+test("Clear cache and reload", async () => {
+  let wrapper = mount(<Component page={1} unused={10} />);
+
+  let cache = client1.getCache(basicQuery);
+  expect(cache.entries.length).toBe(1);
+
+  let props = getPropsFor(wrapper, Dummy);
+  props.clearCacheAndReload();
+  expect(cache.entries.length).toBe(1);
+  expect(client1.queriesRun).toBe(2);
+});
+
+test("Pick up in-progress query", async () => {
+  let p = (client1.nextResult = deferred());
+
+  let wrapper1 = mount(<Component page={1} unused={10} />);
+  let wrapper2 = mount(<Component page={1} unused={10} />);
+
+  await p.resolve({ data: { tasks: [{ id: 9 }] } });
+  wrapper1.update();
+  wrapper2.update();
+
+  verifyPropsFor(wrapper1, Dummy, dataPacket({ tasks: [{ id: 9 }] }));
+  verifyPropsFor(wrapper2, Dummy, dataPacket({ tasks: [{ id: 9 }] }));
+
+  expect(client1.queriesRun).toBe(1);
+});
+
 test("Cache accessible by query in client", async () => {
-  let Component = getComponent(...basicQueryWithVariablesPacket);
-  shallow(<Component page={1} unused={10} />);
+  mount(<Component page={1} unused={10} />);
   let cache = client1.getCache(basicQuery);
   expect(typeof cache).toBe("object");
 });
 
 test("Default cache size - verify on cache object retrieved", async () => {
-  let Component = getComponent(...basicQueryWithVariablesPacket);
-  let wrapper = shallow(<Component page={1} unused={10} />);
+  let wrapper = mount(<Component page={1} unused={10} />);
   let cache = client1.getCache(basicQuery);
 
   Array.from({ length: 9 }).forEach((x, i) => {
@@ -58,8 +103,7 @@ test("Default cache size - verify on cache object retrieved", async () => {
 });
 
 test("Second component shares the same cache", async () => {
-  let Component = getComponent(...basicQueryWithVariablesPacket);
-  let wrapper = shallow(<Component page={1} unused={10} />);
+  let wrapper = mount(<Component page={1} unused={10} />);
 
   Array.from({ length: 9 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
   expect(client1.queriesRun).toBe(10);
@@ -67,7 +111,7 @@ test("Second component shares the same cache", async () => {
   Array.from({ length: 9 }).forEach((x, i) => wrapper.setProps({ page: 10 - i - 1 }));
   expect(client1.queriesRun).toBe(10);
 
-  let wrapper2 = shallow(<Component page={1} unused={10} />);
+  let wrapper2 = mount(<Component page={1} unused={10} />);
   Array.from({ length: 9 }).forEach((x, i) => wrapper2.setProps({ page: i + 2 }));
   expect(client1.queriesRun).toBe(10);
 
@@ -77,8 +121,8 @@ test("Second component shares the same cache", async () => {
 
 test("Override cache size", async () => {
   let cacheOverride = new Cache(2);
-  let Component = getComponent(...basicQueryWithVariablesPacket, { cache: cacheOverride });
-  let wrapper = shallow(<Component page={1} unused={10} />);
+  let Component = getComponent({ cache: cacheOverride });
+  let wrapper = mount(<Component page={1} unused={10} />);
 
   //3 is a cache ejection, cache is now 2,3
   Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
@@ -93,8 +137,8 @@ test("Override cache size", async () => {
 });
 
 test("Default cache size with overridden client", async () => {
-  let Component = getComponent(...basicQueryWithVariablesPacket, { client: client2 });
-  let wrapper = shallow(<Component page={1} unused={10} />);
+  let Component = getComponent({ client: client2 });
+  let wrapper = mount(<Component page={1} unused={10} />);
 
   Array.from({ length: 9 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));
   expect(client2.queriesRun).toBe(10);
@@ -105,8 +149,8 @@ test("Default cache size with overridden client", async () => {
 
 test("Override cache size with overridden client", async () => {
   let cacheOverride = new Cache(2);
-  let Component = getComponent(...basicQueryWithVariablesPacket, { cache: cacheOverride, client: client2 });
-  let wrapper = shallow(<Component page={1} unused={10} />);
+  let Component = getComponent({ cache: cacheOverride, client: client2 });
+  let wrapper = mount(<Component page={1} unused={10} />);
 
   //3 is a cache ejection, cache is now 2,3
   Array.from({ length: 2 }).forEach((x, i) => wrapper.setProps({ page: i + 2 }));

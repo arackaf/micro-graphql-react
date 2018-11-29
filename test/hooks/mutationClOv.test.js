@@ -1,38 +1,35 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
+import { React, mount, ClientMock, setDefaultClient, useMutation } from "../testSuiteInitialize";
 import { getPropsFor, deferred, resolveDeferred } from "../testUtils";
 
 let client1;
 let client2;
-let ComponentA;
-let ComponentB;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   client2 = new ClientMock("endpoint1");
   setDefaultClient(client1);
-  ComponentA = getComponentA();
-  ComponentB = getComponentB();
 });
 
-class Dummy extends Component {
-  render() {
-    return null;
-  }
-}
+const Dummy = () => null;
 
-const getComponentA = (render = props => <Dummy {...props} />) =>
-  class extends Component {
-    render() {
-      return <GraphQL mutation={{ mutation1: ["A", { client: client2 }] }}>{render}</GraphQL>;
-    }
-  };
+const ComponentA = props => {
+  const mutation1 = useMutation(["A", { client: client2 }]);
+  return <Dummy {...props} mutation1={mutation1} />;
+};
+//return <GraphQL mutation={{ mutation1: ["A", { client: client2 }] }}>{render}</GraphQL>;
 
-const getComponentB = (render = props => <Dummy {...props} />) =>
-  class extends Component {
-    render() {
-      return <GraphQL mutation={{ mutation1: ["A", { client: client2 }], mutation2: ["B", { client: client2 }] }}>{render}</GraphQL>;
-    }
-  };
+const ComponentB = props => {
+  const mutation1 = useMutation(["A", { client: client2 }]);
+  const mutation2 = useMutation(["B", { client: client2 }]);
+
+  return <Dummy {...props} mutation1={mutation1} mutation2={mutation2} />;
+};
+
+// class extends Component {
+//     render() {
+//       return <GraphQL mutation={{ mutation1: ["A", { client: client2 }], mutation2: ["B", { client: client2 }] }}>{render}</GraphQL>;
+//     }
+//   };
 
 test("Mutation function exists", () => {
   let wrapper = mount(<ComponentA />);

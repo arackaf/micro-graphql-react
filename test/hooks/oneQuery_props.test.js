@@ -1,4 +1,4 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
+import { React, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
 import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred, pause } from "../testUtils";
 
 const queryA = "A";
@@ -6,26 +6,20 @@ const queryB = "B";
 
 let client1;
 
-class Dummy extends Component {
-  render() {
-    return <div />;
-  }
-}
-
-class ComponentToUse extends Component {
-  render() {
-    return <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>{props => <Dummy {...props.query1} />}</GraphQL>;
-  }
-}
-
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
 });
 
+const Dummy = () => <div />;
+
+function ComponentToUse(props) {
+  let queryProps = useQuery([queryA, { a: props.a }]);
+  return <Dummy {...queryProps} />;
+}
+
 test("loading props passed", async () => {
   let wrapper = mount(<ComponentToUse a={1} unused={0} />);
-
   verifyPropsFor(wrapper, Dummy, loadingPacket);
 });
 
