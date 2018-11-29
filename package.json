@@ -72,5 +72,6 @@
   "dependencies": {
     "shallow-equal": "^1.0.0"
   },
+  "sideEffects": false,
   "typings": "index.d.ts"
 }
