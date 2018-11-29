@@ -1,9 +1,11 @@
 import Client, { defaultClientManager } from "./lib/client";
-import query from "./lib/query";
-import mutation from "./lib/mutation";
 import compress from "./lib/compress";
-import GraphQL, { buildQuery, buildMutation } from "./lib/gqlComponent";
+import GraphQL from "./lib/gqlComponent";
 import Cache from "./lib/cache";
+import useQuery from "./lib/useQuery";
+import useMutation from "./lib/useMutation";
+import { buildQuery, buildMutation } from "./lib/util";
 
 const { setDefaultClient } = defaultClientManager;
-export { Client, query, compress, mutation, setDefaultClient, GraphQL, buildQuery, buildMutation, Cache };
+
+export { Client, compress, setDefaultClient, GraphQL, buildQuery, buildMutation, Cache, useQuery, useMutation };

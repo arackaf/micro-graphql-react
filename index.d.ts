@@ -83,14 +83,10 @@ export interface QueryOptions {
   onMutation?: MutationSubscription | MutationSubscription[];
 }
 
-//query decorator
-export function query(
-  queryText: string,
-  queryFn?: (componentProps: object) => object,
-  options?: QueryOptions
-): <T extends IReactComponent>(input: T) => T;
+//query hook
+export function useQuery(queryPacket: any): any;
 
-//mutation decorator
-export function mutation(mutation: string, options?: MutationOptions): <T extends IReactComponent>(input: T) => T;
+//mutation hook
+export function useMutation(mutation: any): any;
 
 export class GraphQL extends React.Component<{ query?: any; mutation?: any }, any> {}
