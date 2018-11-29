@@ -1,8 +1,8 @@
 import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
 import { Client, setDefaultClient } from "../index-local";
-import { BookQueryComponent2 as BookQueryComponent, BookEditing } from "./newComponents/useCase1Books";
-import { SubjectQueryComponent2 as SubjectQueryComponent, SubjectEditWork } from "./newComponents/useCase1Subjects";
+import { BookQueryComponent1 as BookQueryComponent, BookEditing } from "./newComponents/useCase3Books";
+import { SubjectQueryComponent1 as SubjectQueryComponent, SubjectEditWork } from "./newComponents/useCase2Subjects";
 
 const client = new Client({
   endpoint: "/graphql",
