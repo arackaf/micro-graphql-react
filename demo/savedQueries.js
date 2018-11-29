@@ -14,12 +14,14 @@ export const BOOKS_MUTATION = `mutation modifyBook($_id: String, $title: String,
 export const MODIFY_BOOK_TITLE = `mutation modifyBook($_id: String, $title: String) {
   updateBook(_id: $_id, Updates: { title: $title }) {
     success
+    Book { _id title pages }
   }
 }`;
 
 export const MODIFY_BOOK_PAGE = `mutation modifyBook($_id: String, $pages: Int) {
   updateBook(_id: $_id, Updates: { pages: $pages }) {
     success
+    Book { _id title pages }
   }
 }`;
 
