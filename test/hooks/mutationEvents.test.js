@@ -1,4 +1,5 @@
 import { React, Component, mount, ClientMock, setDefaultClient, basicQuery, useQuery, useMutation } from "../testSuiteInitialize";
+import { buildQuery, buildMutation } from "../../src/util";
 
 let client1;
 
@@ -14,6 +15,13 @@ const getQueryAndMutationComponent = options => props => {
   let m1 = useMutation(["someMutation{}"]);
 
   return <Dummy {...props} {...{ q1, m1 }} />;
+};
+
+const getQueryAndMutationComponent2 = options => props => {
+  let { loading, loaded, data } = useQuery(buildQuery(basicQuery, { query: props.query }, options));
+  let { running, finished, runMutation } = useMutation(buildMutation("someMutation{}"));
+
+  return <Dummy {...props} {...{ loading, loaded, data, running, runMutation }} />;
 };
 
 const getQ1Data = wrapper =>

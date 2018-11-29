@@ -1,5 +1,6 @@
 import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
 import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, pause, dataPacket } from "../testUtils";
+import { buildQuery } from "../../src/util";
 
 const queryA = "A";
 const queryB = "B";
@@ -15,8 +16,8 @@ const DummyA = () => <div />;
 const DummyB = () => <div />;
 
 function ComponentToUse(props) {
-  let query1Props = useQuery([queryA, { a: props.a }]);
-  let query2Props = useQuery([queryB, { b: props.b }]);
+  let query1Props = useQuery(buildQuery(queryA, { a: props.a }));
+  let query2Props = useQuery(buildQuery(queryB, { b: props.b }));
 
   return (
     <div>
