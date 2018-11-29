@@ -13,6 +13,26 @@ type MutationHandlerPayload = {
   refresh: () => void;
 };
 
+type QueryPacket = [string, any, any];
+type MutationPacket = [string, any];
+
+export type QueryProps = {
+  loading: boolean;
+  loaded: boolean;
+  data: object;
+  error: any;
+  reload: () => void;
+  clearCache: () => void;
+  clearCacheAndReload: () => void;
+};
+
+//props that are passed to your decorated mutation component
+export type MutationProps = {
+  running: boolean;
+  finished: boolean;
+  runMutation: (variables: object) => void;
+};
+
 export class Cache {
   constructor(cacheSize?: number);
   entries: [string, object][];
@@ -43,37 +63,19 @@ type BuildMutationOptions = {
   client?: Client;
 };
 
-export const buildQuery: (queryText: string, variables?: object, options?: BuildQueryOptions) => any;
-export const buildMutation: (mutationText: string, options?: BuildQueryOptions) => any;
+export const buildQuery: (queryText: string, variables?: object, options?: BuildQueryOptions) => QueryPacket;
+export const buildMutation: (mutationText: string, options?: BuildQueryOptions) => MutationPacket;
 
 type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
 
 export const compress: any;
 export const setDefaultClient: (client: Client) => void;
 
-//props that are passed to your decorated query component
-export type QueryProps = {
-  loading: boolean;
-  loaded: boolean;
-  data: object;
-  error: any;
-  reload: () => void;
-  clearCache: () => void;
-  clearCacheAndReload: () => void;
-};
-
 //options you can pass to the mutation decorator
 export interface MutationOptions {
   client?: Client;
   mapProps?: (props: object) => object;
 }
-
-//props that are passed to your decorated mutation component
-export type MutationProps = {
-  running: boolean;
-  finished: boolean;
-  runMutation: (variables: object) => void;
-};
 
 //options you can pass to the query decorator
 export interface QueryOptions {
