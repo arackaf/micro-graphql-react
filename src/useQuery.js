@@ -1,5 +1,5 @@
 import React from "react";
-const { useState, useRef, useEffect, useMemo, useMutationEffect } = React;
+const { useState, useRef, useEffect, useMemo, useLayoutEffect } = React;
 
 import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";
@@ -10,7 +10,7 @@ export default function useQuery(packet) {
   let [queryState, setQueryState] = useState(QueryManager.initialState);
   let queryManager = useRef(null);
 
-  useMutationEffect(() => {
+  useLayoutEffect(() => {
     if (!queryManager.current) {
       queryManager.current = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
       queryManager.current.load();
@@ -18,7 +18,7 @@ export default function useQuery(packet) {
       queryManager.current.updateIfNeeded(packet);
     }
   });
-  useMutationEffect(() => () => queryManager.current && queryManager.current.dispose(), []);
+  useLayoutEffect(() => () => queryManager.current && queryManager.current.dispose(), []);
 
   return queryState;
 }
