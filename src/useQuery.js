@@ -1,5 +1,5 @@
 import React from "react";
-const { useState, useRef, useEffect, useMemo, useLayoutEffect } = React;
+const { useState, useRef, useLayoutEffect } = React;
 
 import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";

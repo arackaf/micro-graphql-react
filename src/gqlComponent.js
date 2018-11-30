@@ -53,8 +53,7 @@ export default class GraphQL extends Component {
     Object.keys(this.queryManagerMap).forEach(k => this.queryManagerMap[k].dispose());
   }
   render() {
-    let { query = {}, mutation, children } = this.props;
-
+    let { children } = this.props;
     return children ? children({ ...this.state.queries, ...this.state.mutations }) : null;
   }
 }
