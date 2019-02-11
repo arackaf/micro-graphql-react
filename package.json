@@ -54,6 +54,7 @@
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
     "react-test-renderer": "^16.8.1",
+    "react-testing-library": "^5.6.0",
     "remove": "0.1.5",
     "uglifyjs-webpack-plugin": "1.1.6",
     "url-parse": "^1.4.0",

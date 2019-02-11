@@ -1,3 +1,12 @@
+export class PropRecorder {
+  constructor() {
+    this.currentProps = null;
+  }
+  setProps(props) {
+    this.currentProps = props;
+  }
+}
+
 export const getPropsFor = (wrapper, target) =>
   wrapper
     .children()

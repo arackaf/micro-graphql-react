@@ -1,5 +1,5 @@
 import { React, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, Cache, useQuery } from "../testSuiteInitialize";
-import { getPropsFor, verifyPropsFor, deferred, dataPacket, resolveDeferred } from "../testUtils";
+import { getPropsFor, verifyPropsFor, deferred, dataPacket, resolveDeferred, PropRecorder } from "../testUtils";
 
 let client1;
 let client2;
@@ -16,6 +16,7 @@ const Dummy = () => <div />;
 
 const getComponent = options => props => {
   let queryProps = useQuery([basicQuery, { page: props.page }, options]);
+  props.tracker && props.tracker.setProps(queryProps);
   return <Dummy {...queryProps} />;
 };
 
@@ -66,15 +67,18 @@ test("Clear cache and reload", async () => {
 test("Pick up in-progress query", async () => {
   let p = (client1.nextResult = deferred());
 
-  let wrapper1 = mount(<Component page={1} unused={10} />);
-  let wrapper2 = mount(<Component page={1} unused={10} />);
+  let tracker1 = new PropRecorder();
+  let tracker2 = new PropRecorder();
+
+  let wrapper1 = mount(<Component tracker={tracker1} page={1} unused={10} />);
+  let wrapper2 = mount(<Component tracker={tracker2} page={1} unused={10} />);
 
   await p.resolve({ data: { tasks: [{ id: 9 }] } });
   wrapper1.update();
   wrapper2.update();
 
-  verifyPropsFor(wrapper1, Dummy, dataPacket({ tasks: [{ id: 9 }] }));
-  verifyPropsFor(wrapper2, Dummy, dataPacket({ tasks: [{ id: 9 }] }));
+  expect(tracker1.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 9 }] }));
+  expect(tracker2.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 9 }] }));
 
   expect(client1.queriesRun).toBe(1);
 });
