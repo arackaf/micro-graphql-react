@@ -13,8 +13,16 @@ export default class Cache {
     return !this.cacheSize;
   }
 
+  get keys() {
+    return [...this[cacheSymbol].keys()];
+  }
+
   get entries() {
     return [...this[cacheSymbol]];
+  }
+
+  get(key) {
+    return this[cacheSymbol].get(key);
   }
 
   set(key, results) {

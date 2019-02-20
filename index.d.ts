@@ -51,6 +51,7 @@ export class Client {
   getCache(query: string): Cache;
   newCacheForQuery(query: string): Cache;
   setCache(query: string, cache: Cache): void;
+  subscribeMutation(subscription, options?): () => void;
 }
 
 type BuildQueryOptions = {

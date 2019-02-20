@@ -39,8 +39,14 @@ export default class Client {
   getGraphqlQuery({ query, variables }) {
     return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;
   }
-  subscribeMutation(subscription, options) {
+  subscribeMutation(subscription, options = {}) {
+    if (!Array.isArray(subscription)) {
+      subscription = [subscription];
+    }
     const packet = { subscription, options };
+    if (!options.currentResults) {
+      options.currentResults = () => ({});
+    }
     this[mutationListenersSymbol].add(packet);
 
     return () => this[mutationListenersSymbol].delete(packet);
