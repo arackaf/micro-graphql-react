@@ -44,7 +44,7 @@ export default class QueryManager {
   }
   updateState = newState => {
     Object.assign(this.currentState, newState);
-    this.setState(this.currentState);
+    this.setState(Object.assign({}, this.currentState));
   };
   updateIfNeeded(packet, force) {
     const [query, variables] = deConstructQueryPacket(packet);
