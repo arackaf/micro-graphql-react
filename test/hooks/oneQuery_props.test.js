@@ -1,5 +1,5 @@
 import { React, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
-import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred, pause, PropRecorder } from "../testUtils";
+import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred, pause } from "../testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -15,7 +15,6 @@ const Dummy = () => <div />;
 
 function ComponentToUse(props) {
   let queryProps = useQuery([queryA, { a: props.a }]);
-  props.tracker && props.tracker.setProps(queryProps);
   return <Dummy {...queryProps} />;
 }
 
@@ -26,103 +25,96 @@ test("loading props passed", async () => {
 
 test("Query resolves and data updated", async () => {
   let p = (client1.nextResult = deferred());
-  let tracker = new PropRecorder();
-  let wrapper = mount(<ComponentToUse tracker={tracker} a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-  expect(tracker.currentProps).toMatchObject(loadingPacket);
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
 
   await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
 });
 
 test("Query resolves and errors updated", async () => {
   let p = (client1.nextResult = deferred());
-  let tracker = new PropRecorder();
-  let wrapper = mount(<ComponentToUse tracker={tracker} a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-  expect(tracker.currentProps).toMatchObject(loadingPacket);
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
 
   await resolveDeferred(p, { errors: [{ msg: "a" }] }, wrapper);
-  expect(tracker.currentProps).toMatchObject(errorPacket([{ msg: "a" }]));
+  verifyPropsFor(wrapper, Dummy, errorPacket([{ msg: "a" }]));
 });
 
 test("Error in promise", async () => {
   let p = (client1.nextResult = deferred());
-  let tracker = new PropRecorder();
-  let wrapper = mount(<ComponentToUse tracker={tracker} a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
-  expect(tracker.currentProps).toMatchObject(loadingPacket);
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
 
   await rejectDeferred(p, { message: "Hello" }, wrapper);
-  expect(tracker.currentProps).toMatchObject(errorPacket({ message: "Hello" }));
+  verifyPropsFor(wrapper, Dummy, errorPacket({ message: "Hello" }));
 });
 
 test("Out of order promise handled", async () => {
   let pFirst = (client1.nextResult = deferred());
-  let tracker = new PropRecorder();
-  let wrapper = mount(<ComponentToUse tracker={tracker} a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   let pSecond = (client1.nextResult = deferred());
   wrapper.setProps({ a: 2 });
 
   await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
   await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 });
 
 test("Out of order promise handled 2", async () => {
   let pFirst = (client1.nextResult = deferred());
-  let tracker = new PropRecorder();
-  let wrapper = mount(<ComponentToUse tracker={tracker} a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   let pSecond = (client1.nextResult = deferred());
   wrapper.setProps({ a: 2 });
 
   await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(loadingPacket);
+  verifyPropsFor(wrapper, Dummy, loadingPacket);
 
   await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 });
 
 test("Cached data handled", async () => {
   let pData = (client1.nextResult = deferred());
-  let tracker = new PropRecorder();
-  let wrapper = mount(<ComponentToUse tracker={tracker} a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
   pData = client1.nextResult = deferred();
   wrapper.setProps({ a: 2 });
 
   await resolveDeferred(pData, { data: { tasks: [{ id: 2 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 2 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 2 }] }));
 
   wrapper.setProps({ a: 1 });
   await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
   expect(client1.queriesRun).toBe(2);
 });
 
 test("Cached data while loading handled", async () => {
   let pData = (client1.nextResult = deferred());
-  let tracker = new PropRecorder();
-  let wrapper = mount(<ComponentToUse tracker={tracker} a={1} unused={0} />);
+  let wrapper = mount(<ComponentToUse a={1} unused={0} />);
 
   await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 
   pData = client1.nextResult = deferred();
   wrapper.setProps({ a: 2 });
   wrapper.update();
-  expect(tracker.currentProps).toMatchObject({ ...dataPacket({ tasks: [{ id: 1 }] }), loading: true });
+  verifyPropsFor(wrapper, Dummy, { ...dataPacket({ tasks: [{ id: 1 }] }), loading: true });
 
   await pause(wrapper);
   wrapper.setProps({ a: 1 });
   wrapper.update();
-  expect(tracker.currentProps).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
 });
