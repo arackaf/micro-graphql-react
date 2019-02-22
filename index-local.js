@@ -6,6 +6,6 @@ import useQuery from "./src/useQuery";
 import useMutation from "./src/useMutation";
 import { buildQuery, buildMutation } from "./src/util";
 
-const { setDefaultClient } = defaultClientManager;
+const { setDefaultClient, getDefaultClient } = defaultClientManager;
 
-export { Client, compress, setDefaultClient, GraphQL, buildQuery, buildMutation, Cache, useQuery, useMutation };
+export { Client, compress, setDefaultClient, getDefaultClient, GraphQL, buildQuery, buildMutation, Cache, useQuery, useMutation };

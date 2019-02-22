@@ -1,6 +1,7 @@
 import Cache, { DEFAULT_CACHE_SIZE } from "./cache";
 
 const mutationListenersSymbol = Symbol("mutationListeners");
+const forceListenerSymbol = Symbol("forceListenerSymbol");
 
 export default class Client {
   constructor(props = { cacheSize: DEFAULT_CACHE_SIZE }) {
@@ -15,6 +16,7 @@ export default class Client {
     Object.assign(this, props);
     this.caches = new Map([]);
     this[mutationListenersSymbol] = new Set([]);
+    this[forceListenerSymbol] = new Map([]);
   }
   get cacheSizeToUse() {
     if (this.cacheSize != null) {
@@ -50,6 +52,22 @@ export default class Client {
     this[mutationListenersSymbol].add(packet);
 
     return () => this[mutationListenersSymbol].delete(packet);
+  }
+  forceUpdate(query) {
+    let updateListeners = this[forceListenerSymbol].get(query);
+    if (updateListeners) {
+      for (let refresh of updateListeners) {
+        refresh();
+      }
+    }
+  }
+  registerQuery(query, refresh) {
+    if (!this[forceListenerSymbol].has(query)) {
+      this[forceListenerSymbol].set(query, new Set([]));
+    }
+    this[forceListenerSymbol].get(query).add(refresh);
+
+    return () => this[forceListenerSymbol].get(query).delete(refresh);
   }
   processMutation(mutation, variables) {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {

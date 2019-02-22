@@ -35,8 +35,8 @@ export type MutationProps = {
 
 export class Cache {
   constructor(cacheSize?: number);
-  entries: [string, object][];
-  get(key): object;
+  entries: [string, any][];
+  get(key): any;
   set(key, results): void;
   delete(key): void;
   clearCache(): void;
@@ -52,6 +52,7 @@ export class Client {
   newCacheForQuery(query: string): Cache;
   setCache(query: string, cache: Cache): void;
   subscribeMutation(subscription, options?): () => void;
+  forceUpdate(query): void;
 }
 
 type BuildQueryOptions = {
@@ -71,6 +72,7 @@ type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | Clas
 
 export const compress: any;
 export const setDefaultClient: (client: Client) => void;
+export const getDefaultClient: () => Client;
 
 //options you can pass to the mutation decorator
 export interface MutationOptions {

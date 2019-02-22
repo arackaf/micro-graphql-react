@@ -1,20 +1,22 @@
 import React from "react";
-const { useState, useRef, useMemo } = React;
+const { useState, useRef, useMemo, useLayoutEffect } = React;
 
 import { defaultClientManager } from "./client";
 import MutationManager from "./mutationManager";
 
-export default function useQuery(packet) {
+export default function useMutation(packet) {
   let [mutation, options = {}] = packet;
   let [mutationState, setMutationState] = useState(null);
 
   let client = options.client || defaultClientManager.getDefaultClient();
 
-  let mutationManager = useMemo(() => {
-    let mutationManager = new MutationManager({ client, setState: setMutationState }, packet);
-    mutationManager.updateState();
-    return mutationManager;
-  }, []);
+  let mutationManagerRef = useRef(null);
+  if (!mutationManagerRef.current) {
+    mutationManagerRef.current = new MutationManager({ client, setState: setMutationState }, packet);
+    mutationManagerRef.current.updateState();
+  }
 
-  return mutationState || mutationManager.currentState;
+  useLayoutEffect(() => () => (mutationManagerRef.current.setState = () => {}));
+
+  return mutationState || mutationManagerRef.current.currentState;
 }
