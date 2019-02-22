@@ -25,6 +25,7 @@ export default class QueryManager {
     this.setState = setState;
     this.cache = cache || client.getCache(query) || client.newCacheForQuery(query);
     this.query = query;
+    this.unregisterQuery = this.client.registerQuery(query, this.refresh);
     this.variables = variables;
     if (typeof options.onMutation === "object") {
       if (!Array.isArray(options.onMutation)) {
@@ -84,7 +85,7 @@ export default class QueryManager {
         });
       },
       cachedEntry => {
-        this.updateState({ data: cachedEntry.data, error: cachedEntry.error, loading: false, loaded: true });
+        this.updateState({ data: cachedEntry.data, error: cachedEntry.error, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
       () => this.execute(graphqlQuery)
     );
@@ -105,17 +106,18 @@ export default class QueryManager {
         this.cache[setResultsSymbol](promise, cacheKey, resp);
 
         if (resp.errors) {
-          this.updateState({ loaded: true, loading: false, data: null, error: resp.errors });
+          this.updateState({ loaded: true, loading: false, data: null, error: resp.errors, currentQuery: cacheKey });
         } else {
-          this.updateState({ loaded: true, loading: false, data: resp.data, error: null });
+          this.updateState({ loaded: true, loading: false, data: resp.data, error: null, currentQuery: cacheKey });
         }
       })
       .catch(err => {
         this.cache[setResultsSymbol](promise, cacheKey, null, err);
-        this.updateState({ loaded: true, loading: false, data: null, error: err });
+        this.updateState({ loaded: true, loading: false, data: null, error: err, currentQuery: cacheKey });
       });
   };
   dispose() {
     this.mutationSubscription && this.mutationSubscription();
+    this.unregisterQuery();
   }
 }
