@@ -20,12 +20,14 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 
 - [Creating a client](#creating-a-client)
   - [Client options](#client-options)
+  - [Client api](#client-api)
 - [Running queries and mutations](#running-queries-and-mutations)
+  - [Hooks](#hooks)
+  - [Render props](#render-props)
   - [Building queries](#building-queries)
   - [Props passed for each query](#props-passed-for-each-query)
   - [Building mutations](#building-mutations)
   - [Props passed for each mutation](#props-passed-for-each-mutation)
-- [Hooks](#hooks)
 - [Caching](#caching)
   - [Cache object](#cache-object)
     - [Cache api](#cache-api)
@@ -33,8 +35,9 @@ For more information on the difficulties of GraphQL caching, see [this explanati
     - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
     - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
     - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
+    - [Use Case 4: Globally modify the cache as needed](#use-case-4-globally-modify-the-cache-as-needed)
 - [Manually running queries or mutations](#manually-running-queries-or-mutations)
-  - [Client api](#client-api)
+  - [Client api](#client-api-1)
 - [Use in old browsers](#use-in-old-browsers)
 
 <!-- /TOC -->
@@ -66,9 +69,35 @@ Now that client will be used by default, everywhere, unless you manually pass in
 | `cacheSize`  | Default cache size to use for all caches created by this client, as needed, for all queries it processes|
 | `noCaching`  | If true, this will turn off caching altogether for all queries it processes|
 
+### Client api
+
+<!-- prettier-ignore -->
+| Option  | Description |
+| -------| ----------- |
+| `runQuery(query: String, variables?: Object)` | Manually run this GraphQL query |
+| `runMutation(mutation: String, variables?: Object)`  | Manually run this GraphQL mutation|
+| `forceUpdate(query)`  | Manually update any components rendering that query. This is useful if you (dangerously) update a query's cache, as discussed in the caching section, below|
+
 ## Running queries and mutations
 
-The most flexible way of running GraphQL operations is with the `GraphQL` component.
+### Hooks
+
+This project exports a `useQuery` and `useMutation` hook.
+
+```javascript
+import { useQuery, useMutation, buildQuery, buildMutation } from "micro-graphql-react";
+
+const ComponentWithQueryAndMutation = props => {
+  let { loading, loaded, data, currentQuery } = useQuery(buildQuery(basicQuery, { query: props.query }, options));
+  let { running, finished, runMutation } = useMutation(buildMutation("someMutation{}"));
+
+  return <DoStuff {...props} {...{ loading, loaded, currentQuery, data, running, runMutation }} />;
+};
+```
+
+### Render props
+
+There's also a render props-based GraphQL component that supports both mutations and queries.
 
 ```javascript
 import { GraphQL, buildQuery, buildMutation } from "micro-graphql-react";
@@ -100,14 +129,15 @@ Construct each query with the `buildQuery` method. The first argument is the que
 | `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
 | `client`  | Manually pass in a client to be used for this query, which will override the default client|
 | `cache`  | Manually pass in a cache object to be used for this query|
+| `active`  | **Hooks only** If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
 Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./readme-compress.md).
 
-An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your nextwork requests altogether, but also from our bundled code.
+An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your nextwork requests altogether, but also from your bundled code.
 
 ### Props passed for each query
 
-For each query you specify, an object will be passed in the component's props by that same name, with the following properties.
+For each query you specify, an object will be returned from the hook, or for render props, passed in the callback's props by that same name, with the following properties.
 
 <!-- prettier-ignore -->
 | Props | Description |
@@ -115,6 +145,7 @@ For each query you specify, an object will be passed in the component's props by
 |`loading`|Fetch is executing for your query|
 |`loaded`|Fetch has finished executing for your query|
 |`data`|If the last fetch finished successfully, this will contain the data returned, else null|
+|`currentQuery`|The query that was run, which produced the current results. This updates synchronously with updates to `data`, so you can use changes here as an easy way to subscribe to query result changes. This will not have a value until there are results passed to `data`. In other words, changes to `loading` do not affect this value|
 |`error`|If the last fetch did not finish successfully, this will contain the errors that were returned, else `null`|
 |`reload`|A function you can call to manually re-fetch the current query|
 |`clearCache`|Clear the cache for this component|
@@ -134,19 +165,6 @@ For each mutation you specify, an object will be passed in the component's props
 | `running`     | Mutation is executing |
 | `finished`    | Mutation has finished executing|
 | `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
-
-## Hooks
-
-This project exports a `useQuery` and `useMutation` hook, which receive the same options, and return the same props that queries and mutations do in the `GraphQL` component above. For example
-
-```javascript
-const ComponentWithQueryAndMutation = props => {
-  let { loading, loaded, data } = useQuery(buildQuery(basicQuery, { query: props.query }, options));
-  let { running, finished, runMutation } = useMutation(buildMutation("someMutation{}"));
-
-  return <DoStuff {...props} {...{ loading, loaded, data, running, runMutation }} />;
-};
-```
 
 ## Caching
 
@@ -493,6 +511,26 @@ export const BookQueryComponent = props => (
 ```
 
 It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back.
+
+#### Use Case 4: Globally modify the cache as needed
+
+Prior use cases have all relied on a component or hook to do the cache syncing or updating; however, you can also subscribe to mutation results directly on the relevant client instance, and clear or update cache entries as needed. For example
+
+```javascript
+graphqlClient.subscribeMutation({ when: /createBook/, run: () => clearCache(GetBooksQuery) });
+
+//elsewhere
+export const clearCache = (...cacheNames) => {
+  cacheNames.forEach(name => {
+    let cache = graphqlClient.getCache(name);
+    cache && cache.clearCache();
+  });
+};
+```
+
+This code will clear all book search results whenever a new book is created, no matter if books are currently rendered anywhere by a hook. This ensures that if you create a book in a "create book" screen, and then browse back to a books query, no cached results will show, and instead a new query will run, so the new book will have a chance to show up in the new results (if it matches the search criteria).
+
+Of course you can also subscribe to updates, and manually update your cache, subject to the same warnings as above. Be sure to call `graphqlClient.forceUpdate(queryName)` to broadcast your updates to any components rendering them.
 
 ## Manually running queries or mutations
 
