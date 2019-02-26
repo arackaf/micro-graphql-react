@@ -11,6 +11,9 @@ export default function useQuery(packet) {
   let queryManager = useRef(null);
 
   useLayoutEffect(() => {
+    if ("active" in options && !options.active) {
+      return;
+    }
     if (!queryManager.current) {
       queryManager.current = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
       queryManager.current.load();

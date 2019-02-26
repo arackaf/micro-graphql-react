@@ -34,6 +34,13 @@ export const rejectDeferred = async (p, val, wrapper) => {
   wrapper.update();
 };
 
+export const defaultPacket = {
+  loading: false,
+  loaded: false,
+  data: null,
+  error: null
+};
+
 export const loadingPacket = {
   loading: true,
   loaded: false,
