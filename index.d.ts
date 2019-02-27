@@ -1,12 +1,12 @@
-import React, { StatelessComponent, ComponentClass, ClassicComponentClass } from "react";
+import React, { StatelessComponent, ComponentClass, ClassicComponentClass, Children } from "react";
 
 type MutationSubscription = {
   when: string | RegExp;
-  run: (payload: MutationHandlerPayload, resp: object, variables: object) => any;
+  run: (payload: MutationHandlerPayload, resp: any, variables: any) => any;
 };
 
 type MutationHandlerPayload = {
-  currentResults: object;
+  currentResults: any;
   cache: Cache;
   softReset: () => void;
   hardReset: () => void;
@@ -16,21 +16,21 @@ type MutationHandlerPayload = {
 type QueryPacket = [string, any, any];
 type MutationPacket = [string, any];
 
-export type QueryProps = {
+export type QueryPayload = {
   loading: boolean;
   loaded: boolean;
-  data: object;
+  data: any;
   error: any;
+  currentQuery: string;
   reload: () => void;
   clearCache: () => void;
   clearCacheAndReload: () => void;
 };
 
-//props that are passed to your decorated mutation component
-export type MutationProps = {
+export type MutationPayload = {
   running: boolean;
   finished: boolean;
-  runMutation: (variables: object) => void;
+  runMutation: (variables: any) => Promise<any>;
 };
 
 export class Cache {
@@ -43,11 +43,11 @@ export class Cache {
 }
 
 export class Client {
-  constructor(options: { endpoint: string; noCaching?: boolean; cacheSize?: number; fetchOptions?: object });
-  runQuery(query: string, variables?: object): Promise<any>;
-  getGraphqlQuery({ query: string, variables: object }): string;
-  processMutation(mutation: string, variables?: object): Promise<any>;
-  runMutation(mutation: string, variables?: object): Promise<any>;
+  constructor(options: { endpoint: string; noCaching?: boolean; cacheSize?: number; fetchOptions?: any });
+  runQuery(query: string, variables?: any): Promise<any>;
+  getGraphqlQuery({ query, variables }: { query: string; variables: any }): string;
+  processMutation(mutation: string, variables?: any): Promise<any>;
+  runMutation(mutation: string, variables?: any): Promise<any>;
   getCache(query: string): Cache;
   newCacheForQuery(query: string): Cache;
   setCache(query: string, cache: Cache): void;
@@ -59,13 +59,14 @@ type BuildQueryOptions = {
   onMutation?: MutationSubscription | MutationSubscription[];
   client?: Client;
   cache?: Cache;
+  active?: boolean;
 };
 
 type BuildMutationOptions = {
   client?: Client;
 };
 
-export const buildQuery: (queryText: string, variables?: object, options?: BuildQueryOptions) => QueryPacket;
+export const buildQuery: (queryText: string, variables?: any, options?: BuildQueryOptions) => QueryPacket;
 export const buildMutation: (mutationText: string, options?: BuildQueryOptions) => MutationPacket;
 
 type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
@@ -74,24 +75,21 @@ export const compress: any;
 export const setDefaultClient: (client: Client) => void;
 export const getDefaultClient: () => Client;
 
-//options you can pass to the mutation decorator
-export interface MutationOptions {
-  client?: Client;
-  mapProps?: (props: object) => object;
-}
+export function useQuery(queryPacket: QueryPacket): QueryPayload;
 
-//options you can pass to the query decorator
-export interface QueryOptions {
-  client?: Client;
-  cache?: Cache;
-  mapProps?: (props: object) => object;
-  onMutation?: MutationSubscription | MutationSubscription[];
-}
+export function useMutation(mutationPacket: MutationPacket): MutationPayload;
 
-//query hook
-export function useQuery(queryPacket: any): any;
+type RenderProps<Query, Mutation> = Record<keyof Query, QueryPayload> & Record<keyof Mutation, MutationPayload>;
 
-//mutation hook
-export function useMutation(mutation: any): any;
+type QueryMap = { [s: string]: QueryPacket };
+type MutationMap = { [s: string]: MutationPacket };
 
-export class GraphQL extends React.Component<{ query?: any; mutation?: any }, any> {}
+type ComponentPacket<Query extends QueryMap, Mutation extends MutationMap> = {
+  query?: Query;
+  mutation?: Mutation;
+  children(fn: RenderProps<Query, Mutation>): React.ReactNode;
+};
+
+export function GraphQL<QueryType extends QueryMap = {}, MutationType extends MutationMap = {}>(
+  props: ComponentPacket<QueryType, MutationType>
+): JSX.Element;
