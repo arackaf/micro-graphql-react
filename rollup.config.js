@@ -17,35 +17,7 @@ const getConfig = ({ file, minify = true }) => ({
       presets: ["@babel/preset-react"],
       plugins: ["@babel/plugin-proposal-class-properties"]
     }),
-    minify ? terser({}) : null,
-    resolve({}),
-    commonjs({
-      include: ["node_modules/**"],
-      exclude: ["node_modules/process-es6/**"],
-      namedExports: {
-        "node_modules/react/index.js": ["Children", "Component", "PropTypes", "createElement"],
-        "node_modules/react-dom/index.js": ["render"]
-      }
-    })
-  ].filter(p => p)
-});
-
-module.exports = [getConfig({ file: "index.js" }), getConfig({ file: "index-debug.js", minify: false })];
-
-const orig = {
-  input: "./src/index.js",
-  output: {
-    format: "esm",
-    file: "./umd/umd-rollup-bundle.js"
-  },
-  external: ["react", "react-dom"],
-  plugins: [
-    babel({
-      exclude: "node_modules/**",
-      presets: ["@babel/preset-react"],
-      plugins: ["@babel/plugin-proposal-class-properties"]
-    }),
-    terser({}),
+    minify && terser({}),
     resolve({}),
     commonjs({
       include: ["node_modules/**"],
@@ -56,4 +28,6 @@ const orig = {
       }
     })
   ]
-};
+});
+
+module.exports = [getConfig({ file: "index.js" }), getConfig({ file: "index-debug.js", minify: false })];
