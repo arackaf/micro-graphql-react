@@ -14,7 +14,7 @@ To see a live demo of this library managing GraphQL requests, check out this [Co
 
 This library will _not_ add metadata to your queries, and attempt to automatically update your cached entries from mutation results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad. This is all explained at length below.
 
-For more information on the difficulties of GraphQL caching, see [this explanation](./readme-cache.md)
+For more information on the difficulties of GraphQL caching, see [this explanation](./docs/readme-cache.md)
 
 <!-- TOC -->
 
@@ -131,7 +131,7 @@ Construct each query with the `buildQuery` method. The first argument is the que
 | `cache`  | Manually pass in a cache object to be used for this query|
 | `active`  | **Hooks only** If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
-Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./readme-compress.md).
+Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
 
 An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your nextwork requests altogether, but also from your bundled code.
 
