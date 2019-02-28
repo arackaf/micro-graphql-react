@@ -19,14 +19,7 @@ const getConfig = ({ file, minify = true }) => ({
     }),
     minify && terser({}),
     resolve({}),
-    commonjs({
-      include: ["node_modules/**"],
-      exclude: ["node_modules/process-es6/**"],
-      namedExports: {
-        "node_modules/react/index.js": ["Children", "Component", "PropTypes", "createElement"],
-        "node_modules/react-dom/index.js": ["render"]
-      }
-    })
+    commonjs({ include: ["node_modules/**"] })
   ]
 });
 
