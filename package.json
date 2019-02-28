@@ -75,6 +75,7 @@
     "testw": "jest --runInBand --watchAll"
   },
   "dependencies": {
+    "natives": "^1.1.6",
     "shallow-equal": "^1.0.0"
   },
   "sideEffects": false,

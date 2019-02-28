@@ -6,12 +6,12 @@ const gprint = require("gulp-print");
 
 var babelOptionsWithImport = {
   presets: ["react"],
-  plugins: ["transform-decorators-legacy", "transform-class-properties", "transform-object-rest-spread"]
+  plugins: ["transform-class-properties", "transform-object-rest-spread"]
 };
 
 var babelES5Options = {
   presets: ["es2015", "react"],
-  plugins: ["transform-decorators-legacy", "transform-class-properties", "transform-object-rest-spread"]
+  plugins: ["transform-class-properties", "transform-object-rest-spread"]
 };
 
 try {
@@ -20,7 +20,7 @@ try {
 } catch (e) {}
 
 transpileSource();
-//transpileSourceES5();
+transpileSourceES5();
 function transpileSource() {
   gulp
     .src("./src/**/*.js", { base: "./" })

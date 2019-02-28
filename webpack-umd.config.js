@@ -26,13 +26,13 @@ module.exports = {
         loader: "babel-loader",
         query: {
           presets: ["react"],
-          plugins: ["transform-decorators-legacy", "transform-class-properties", "transform-object-rest-spread"]
+          plugins: ["transform-class-properties"]
         }
       }
     ]
   },
   plugins: [
-    new UglifyJsPlugin({ uglifyOptions: { ie8: false, ecma: 8 } }),
+    //new UglifyJsPlugin({ uglifyOptions: { ie8: false, ecma: 8 } }),
     new webpack.DefinePlugin({
       "process.env.NODE_ENV": "production"
     }),
