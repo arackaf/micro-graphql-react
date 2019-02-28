@@ -6,9 +6,8 @@ const path = require("path");
 module.exports = {
   input: "./index.js",
   output: {
-    format: "iife",
-    file: "./umd/umd-rollup-bundle.js",
-    name: "foooo"
+    format: "esm",
+    file: "./umd/umd-rollup-bundle.js"
   },
   external: ["react", "react-dom"],
   plugins: [
