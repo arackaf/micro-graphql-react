@@ -1,17 +1,21 @@
+const babel = require("rollup-plugin-babel");
 const commonjs = require("rollup-plugin-commonjs");
 const resolve = require("rollup-plugin-node-resolve");
 const { terser } = require("rollup-plugin-terser");
 const path = require("path");
 
 module.exports = {
-  input: "./index.js",
+  input: "./src/index.js",
   output: {
     format: "esm",
     file: "./umd/umd-rollup-bundle.js"
   },
   external: ["react", "react-dom"],
   plugins: [
-    terser({}),
+    babel({
+      exclude: "node_modules/**"
+    }),
+    //terser({}),
     resolve({}),
     commonjs({
       include: ["node_modules/**"],
