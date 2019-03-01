@@ -1,8 +1,5 @@
 import Cache, { DEFAULT_CACHE_SIZE } from "./cache";
 
-const mutationListenersSymbol = Symbol("mutationListeners");
-const forceListenerSymbol = Symbol("forceListenerSymbol");
-
 export default class Client {
   constructor(props = { cacheSize: DEFAULT_CACHE_SIZE }) {
     if (props.noCaching != null && props.cacheSize != null) {
@@ -15,8 +12,8 @@ export default class Client {
 
     Object.assign(this, props);
     this.caches = new Map([]);
-    this[mutationListenersSymbol] = new Set([]);
-    this[forceListenerSymbol] = new Map([]);
+    this.mutationListeners = new Set([]);
+    this.forceListeners = new Map([]);
   }
   get cacheSizeToUse() {
     if (this.cacheSize != null) {
@@ -52,12 +49,12 @@ export default class Client {
     if (!options.currentResults) {
       options.currentResults = () => ({});
     }
-    this[mutationListenersSymbol].add(packet);
+    this.mutationListeners.add(packet);
 
-    return () => this[mutationListenersSymbol].delete(packet);
+    return () => this.mutationListeners.delete(packet);
   }
   forceUpdate(query) {
-    let updateListeners = this[forceListenerSymbol].get(query);
+    let updateListeners = this.forceListeners.get(query);
     if (updateListeners) {
       for (let refresh of updateListeners) {
         refresh();
@@ -65,18 +62,18 @@ export default class Client {
     }
   }
   registerQuery(query, refresh) {
-    if (!this[forceListenerSymbol].has(query)) {
-      this[forceListenerSymbol].set(query, new Set([]));
+    if (!this.forceListeners.has(query)) {
+      this.forceListeners.set(query, new Set([]));
     }
-    this[forceListenerSymbol].get(query).add(refresh);
+    this.forceListeners.get(query).add(refresh);
 
-    return () => this[forceListenerSymbol].get(query).delete(refresh);
+    return () => this.forceListeners.get(query).delete(refresh);
   }
   processMutation(mutation, variables) {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
       let mutationKeys = Object.keys(resp);
       let mutationKeysLookup = new Set(mutationKeys);
-      [...this[mutationListenersSymbol]].forEach(({ subscription, options: { currentResults, ...rest } }) => {
+      [...this.mutationListeners].forEach(({ subscription, options: { currentResults, ...rest } }) => {
         subscription.forEach(singleSubscription => {
           if (typeof singleSubscription.when === "string") {
             if (mutationKeysLookup.has(singleSubscription.when)) {
