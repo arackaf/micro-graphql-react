@@ -1,9 +1,11 @@
 import ClientBase from "../src/client";
+import queryString from "query-string";
 
 export default class Client extends ClientBase {
   constructor(props) {
     super(props);
     this.reset();
+    this.endpoint = "";
   }
   reset = () => {
     this.queriesRun = 0;
@@ -11,6 +13,12 @@ export default class Client extends ClientBase {
 
     this.mutationsRun = 0;
     this.mutationCalls = [];
+  };
+  runUri = uri => {
+    let parsed = queryString.parse(uri);
+    let query = parsed.query;
+    let variables = eval("(" + parsed.variables + ")");
+    return this.runQuery(query, variables);
   };
   runQuery = (query, variables) => {
     if (this.generateResponse) {
