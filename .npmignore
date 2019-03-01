@@ -1,5 +1,7 @@
 demo
 .vscode
 .git
+demo
+dist
 graphQL
 graphql-definitions

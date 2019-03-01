@@ -129,7 +129,7 @@ Construct each query with the `buildQuery` method. The first argument is the que
 | `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
 | `client`  | Manually pass in a client to be used for this query, which will override the default client|
 | `cache`  | Manually pass in a cache object to be used for this query|
-| `active`  | **Hooks only** If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
+| `active`  | If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
 Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
 

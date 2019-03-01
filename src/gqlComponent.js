@@ -37,17 +37,20 @@ export default class GraphQL extends Component {
   }
   componentDidMount() {
     let { query = {}, mutation = {} } = this.props;
-    Object.keys(query).forEach(k => this.queryManagerMap[k].load());
+    Object.keys(query).forEach(k => this.loadIfActive(k, true));
     Object.keys(mutation).forEach(k => this.mutationManagerMap[k].updateState());
   }
   componentDidUpdate(prevProps, prevState) {
     let { query = {} } = this.props;
-
-    Object.keys(query).forEach(k => {
-      let queryManager = this.queryManagerMap[k];
-      let packet = query[k];
-      queryManager.updateIfNeeded(packet);
-    });
+    Object.keys(query).forEach(k => this.loadIfActive(k));
+  }
+  loadIfActive(key, force) {
+    let packet = this.props.query[key];
+    let options = packet[2] || {};
+    if (!("active" in options) || options.active) {
+      let queryManager = this.queryManagerMap[key];
+      queryManager.updateIfNeeded(packet, force);
+    }
   }
   componentWillUnmount() {
     Object.keys(this.queryManagerMap).forEach(k => this.queryManagerMap[k].dispose());
