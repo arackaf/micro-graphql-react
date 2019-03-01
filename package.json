@@ -45,6 +45,7 @@
     "jest": "^24.1.0",
     "mongo-graphql-starter": "0.6.2",
     "mongodb": "2.2.31",
+    "query-string": "^6.2.0",
     "raf": "3.4.0",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
@@ -68,9 +69,7 @@
     "test-local": "jest --runInBand",
     "testw": "jest --runInBand --watchAll"
   },
-  "dependencies": {
-    "shallow-equal": "^1.0.0"
-  },
+  "dependencies": {},
   "sideEffects": false,
   "typings": "index.d.ts"
 }

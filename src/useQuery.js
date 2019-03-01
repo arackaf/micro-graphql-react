@@ -16,10 +16,8 @@ export default function useQuery(packet) {
     }
     if (!queryManager.current) {
       queryManager.current = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
-      queryManager.current.load();
-    } else {
-      queryManager.current.updateIfNeeded(packet);
     }
+    queryManager.current.load(packet);
   });
   useLayoutEffect(() => () => queryManager.current && queryManager.current.dispose(), []);
 

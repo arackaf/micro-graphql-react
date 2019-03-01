@@ -36,7 +36,10 @@ export default class Client {
     this.caches.set(query, cache);
   }
   runQuery(query, variables) {
-    return fetch(this.getGraphqlQuery({ query, variables }), this.fetchOptions || void 0).then(resp => resp.json());
+    return this.runUri(this.getGraphqlQuery({ query, variables }));
+  }
+  runUri(uri) {
+    return fetch(uri, this.fetchOptions || void 0).then(resp => resp.json());
   }
   getGraphqlQuery({ query, variables }) {
     return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;

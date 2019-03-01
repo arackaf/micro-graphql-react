@@ -49,7 +49,7 @@ export default class GraphQL extends Component {
     let options = packet[2] || {};
     if (!("active" in options) || options.active) {
       let queryManager = this.queryManagerMap[key];
-      queryManager.updateIfNeeded(packet, force);
+      queryManager.load(packet, force);
     }
   }
   componentWillUnmount() {
