@@ -28,6 +28,7 @@
     "@babel/plugin-proposal-class-properties": "^7.3.4",
     "@babel/plugin-proposal-object-rest-spread": "^7.3.4",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+    "@babel/preset-env": "^7.3.4",
     "@babel/preset-react": "^7.0.0",
     "@std/esm": "0.19.7",
     "@types/react": "^16.1.0",
@@ -64,16 +65,14 @@
   "scripts": {
     "demo": "webpack -w",
     "server": "node runServer",
-    "prepublishOnly": "node build && npm run umd-build",
-    "deploy": "node build && npm run umd-build && npm publish",
-    "umd-build": "webpack --config webpack-umd.config.js",
-    "umd-build-r": "rollup -c",
+    "prepublishOnly": "npm run build",
+    "deploy": "npm run build && npm publish",
+    "build": "rollup -c",
     "test": "jest --runInBand --bail --detectOpenHandles && codecov",
     "test-local": "jest --runInBand",
     "testw": "jest --runInBand --watchAll"
   },
   "dependencies": {
-    "natives": "^1.1.6",
     "shallow-equal": "^1.0.0"
   },
   "sideEffects": false,
