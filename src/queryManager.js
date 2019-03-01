@@ -1,5 +1,3 @@
-import { setPendingResultSymbol, setResultsSymbol, getFromCacheSymbol } from "./cache";
-
 const deConstructQueryPacket = packet => {
   if (typeof packet === "string") {
     return [packet, null, {}];
@@ -74,7 +72,7 @@ export default class QueryManager {
     }
 
     let graphqlQuery = this.currentUri;
-    this.cache[getFromCacheSymbol](
+    this.cache.getFromCache(
       graphqlQuery,
       promise => {
         Promise.resolve(promise).then(() => {
@@ -92,7 +90,7 @@ export default class QueryManager {
     let graphqlQuery = this.currentUri;
     this.updateState({ loading: true });
     let promise = this.client.runUri(this.currentUri);
-    this.cache[setPendingResultSymbol](graphqlQuery, promise);
+    this.cache.setPendingResult(graphqlQuery, promise);
     this.handleExecution(promise, graphqlQuery);
   }
   handleExecution = (promise, cacheKey) => {
@@ -102,7 +100,7 @@ export default class QueryManager {
         if (this.currentPromise !== promise) {
           return;
         }
-        this.cache[setResultsSymbol](promise, cacheKey, resp);
+        this.cache.setResults(promise, cacheKey, resp);
 
         if (resp.errors) {
           this.updateState({ loaded: true, loading: false, data: null, error: resp.errors, currentQuery: cacheKey });
@@ -111,7 +109,7 @@ export default class QueryManager {
         }
       })
       .catch(err => {
-        this.cache[setResultsSymbol](promise, cacheKey, null, err);
+        this.cache.setResults(promise, cacheKey, null, err);
         this.updateState({ loaded: true, loading: false, data: null, error: err, currentQuery: cacheKey });
       });
   };

@@ -1,42 +1,36 @@
-export const setPendingResultSymbol = Symbol("setPendingResult");
-export const setResultsSymbol = Symbol("setResults");
-export const getFromCacheSymbol = Symbol("getFromCache");
-export const noCachingSymbol = Symbol("noCaching");
-export const cacheSymbol = Symbol("cache");
-
 export default class Cache {
   constructor(cacheSize = DEFAULT_CACHE_SIZE) {
     this.cacheSize = cacheSize;
   }
-  [cacheSymbol] = new Map([]);
-  get [noCachingSymbol]() {
+  _cache = new Map([]);
+  get noCaching() {
     return !this.cacheSize;
   }
 
   get keys() {
-    return [...this[cacheSymbol].keys()];
+    return [...this._cache.keys()];
   }
 
   get entries() {
-    return [...this[cacheSymbol]];
+    return [...this._cache];
   }
 
   get(key) {
-    return this[cacheSymbol].get(key);
+    return this._cache.get(key);
   }
 
   set(key, results) {
-    this[cacheSymbol].set(key, results);
+    this._cache.set(key, results);
   }
 
   clearCache() {
-    this[cacheSymbol].clear();
+    this._cache.clear();
   }
 
-  [setPendingResultSymbol](graphqlQuery, promise) {
-    let cache = this[cacheSymbol];
+  setPendingResult(graphqlQuery, promise) {
+    let cache = this._cache;
     //front of the line now, to support LRU ejection
-    if (!this[noCachingSymbol]) {
+    if (!this.noCaching) {
       cache.delete(graphqlQuery);
       if (cache.size === this.cacheSize) {
         //maps iterate entries and keys in insertion order - zero'th key should be oldest
@@ -46,9 +40,9 @@ export default class Cache {
     }
   }
 
-  [setResultsSymbol](promise, cacheKey, resp, err) {
-    let cache = this[cacheSymbol];
-    if (this[noCachingSymbol]) {
+  setResults(promise, cacheKey, resp, err) {
+    let cache = this._cache;
+    if (this.noCaching) {
       return;
     }
 
@@ -67,9 +61,9 @@ export default class Cache {
     }
   }
 
-  [getFromCacheSymbol](key, ifPending, ifResults, ifNotFound) {
-    let cache = this[cacheSymbol];
-    if (this[noCachingSymbol]) {
+  getFromCache(key, ifPending, ifResults, ifNotFound) {
+    let cache = this._cache;
+    if (this.noCaching) {
       ifNotFound();
     } else {
       let cachedEntry = cache.get(key);
