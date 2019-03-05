@@ -44,12 +44,14 @@ which is horribly wrong, since task number 1 should no longer be in this result 
 
 ## urql
 
-`urql` takes a different approach, and, after any mutation, invalidates any and all queries which deal with the data type you just mutated. This is a lot closer, but even still, there are edge cases which GraphQL's limited type introspection makes difficult. For example, let's say you run this query
+`urql` takes a different approach and, after any mutation, invalidates any and all queries which deal with the data type you just mutated. This is a lot closer in terms of correctness, but even here there are edge cases which GraphQL's limited type introspection make difficult. For example, let's say you run this query
 
 ![Image of query with no results](img/queryNoResults.png)
 
-`urql` (last I checked) does not know that this query returned results of the `Book` type, since it has no way of knowing this, since it doesn't know that the `BookQueryResults` contains an array of Books (at least not without a build step).
+`urql` (last I checked) does not know that this query returned results of the `Book` type, since it has no way of knowing this, since it doesn't know that the `BookQueryResults` contains an array of Books (at least not without a build step). It's also worth noting that there may very well be data which _can_ be updated on the client after mutations, as Apollo does, without requiring new network requests.
+
+No single, automated solution will cover all use cases.
 
 ## micro-graphql-react
 
-This library takes a different approach, and doesn't presume to have this problem solved, instead giving you straightforward helpers you can use to direct how the cache should be updated or cleared after given mutations. See the main docs for more info.
+This library takes a different approach, and doesn't presume to have this problem solved; instead, it provides straightforward helpers you can use to direct how the cache should be updated or cleared after mutations. See the main docs for more info.
