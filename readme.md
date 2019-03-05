@@ -12,12 +12,13 @@ To see a live demo of this library managing GraphQL requests, check out this [Co
 
 **A note on cache invalidation**
 
-This library will _not_ add metadata to your queries, and attempt to automatically update your cached entries from mutation results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. Of course you can just turn client-side caching off, and run a network request each time, which, if you have a Service Worker set up, may not be too bad. This is all explained at length below.
+This library will _not_ add metadata to your queries, and attempt to automatically update your cached entries from mutation results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailer your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. This is all explained at length below.
 
 For more information on the difficulties of GraphQL caching, see [this explanation](./docs/readme-cache.md)
 
 <!-- TOC -->
 
+- [Installation](#installation)
 - [Creating a client](#creating-a-client)
   - [Client options](#client-options)
   - [Client api](#client-api)
@@ -36,11 +37,28 @@ For more information on the difficulties of GraphQL caching, see [this explanati
     - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
     - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
     - [Use Case 4: Globally modify the cache as needed](#use-case-4-globally-modify-the-cache-as-needed)
+    - [A note on cache management code](#a-note-on-cache-management-code)
 - [Manually running queries or mutations](#manually-running-queries-or-mutations)
   - [Client api](#client-api-1)
 - [Use in old browsers](#use-in-old-browsers)
 
 <!-- /TOC -->
+
+## Installation
+
+```javascript
+npm i micro-graphql-react --save
+```
+
+**Note** - this project ships standard, modern JavaScript (ES6, object spread, etc) that works in all evergreen browsers. If you need to support ES5 environments like IE11, just add an alias pointing to the ES5 build in your webpack config like so
+
+```javascript
+alias: {
+  "micro-graphql-react": "node_modules/micro-graphql-react/index-es5.js"
+},
+```
+
+(`alias` goes under the `resolve` section in webpack.config.js)
 
 ## Creating a client
 
@@ -531,6 +549,12 @@ export const clearCache = (...cacheNames) => {
 This code will clear all book search results whenever a new book is created, no matter if books are currently rendered anywhere by a hook. This ensures that if you create a book in a "create book" screen, and then browse back to a books query, no cached results will show, and instead a new query will run, so the new book will have a chance to show up in the new results (if it matches the search criteria).
 
 Of course you can also subscribe to updates, and manually update your cache, subject to the same warnings as above. Be sure to call `graphqlClient.forceUpdate(queryName)` to broadcast your updates to any components rendering them.
+
+#### A note on cache management code
+
+There's always a risk with "micro" libraries resulting in more application code overall, since they do too little. Remember, this library passes on doing client-side cache updating not so that it can artificially shrink it's bundle size, but rather because this is a problem that's all but impossible to do in an automated way. Again, this is explained [here](./docs/readme-cache.md).
+
+If you see a lot of repetative boilerplate being created in your app code to update caches, take a step back and make sure you're abstracting and generalizing appropriately. Make sure your GraphQL schema is as consistent as possible, so the work to keep the cache in sync will similarly be consistent and predictable, and therefore able to be reused.
 
 ## Manually running queries or mutations
 
