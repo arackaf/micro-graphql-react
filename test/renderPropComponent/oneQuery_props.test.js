@@ -56,6 +56,7 @@ test("Error in promise", async () => {
   verifyPropsFor(wrapper, Dummy, loadingPacket);
 
   await rejectDeferred(p, { message: "Hello" }, wrapper);
+  await pause(wrapper);
   verifyPropsFor(wrapper, Dummy, errorPacket({ message: "Hello" }));
 });
 
