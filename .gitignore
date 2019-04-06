@@ -6,3 +6,7 @@ lib-es5/
 coverage/
 index-es5.min.js
 index.min.js
+.DS_Store
+test/.DS_Store
+index-es5.js
+index.js
