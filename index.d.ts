@@ -8,7 +8,7 @@ type MutationSubscription = {
 type MutationHandlerPayload = {
   currentResults: any;
   cache: Cache;
-  softReset: () => void;
+  softReset: (newResults: any) => void;
   hardReset: () => void;
   refresh: () => void;
 };
