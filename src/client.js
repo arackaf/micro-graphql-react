@@ -39,7 +39,7 @@ export default class Client {
     return fetch(uri, this.fetchOptions || void 0).then(resp => resp.json());
   }
   getGraphqlQuery({ query, variables }) {
-    return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${JSON.stringify(variables)}` : ""}`;
+    return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${encodeURIComponent(JSON.stringify(variables))}` : ""}`;
   }
   subscribeMutation(subscription, options = {}) {
     if (!Array.isArray(subscription)) {
