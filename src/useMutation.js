@@ -16,7 +16,7 @@ export default function useMutation(packet) {
     mutationManagerRef.current.updateState();
   }
 
-  useLayoutEffect(() => () => (mutationManagerRef.current.setState = () => {}));
+  useLayoutEffect(() => () => (mutationManagerRef.current.setState = () => {}), []);
 
   return mutationState || mutationManagerRef.current.currentState;
 }
