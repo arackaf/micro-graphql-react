@@ -1,3 +1,6 @@
+import { render } from "react-testing-library";
+
+import { pause } from "../testUtils";
 import { React, Component, mount, ClientMock, setDefaultClient, basicQuery, useQuery, useMutation } from "../testSuiteInitialize";
 import { buildQuery, buildMutation } from "../../src/util";
 
@@ -10,35 +13,21 @@ beforeEach(() => {
 
 const Dummy = () => null;
 
-const getQueryAndMutationComponent = options => props => {
-  let q1 = useQuery([basicQuery, { query: props.query }, options]);
-  let m1 = useMutation(["someMutation{}"]);
-
-  return <Dummy {...props} {...{ q1, m1 }} />;
+const getQueryAndMutationComponent = options => {
+  let currentProps = {};
+  return [
+    () => currentProps,
+    props => {
+      let q1 = useQuery([basicQuery, { query: props.query }, options]);
+      let m1 = useMutation(["someMutation{}"]);
+      currentProps = { ...{ q1, m1 } };
+      return <Dummy {...props} {...{ q1, m1 }} />;
+    }
+  ];
 };
 
-const getQueryAndMutationComponent2 = options => props => {
-  let { loading, loaded, data } = useQuery(buildQuery(basicQuery, { query: props.query }, options));
-  let { running, finished, runMutation } = useMutation(buildMutation("someMutation{}"));
-
-  return <Dummy {...props} {...{ loading, loaded, data, running, runMutation }} />;
-};
-
-const getQ1Data = wrapper =>
-  wrapper
-    .children()
-    .find(Dummy)
-    .props().q1.data;
-
-const runM1Mutation = (wrapper, args) =>
-  wrapper
-    .children()
-    .find(Dummy)
-    .props()
-    .m1.runMutation(args);
-
-test("Mutation listener updates cache", async () => {
-  let Component = getQueryAndMutationComponent({
+test("Mutation listener updates cache X", async () => {
+  let [getProps, Component] = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
       run: ({ cache }, { updateBook: { Book } }) => {
@@ -51,26 +40,28 @@ test("Mutation listener updates cache", async () => {
   });
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let wrapper = mount(<Component query="a" />);
-
-  await waitAndUpdate(wrapper);
+  let { rerender } = render(<Component query="a" />);
+  await pause();
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }] } };
-  await setPropsAndWait(wrapper, { query: "b" });
+
+  rerender(<Component query="b" />);
+  await pause();
 
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await runM1Mutation(wrapper);
+  getProps().m1.runMutation();
 
   expect(client1.queriesRun).toBe(2); //run for new query args
 
-  await setPropsAndWait(wrapper, { query: "a" });
+  rerender(<Component query="a" />);
+  await pause();
 
   expect(client1.queriesRun).toBe(2); //still loads from cache
-  expect(getQ1Data(wrapper)).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
+  expect(getProps().q1.data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
 test("Mutation listener updates cache with mutation args - string", async () => {
-  let Component = getQueryAndMutationComponent({
+  let [getProps, Component] = getQueryAndMutationComponent({
     onMutation: {
       when: "deleteBook",
       run: ({ cache, refresh }, resp, args) => {
@@ -83,26 +74,28 @@ test("Mutation listener updates cache with mutation args - string", async () => 
   });
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] } };
-  let wrapper = mount(<Component query="a" />);
-  await waitAndUpdate(wrapper);
+  let { rerender } = render(<Component query="a" />);
+  await pause();
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }] } };
-  await setPropsAndWait(wrapper, { query: "b" });
+  rerender(<Component query="b" />);
+  await pause();
 
   client1.nextMutationResult = { deleteBook: { success: true } };
-  await runM1Mutation(wrapper, { id: 1 });
+  await getProps().m1.runMutation({ id: 1 });
 
   expect(client1.queriesRun).toBe(2); //run for new query args
-  expect(getQ1Data(wrapper)).toEqual({ Books: [] }); //loads updated data
+  expect(getProps().q1.data).toEqual({ Books: [] }); //loads updated data
 
-  await setPropsAndWait(wrapper, { query: "a" });
+  rerender(<Component query="a" />);
+  await pause();
 
   expect(client1.queriesRun).toBe(2); //still loads from cache
-  expect(getQ1Data(wrapper)).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
+  expect(getProps().q1.data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
 test("Mutation listener updates cache with mutation args - regex", async () => {
-  let Component = getQueryAndMutationComponent({
+  let [getProps, Component] = getQueryAndMutationComponent({
     onMutation: {
       when: /deleteBook/,
       run: ({ cache, refresh }, resp, args) => {
@@ -115,26 +108,27 @@ test("Mutation listener updates cache with mutation args - regex", async () => {
   });
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] } };
-  let wrapper = mount(<Component query="a" />);
-  await waitAndUpdate(wrapper);
+  let { rerender } = render(<Component query="a" />);
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }] } };
-  await setPropsAndWait(wrapper, { query: "b" });
+  rerender(<Component query="b" />);
+  await pause();
 
   client1.nextMutationResult = { deleteBook: { success: true } };
-  await runM1Mutation(wrapper, { id: 1 });
+  await getProps().m1.runMutation({ id: 1 });
 
   expect(client1.queriesRun).toBe(2); //run for new query args
-  expect(getQ1Data(wrapper)).toEqual({ Books: [] }); //loads updated data
+  expect(getProps().q1.data).toEqual({ Books: [] }); //loads updated data
 
-  await setPropsAndWait(wrapper, { query: "a" });
+  rerender(<Component query="a" />);
+  await pause();
 
   expect(client1.queriesRun).toBe(2); //still loads from cache
-  expect(getQ1Data(wrapper)).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
+  expect(getProps().q1.data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
 test("Mutation listener updates cache then refreshes from cache", async () => {
-  let Component = getQueryAndMutationComponent({
+  let [getProps, Component] = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
       run: ({ cache, refresh }, { updateBook: { Book } }) => {
@@ -157,20 +151,20 @@ test("Mutation listener updates cache then refreshes from cache", async () => {
   });
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let wrapper = mount(<Component query="a" />);
-  await waitAndUpdate(wrapper);
+  let { rerender } = render(<Component query="a" />);
+  await pause();
 
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await runM1Mutation(wrapper);
-  await waitAndUpdate(wrapper);
+  await getProps().m1.runMutation();
+  await pause();
 
   expect(client1.queriesRun).toBe(1); //refreshed from cache
-  expect(getQ1Data(wrapper)).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //refreshed with updated data
+  expect(getProps().q1.data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //refreshed with updated data
 });
 
 test("Mutation listener - soft reset - props right, cache cleared", async () => {
   let componentsCache;
-  let Component = getQueryAndMutationComponent({
+  let [getProps, Component] = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
       run: ({ cache, softReset, currentResults }, { updateBook: { Book } }) => {
@@ -183,19 +177,19 @@ test("Mutation listener - soft reset - props right, cache cleared", async () => 
   });
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let wrapper = mount(<Component query="a" />);
-  await waitAndUpdate(wrapper);
+  let { rerender } = render(<Component query="a" />);
+  await pause();
 
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await runM1Mutation(wrapper);
+  await getProps().m1.runMutation();
 
   expect(componentsCache.entries.length).toBe(0); //cache is cleared!
-  expect(getQ1Data(wrapper)).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
+  expect(getProps().q1.data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
 });
 
 test("Mutation listener - hard reset - props right, cache cleared, client qeried", async () => {
   let componentsCache;
-  let Component = getQueryAndMutationComponent({
+  let [getProps, Component] = getQueryAndMutationComponent({
     onMutation: {
       when: "updateBook",
       run: ({ cache, hardReset, currentResults }) => {
@@ -206,29 +200,15 @@ test("Mutation listener - hard reset - props right, cache cleared, client qeried
   });
 
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "__WRONG__Eve" }] } };
-  let wrapper = mount(<Component query="a" />);
-  await waitAndUpdate(wrapper);
+  let { rerender } = render(<Component query="a" />);
 
   expect(client1.queriesRun).toBe(1); //just the one
   client1.nextResult = { data: { Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] } };
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
-  await runM1Mutation(wrapper);
-  await waitAndUpdate(wrapper);
+  await getProps().m1.runMutation();
+  await pause();
 
   expect(componentsCache.entries.length).toBe(1); //just the most recent entry
-  expect(getQ1Data(wrapper)).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
+  expect(getProps().q1.data).toEqual({ Books: [{ id: 1, title: "Book 1", author: "Adam" }, { id: 2, title: "Book 2", author: "Eve" }] }); //updated data is now there
   expect(client1.queriesRun).toBe(2); //run from the hard reset
 });
-
-async function setPropsAndWait(renderedComponent, props) {
-  renderedComponent.setProps(props);
-  await waitAndUpdate(renderedComponent);
-}
-function waitAndUpdate(renderedComponent) {
-  return new Promise(res => {
-    setTimeout(() => {
-      renderedComponent.update();
-      res();
-    }, 1);
-  });
-}

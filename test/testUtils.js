@@ -65,7 +65,7 @@ export const errorPacket = error => ({
 export const pause = wrapper =>
   new Promise(res =>
     setTimeout(() => {
-      wrapper.update();
+      wrapper && wrapper.update();
       res();
     }, 10)
   );
