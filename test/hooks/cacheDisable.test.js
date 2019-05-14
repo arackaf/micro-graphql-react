@@ -1,7 +1,6 @@
+import { render } from "react-testing-library";
 import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, Cache, useQuery } from "../testSuiteInitialize";
 import { deferred, resolveDeferred } from "../testUtils";
-
-import { render } from "react-testing-library";
 
 let client1;
 let client2;

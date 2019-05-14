@@ -1,6 +1,5 @@
-import { React, ClientMock, setDefaultClient, useQuery } from "../testSuiteInitialize";
-
 import { render } from "react-testing-library";
+import { React, ClientMock, setDefaultClient, useQuery } from "../testSuiteInitialize";
 
 const queryA = "A";
 const queryB = "B";
