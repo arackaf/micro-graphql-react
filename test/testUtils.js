@@ -31,7 +31,7 @@ export const rejectDeferred = async (p, val, wrapper) => {
   try {
     await p;
   } catch (er) {}
-  wrapper.update();
+  wrapper && wrapper.update();
 };
 
 export const defaultPacket = {

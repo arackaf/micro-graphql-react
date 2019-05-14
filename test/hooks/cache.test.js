@@ -4,16 +4,12 @@ import { deferred, dataPacket } from "../testUtils";
 
 let client1;
 let client2;
-let client3;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   client2 = new ClientMock("endpoint2");
-  client3 = new ClientMock("endpoint3");
   setDefaultClient(client1);
 });
-
-const Dummy = () => <div />;
 
 const getComponent = options => {
   let currentProps = {};
@@ -22,7 +18,7 @@ const getComponent = options => {
     props => {
       let queryProps = useQuery([basicQuery, { page: props.page }, options]);
       currentProps = queryProps;
-      return <Dummy {...queryProps} />;
+      return null;
     }
   ];
 };
