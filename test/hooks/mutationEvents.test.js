@@ -1,5 +1,4 @@
 import { render } from "react-testing-library";
-
 import { pause } from "../testUtils";
 import { React, Component, mount, ClientMock, setDefaultClient, basicQuery, useQuery, useMutation } from "../testSuiteInitialize";
 import { buildQuery, buildMutation } from "../../src/util";
