@@ -1,5 +1,5 @@
-import { React, mount, ClientMock, GraphQL, setDefaultClient, basicQuery, Cache, useQuery } from "../testSuiteInitialize";
-import { getPropsFor, verifyPropsFor, deferred, dataPacket, resolveDeferred } from "../testUtils";
+import { React, ClientMock, setDefaultClient, basicQuery, Cache, useQuery } from "../testSuiteInitialize";
+import { deferred, dataPacket } from "../testUtils";
 
 import { render } from "react-testing-library";
 
@@ -87,7 +87,7 @@ test("Pick up in-progress query", async () => {
 });
 
 test("Cache accessible by query in client", async () => {
-  mount(<Component1 page={1} unused={10} />);
+  render(<Component1 page={1} unused={10} />);
   let cache = client1.getCache(basicQuery);
   expect(typeof cache).toBe("object");
 });
