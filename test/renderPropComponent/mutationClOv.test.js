@@ -1,61 +1,79 @@
+import { render } from "react-testing-library";
+
 import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
 import { getPropsFor, deferred, resolveDeferred } from "../testUtils";
 
 let client1;
 let client2;
 let ComponentA;
+let getPropsA;
 let ComponentB;
+let getPropsB;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   client2 = new ClientMock("endpoint1");
   setDefaultClient(client1);
-  ComponentA = getComponentA();
-  ComponentB = getComponentB();
+  [getPropsA, ComponentA] = getComponentA();
+  [getPropsB, ComponentB] = getComponentB();
 });
 
-class Dummy extends Component {
-  render() {
-    return null;
-  }
-}
-
-const getComponentA = (render = props => <Dummy {...props} />) =>
-  class extends Component {
-    render() {
-      return <GraphQL mutation={{ mutation1: ["A", { client: client2 }] }}>{render}</GraphQL>;
+const getComponentA = options => {
+  let currentProps = {};
+  return [
+    () => currentProps,
+    class extends Component {
+      render() {
+        return (
+          <GraphQL mutation={{ mutation1: ["A", { client: client2 }] }}>
+            {props => {
+              currentProps = props;
+              return null;
+            }}
+          </GraphQL>
+        );
+      }
     }
-  };
-
-const getComponentB = (render = props => <Dummy {...props} />) =>
-  class extends Component {
-    render() {
-      return <GraphQL mutation={{ mutation1: ["A", { client: client2 }], mutation2: ["B", { client: client2 }] }}>{render}</GraphQL>;
+  ];
+};
+const getComponentB = options => {
+  let currentProps = {};
+  return [
+    () => currentProps,
+    class extends Component {
+      render() {
+        return (
+          <GraphQL mutation={{ mutation1: ["A", { client: client2 }], mutation2: ["B", { client: client2 }] }}>
+            {props => {
+              currentProps = props;
+              return null;
+            }}
+          </GraphQL>
+        );
+      }
     }
-  };
+  ];
+};
 
 test("Mutation function exists", () => {
-  let wrapper = mount(<ComponentA />);
-  let props = getPropsFor(wrapper, Dummy);
+  render(<ComponentA />);
 
-  expect(typeof props.mutation1.runMutation).toBe("function");
-  expect(props.mutation1.running).toBe(false);
-  expect(props.mutation1.finished).toBe(false);
+  expect(typeof getPropsA().mutation1.runMutation).toBe("function");
+  expect(getPropsA().mutation1.running).toBe(false);
+  expect(getPropsA().mutation1.finished).toBe(false);
 });
 
 test("Mutation function calls", () => {
-  let wrapper = mount(<ComponentA />);
-  let props = getPropsFor(wrapper, Dummy);
-  props.mutation1.runMutation();
+  render(<ComponentA />);
+  getPropsA().mutation1.runMutation();
 
   expect(client2.mutationsRun).toBe(1);
 });
 
 test("Mutation function calls", () => {
-  let wrapper = mount(<ComponentB />);
-  let props = getPropsFor(wrapper, Dummy);
-  props.mutation1.runMutation();
-  props.mutation2.runMutation();
+  render(<ComponentB />);
+  getPropsB().mutation1.runMutation();
+  getPropsB().mutation2.runMutation();
 
   expect(client2.mutationsRun).toBe(2);
 });
