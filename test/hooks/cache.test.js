@@ -1,9 +1,10 @@
 import { render } from "react-testing-library";
-import { React, ClientMock, setDefaultClient, basicQuery, Cache, useQuery } from "../testSuiteInitialize";
-import { deferred, dataPacket } from "../testUtils";
+import { React, ClientMock, setDefaultClient, Cache } from "../testSuiteInitialize";
+import { deferred, dataPacket, queryHookComponentFactory } from "../testUtils";
 
 let client1;
 let client2;
+const basicQuery = "A";
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
@@ -11,17 +12,7 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-const getComponent = options => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    props => {
-      let queryProps = useQuery([basicQuery, { page: props.page }, options]);
-      currentProps = queryProps;
-      return null;
-    }
-  ];
-};
+const getComponent = queryHookComponentFactory(basicQuery, props => ({ page: props.page }));
 
 const [getProps1, Component1] = getComponent();
 const [getProps2, Component2] = getComponent();
