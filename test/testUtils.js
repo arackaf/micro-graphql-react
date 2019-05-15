@@ -1,3 +1,5 @@
+import { useQuery } from "../src";
+
 export const getPropsFor = (wrapper, target) =>
   wrapper
     .children()
@@ -69,3 +71,14 @@ export const pause = wrapper =>
       res();
     }, 10)
   );
+
+export const queryHookComponentFactory = (query, getProps) => options => {
+  let currentProps = {};
+  return [
+    () => currentProps,
+    props => {
+      currentProps = useQuery([query, getProps(props), options]);
+      return null;
+    }
+  ];
+};
