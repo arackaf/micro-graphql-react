@@ -1,35 +1,18 @@
 import { render } from "react-testing-library";
 
-import { React, Component, ClientMock, GraphQL, setDefaultClient } from "../testSuiteInitialize";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { renderPropComponentFactory } from "../testUtils";
 
 let client1;
 let latestProps;
-const basicQuery = "A";
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
 });
 
-const getQueryAndMutationComponent = options => {
-  let currentProps;
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        let props = this.props;
-        return (
-          <GraphQL query={{ q1: [basicQuery, { page: props.page }, options] }} mutation={{ m1: ["someMutation{}"] }}>
-            {props => {
-              currentProps = props;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getQueryAndMutationComponent = options =>
+  renderPropComponentFactory(props => ({ query: { q1: ["A", { page: props.page }, options] }, mutation: { m1: ["someMutation{}"] } }));
 
 test("Mutation listener runs with exact match", async () => {
   let runCount = 0;

@@ -1,34 +1,14 @@
 import { render } from "react-testing-library";
 
-import { React, Component, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
-import { deferred, resolveDeferred, loadingPacket, dataPacket, errorPacket, rejectDeferred, pause, defaultPacket } from "../testUtils";
-
-const queryA = "A";
-const queryB = "B";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { deferred, resolveDeferred, loadingPacket, dataPacket, pause, defaultPacket, renderPropComponentFactory } from "../testUtils";
 
 let client1;
 let ComponentToUse;
 let getProps;
 
-const getQueryAndMutationComponent = options => {
-  let currentProps;
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        let props = this.props;
-        return (
-          <GraphQL query={{ query1: [queryA, { a: props.a }, { active: props.active }] }}>
-            {props => {
-              currentProps = props;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getQueryAndMutationComponent = options =>
+  renderPropComponentFactory(props => ({ query: { query1: ["A", { a: props.a }, { active: props.active }] } }));
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
