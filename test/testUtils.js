@@ -1,17 +1,6 @@
 import React, { Component } from "react";
 import { useQuery, useMutation, GraphQL } from "../src";
 
-export const getPropsFor = (wrapper, target) =>
-  wrapper
-    .children()
-    .find(target)
-    .props();
-
-export const verifyPropsFor = (wrapper, target, expected) => {
-  let props = getPropsFor(wrapper, target);
-  expect(props).toMatchObject(expected);
-};
-
 export const deferred = () => {
   let resolve, reject;
   let p = new Promise((res, rej) => {
