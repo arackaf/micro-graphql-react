@@ -12,7 +12,7 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-const getComponent = queryHookComponentFactory(basicQuery, props => ({ page: props.page }));
+const getComponent = queryHookComponentFactory([basicQuery, props => ({ page: props.page })]);
 
 const [getProps1, Component1] = getComponent();
 const [getProps2, Component2] = getComponent();

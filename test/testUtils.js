@@ -72,12 +72,19 @@ export const pause = wrapper =>
     }, 10)
   );
 
-export const queryHookComponentFactory = (query, getProps) => options => {
-  let currentProps = {};
+export const queryHookComponentFactory = (...args) => (...options) => {
+  let howManyHooks = args.length;
+  let currentProps = Array.from({ length: howManyHooks }, () => ({}));
+  let lambdas = currentProps.map((o, i) => () => currentProps[i]);
+
   return [
-    () => currentProps,
+    ...lambdas,
     props => {
-      currentProps = useQuery([query, getProps(props), options]);
+      args.forEach((packet, i) => {
+        if (Array.isArray(packet)) {
+          currentProps[i] = useQuery([packet[0], packet[1] ? packet[1](props) : {}, options[i]]);
+        }
+      });
       return null;
     }
   ];
