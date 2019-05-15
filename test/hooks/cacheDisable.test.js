@@ -1,6 +1,6 @@
 import { render } from "react-testing-library";
 import { React, Component, ClientMock, setDefaultClient, Cache } from "../testSuiteInitialize";
-import { deferred, resolveDeferred, queryHookComponentFactory } from "../testUtils";
+import { deferred, resolveDeferred, hookComponentFactory } from "../testUtils";
 
 let client1;
 let client2;
@@ -12,7 +12,7 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-const getComponent = queryHookComponentFactory([basicQuery, props => ({ page: props.page })]);
+const getComponent = hookComponentFactory([basicQuery, props => ({ page: props.page })]);
 
 const [getProps1, Component1] = getComponent();
 const [getProps2, Component2] = getComponent();

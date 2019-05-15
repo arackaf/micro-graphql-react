@@ -1,4 +1,4 @@
-import { useQuery } from "../src";
+import { useQuery, useMutation } from "../src";
 
 export const getPropsFor = (wrapper, target) =>
   wrapper
@@ -72,7 +72,7 @@ export const pause = wrapper =>
     }, 10)
   );
 
-export const queryHookComponentFactory = (...args) => (...options) => {
+export const hookComponentFactory = (...args) => (...options) => {
   let howManyHooks = args.length;
   let currentProps = Array.from({ length: howManyHooks }, () => ({}));
   let lambdas = currentProps.map((o, i) => () => currentProps[i]);
@@ -83,6 +83,8 @@ export const queryHookComponentFactory = (...args) => (...options) => {
       args.forEach((packet, i) => {
         if (Array.isArray(packet)) {
           currentProps[i] = useQuery([packet[0], packet[1] ? packet[1](props) : {}, options[i]]);
+        } else {
+          currentProps[i] = useMutation([packet[0], options[i]]);
         }
       });
       return null;

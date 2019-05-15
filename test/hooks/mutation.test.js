@@ -1,5 +1,6 @@
 import { render } from "react-testing-library";
 import { React, ClientMock, setDefaultClient, useMutation } from "../testSuiteInitialize";
+import { hookComponentFactory } from "../testUtils";
 
 let client1;
 let ComponentA;
@@ -11,19 +12,7 @@ beforeEach(() => {
   [getProps, ComponentA] = getComponentA();
 });
 
-const Dummy = () => <div />;
-
-const getComponentA = () => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    props => {
-      let mutationState = useMutation(["A"]);
-      currentProps = mutationState;
-      return <Dummy mutation1={{ ...mutationState }} />;
-    }
-  ];
-};
+const getComponentA = hookComponentFactory("A");
 
 test("Mutation function exists", () => {
   render(<ComponentA />);
