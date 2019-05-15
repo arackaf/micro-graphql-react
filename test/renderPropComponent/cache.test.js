@@ -1,7 +1,7 @@
 import { render } from "react-testing-library";
 
-import { React, Component, ClientMock, GraphQL, setDefaultClient, Cache } from "../testSuiteInitialize";
-import { deferred, dataPacket, resolveDeferred, pause } from "../testUtils";
+import { React, ClientMock, setDefaultClient, Cache } from "../testSuiteInitialize";
+import { deferred, dataPacket, resolveDeferred, pause, renderPropComponentFactory } from "../testUtils";
 
 let client1;
 let client2;
@@ -16,24 +16,7 @@ beforeEach(() => {
   [getProps, ComponentToRender] = getComponent();
 });
 
-const getComponent = options => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        return (
-          <GraphQL query={{ query1: [basicQuery, { page: this.props.page }, options] }}>
-            {props => {
-              currentProps = props.query1;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getComponent = options => renderPropComponentFactory(props => ({ query: { query1: [basicQuery, { page: props.page }, options] } }));
 
 test("Default cache size", async () => {
   let { rerender } = render(<ComponentToRender page={1} unused={10} />);
@@ -49,7 +32,7 @@ test("Reload query", async () => {
   let { rerender } = render(<ComponentToRender page={1} unused={10} />);
   expect(client1.queriesRun).toBe(1);
 
-  getProps().reload();
+  getProps().query1.reload();
   expect(client1.queriesRun).toBe(2);
 });
 
@@ -59,7 +42,7 @@ test("Clear cache", async () => {
   let cache = client1.getCache(basicQuery);
   expect(cache.entries.length).toBe(1);
 
-  getProps().clearCache();
+  getProps().query1.clearCache();
   expect(cache.entries.length).toBe(0);
 });
 
@@ -69,7 +52,7 @@ test("Clear cache and reload", async () => {
   let cache = client1.getCache(basicQuery);
   expect(cache.entries.length).toBe(1);
 
-  getProps().clearCacheAndReload();
+  getProps().query1.clearCacheAndReload();
   expect(cache.entries.length).toBe(1);
   expect(client1.queriesRun).toBe(2);
 });
@@ -86,8 +69,8 @@ test("Pick up in-progress query", async () => {
   await p.resolve({ data: { tasks: [{ id: 9 }] } });
   await pause();
 
-  expect(getProps1()).toMatchObject(dataPacket({ tasks: [{ id: 9 }] }));
-  expect(getProps2()).toMatchObject(dataPacket({ tasks: [{ id: 9 }] }));
+  expect(getProps1().query1).toMatchObject(dataPacket({ tasks: [{ id: 9 }] }));
+  expect(getProps2().query1).toMatchObject(dataPacket({ tasks: [{ id: 9 }] }));
 
   expect(client1.queriesRun).toBe(1);
 });

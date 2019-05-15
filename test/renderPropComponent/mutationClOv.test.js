@@ -1,7 +1,7 @@
 import { render } from "react-testing-library";
 
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
-import { getPropsFor, deferred, resolveDeferred } from "../testUtils";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { renderPropComponentFactory } from "../testUtils";
 
 let client1;
 let client2;
@@ -18,42 +18,9 @@ beforeEach(() => {
   [getPropsB, ComponentB] = getComponentB();
 });
 
-const getComponentA = options => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        return (
-          <GraphQL mutation={{ mutation1: ["A", { client: client2 }] }}>
-            {props => {
-              currentProps = props;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
-const getComponentB = options => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        return (
-          <GraphQL mutation={{ mutation1: ["A", { client: client2 }], mutation2: ["B", { client: client2 }] }}>
-            {props => {
-              currentProps = props;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getComponentA = options => renderPropComponentFactory(props => ({ mutation: { mutation1: ["A", { client: client2 }] } }));
+const getComponentB = options =>
+  renderPropComponentFactory(props => ({ mutation: { mutation1: ["A", { client: client2 }], mutation2: ["B", { client: client2 }] } }));
 
 test("Mutation function exists", () => {
   render(<ComponentA />);
