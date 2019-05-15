@@ -1,7 +1,7 @@
 import { render } from "react-testing-library";
 
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
-import { getPropsFor, deferred, resolveDeferred } from "../testUtils";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { renderPropComponentFactory } from "../testUtils";
 
 let client1;
 let ComponentA;
@@ -13,24 +13,7 @@ beforeEach(() => {
   [getProps, ComponentA] = getComponent();
 });
 
-const getComponent = options => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        return (
-          <GraphQL mutation={{ mutation1: "A" }}>
-            {props => {
-              currentProps = props;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getComponent = () => renderPropComponentFactory(props => ({ mutation: { mutation1: "A" } }));
 
 test("Mutation function exists", () => {
   render(<ComponentA />);

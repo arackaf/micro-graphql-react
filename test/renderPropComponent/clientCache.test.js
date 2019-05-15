@@ -1,6 +1,7 @@
 import { render } from "react-testing-library";
 
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { renderPropComponentFactory } from "../testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -9,56 +10,18 @@ let client1;
 let ComponentA;
 let getPropsA;
 let ComponentB;
-let getPropsB1;
-let getPropsB2;
+let getPropsB;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
   [getPropsA, ComponentA] = getComponentA();
-  [getPropsB1, getPropsB2, ComponentB] = getComponentB();
+  [getPropsB, ComponentB] = getComponentB();
 });
 
-const getComponentA = options => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        return (
-          <GraphQL query={{ query1: [queryA, { a: this.props.a }] }}>
-            {props => {
-              currentProps = props.query1;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
-
-const getComponentB = options => {
-  let currentProps1 = {};
-  let currentProps2 = {};
-  return [
-    () => currentProps1,
-    () => currentProps2,
-    class extends Component {
-      render() {
-        return (
-          <GraphQL query={{ query1: [queryA, { a: this.props.a }], query2: [queryB, { b: this.props.b }] }}>
-            {props => {
-              currentProps1 = props.query1;
-              currentProps2 = props.query2;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getComponentA = options => renderPropComponentFactory(props => ({ query: { query1: [queryA, { a: props.a }] } }));
+const getComponentB = options =>
+  renderPropComponentFactory(props => ({ query: { query1: [queryA, { a: props.a }], query2: [queryB, { b: props.b }] } }));
 
 test("Basic query fires on mount", () => {
   render(<ComponentA a={1} unused={0} />);

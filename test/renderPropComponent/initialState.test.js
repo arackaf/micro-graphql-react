@@ -1,5 +1,5 @@
 import { render } from "react-testing-library";
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, buildQuery } from "../testSuiteInitialize";
+import { React, Component, ClientMock, setDefaultClient, GraphQL, buildQuery } from "../testSuiteInitialize";
 
 const LOAD_TASKS = "A";
 const LOAD_USERS = "B";

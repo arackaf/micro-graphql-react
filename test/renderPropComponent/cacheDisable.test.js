@@ -1,11 +1,10 @@
 import { render } from "react-testing-library";
 
-import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, Cache } from "../testSuiteInitialize";
-import { getPropsFor, verifyPropsFor, deferred, dataPacket, resolveDeferred } from "../testUtils";
+import { React, ClientMock, setDefaultClient, Cache } from "../testSuiteInitialize";
+import { deferred, resolveDeferred, renderPropComponentFactory } from "../testUtils";
 
 let client1;
 let client2;
-let basicQuery = "A";
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
@@ -13,24 +12,7 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-const getComponent = options => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        return (
-          <GraphQL query={{ query1: [basicQuery, { page: this.props.page }, options] }}>
-            {props => {
-              currentProps = props.query1;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getComponent = options => renderPropComponentFactory(props => ({ query: { query1: ["A", { page: props.page }, options] } }));
 
 describe("Disable caching", () => {
   test("Explicit cache with size zero", async () => {

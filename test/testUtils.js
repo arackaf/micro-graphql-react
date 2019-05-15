@@ -1,4 +1,5 @@
-import { useQuery, useMutation } from "../src";
+import React, { Component } from "react";
+import { useQuery, useMutation, GraphQL } from "../src";
 
 export const getPropsFor = (wrapper, target) =>
   wrapper
@@ -89,6 +90,25 @@ export const hookComponentFactory = (...hookPackets) => (...hookOptions) => {
         }
       });
       return null;
+    }
+  ];
+};
+
+export const renderPropComponentFactory = config => {
+  let currentProps = {};
+  return [
+    () => currentProps,
+    class extends Component {
+      render() {
+        return (
+          <GraphQL {...config(this.props)}>
+            {props => {
+              currentProps = props;
+              return null;
+            }}
+          </GraphQL>
+        );
+      }
     }
   ];
 };
