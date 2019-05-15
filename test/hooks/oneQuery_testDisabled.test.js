@@ -1,19 +1,6 @@
 import { render } from "react-testing-library";
-import { React, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
-import {
-  verifyPropsFor,
-  deferred,
-  resolveDeferred,
-  loadingPacket,
-  defaultPacket,
-  dataPacket,
-  errorPacket,
-  rejectDeferred,
-  pause
-} from "../testUtils";
-
-const queryA = "A";
-const queryB = "B";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { hookComponentFactory, deferred, resolveDeferred, loadingPacket, defaultPacket, dataPacket, errorPacket, pause } from "../testUtils";
 
 let client1;
 let ComponentToUse;
@@ -25,19 +12,7 @@ beforeEach(() => {
   [getProps, ComponentToUse] = getComponent();
 });
 
-const Dummy = () => <div />;
-
-const getComponent = () => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    props => {
-      let queryProps = useQuery([queryA, { a: props.a }, { active: props.active }]);
-      currentProps = queryProps;
-      return <Dummy {...queryProps} />;
-    }
-  ];
-};
+const getComponent = hookComponentFactory(["A", props => ({ a: props.a })]).bind(null, props => ({ active: props.active }));
 
 test("loading props passed", async () => {
   render(<ComponentToUse a={1} unused={0} active={false} />);

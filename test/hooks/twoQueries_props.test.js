@@ -1,7 +1,6 @@
 import { render } from "react-testing-library";
-import { React, ClientMock, setDefaultClient, useQuery } from "../testSuiteInitialize";
-import { deferred, resolveDeferred, loadingPacket, pause, dataPacket } from "../testUtils";
-import { buildQuery } from "../../src/util";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { deferred, resolveDeferred, loadingPacket, pause, dataPacket, hookComponentFactory } from "../testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -17,22 +16,7 @@ beforeEach(() => {
   [getProps1, getProps2, ComponentToUse] = getComponent();
 });
 
-const getComponent = () => {
-  let currentProps1 = {};
-  let currentProps2 = {};
-  return [
-    () => currentProps1,
-    () => currentProps2,
-    props => {
-      let query1Props = useQuery(buildQuery(queryA, { a: props.a }));
-      let query2Props = useQuery(buildQuery(queryB, { b: props.b }));
-
-      currentProps1 = query1Props;
-      currentProps2 = query2Props;
-      return null;
-    }
-  ];
-};
+const getComponent = hookComponentFactory([queryA, props => ({ a: props.a })], [queryB, props => ({ b: props.b })]);
 
 test("loading props passed", async () => {
   render(<ComponentToUse a={"a"} b={"b"} unused={0} />);

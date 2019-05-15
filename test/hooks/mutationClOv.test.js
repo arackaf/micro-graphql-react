@@ -1,5 +1,6 @@
 import { render } from "react-testing-library";
-import { React, ClientMock, setDefaultClient, useMutation } from "../testSuiteInitialize";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { hookComponentFactory } from "../testUtils";
 
 let client1;
 let client2;
@@ -10,40 +11,11 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-const Dummy = () => null;
-
-const getComponentA = () => {
-  let currentProps = {};
-  return [
-    () => currentProps,
-    props => {
-      const mutation1 = useMutation(["A", { client: client2 }]);
-      currentProps = mutation1;
-      return <Dummy {...props} mutation1={mutation1} />;
-    }
-  ];
-};
-
-const getComponentB = () => {
-  let currentProps1 = {};
-  let currentProps2 = {};
-  return [
-    () => currentProps1,
-    () => currentProps2,
-    props => {
-      const mutation1 = useMutation(["A", { client: client2 }]);
-      const mutation2 = useMutation(["B", { client: client2 }]);
-
-      currentProps1 = mutation1;
-      currentProps2 = mutation2;
-
-      return <Dummy {...props} mutation1={mutation1} mutation2={mutation2} />;
-    }
-  ];
-};
+const getComponentA = hookComponentFactory("A");
+const getComponentB = hookComponentFactory("A", "B");
 
 test("Mutation function exists", () => {
-  let [getProps, ComponentA] = getComponentA();
+  let [getProps, ComponentA] = getComponentA({ client: client2 });
   render(<ComponentA />);
 
   expect(typeof getProps().runMutation).toBe("function");
@@ -52,7 +24,7 @@ test("Mutation function exists", () => {
 });
 
 test("Mutation function calls", () => {
-  let [getProps, ComponentA] = getComponentA();
+  let [getProps, ComponentA] = getComponentA({ client: client2 });
   render(<ComponentA />);
   getProps().runMutation();
 
@@ -60,7 +32,7 @@ test("Mutation function calls", () => {
 });
 
 test("Mutation function calls", () => {
-  let [getProps1, getProps2, ComponentB] = getComponentB();
+  let [getProps1, getProps2, ComponentB] = getComponentB({ client: client2 }, { client: client2 });
   render(<ComponentB />);
 
   getProps1().runMutation();
