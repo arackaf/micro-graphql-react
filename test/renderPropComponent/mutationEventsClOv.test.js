@@ -1,6 +1,7 @@
 import { render } from "react-testing-library";
 
-import { React, Component, mount, ClientMock, GraphQL, setDefaultClient, basicQuery } from "../testSuiteInitialize";
+import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { renderPropComponentFactory } from "../testUtils";
 
 let client1;
 let client2;
@@ -11,28 +12,11 @@ beforeEach(() => {
   setDefaultClient(client1);
 });
 
-const getQueryAndMutationComponent = options => {
-  let currentProps;
-  return [
-    () => currentProps,
-    class extends Component {
-      render() {
-        let props = this.props;
-        return (
-          <GraphQL
-            query={{ q1: [basicQuery, { query: props.query }, { ...options, client: client2 }] }}
-            mutation={{ m1: ["someMutation{}", { client: client2 }] }}
-          >
-            {props => {
-              currentProps = props;
-              return null;
-            }}
-          </GraphQL>
-        );
-      }
-    }
-  ];
-};
+const getQueryAndMutationComponent = options =>
+  renderPropComponentFactory(props => ({
+    query: { q1: ["A", { query: props.query }, { ...options, client: client2 }] },
+    mutation: { m1: ["someMutation{}", { client: client2 }] }
+  }));
 
 test("Mutation listener updates cache", async () => {
   let [getProps, Component] = getQueryAndMutationComponent({
