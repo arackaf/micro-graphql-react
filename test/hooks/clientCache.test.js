@@ -1,5 +1,6 @@
 import { render } from "react-testing-library";
 import { React, ClientMock, setDefaultClient, useQuery } from "../testSuiteInitialize";
+import { hookComponentFactory } from "../testUtils";
 
 const queryA = "A";
 const queryB = "B";
@@ -7,24 +8,17 @@ const queryB = "B";
 let client1;
 let ComponentA;
 let ComponentB;
+let a, b, c;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
-  ComponentA = getComponentA();
-  ComponentB = getComponentB();
+  [a, ComponentA] = getComponentA();
+  [b, c, ComponentB] = getComponentB();
 });
 
-const getComponentA = (render = () => null) => props => {
-  let queryProps = useQuery([queryA, { a: props.a }]);
-  return <div />;
-};
-
-const getComponentB = (render = () => null) => props => {
-  let query1Props = useQuery([queryA, { a: props.a }]);
-  let query2Props = useQuery([queryB, { b: props.b }]);
-  return <div />;
-};
+const getComponentA = hookComponentFactory([queryA, props => ({ a: props.a })]);
+const getComponentB = hookComponentFactory([queryA, props => ({ a: props.a })], [queryB, props => ({ b: props.b })]);
 
 test("Basic query fires on mount", () => {
   render(<ComponentA a={1} unused={0} />);
