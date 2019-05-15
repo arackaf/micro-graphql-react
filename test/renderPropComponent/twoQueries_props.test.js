@@ -1,4 +1,6 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
+import { render } from "react-testing-library";
+
+import { React, Component, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
 import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, pause, dataPacket } from "../testUtils";
 
 const queryA = "A";
@@ -6,59 +8,49 @@ const queryB = "B";
 
 let client1;
 let ComponentToUse;
+let getProps;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
+  [getProps, ComponentToUse] = getQueryAndMutationComponent();
 });
 
-class DummyA extends Component {
-  render() {
-    return <div />;
-  }
-}
-class DummyB extends Component {
-  render() {
-    return <div />;
-  }
-}
-
-const getComponent = () =>
-  class extends Component {
-    render() {
-      return (
-        <GraphQL query={{ query1: [queryA, { a: this.props.a }], query2: [queryB, { b: this.props.b }] }}>
-          {props => {
-            return (
-              <div>
-                <DummyA {...props.query1} />
-                <DummyB {...props.query2} />
-              </div>
-            );
-          }}
-        </GraphQL>
-      );
+const getQueryAndMutationComponent = options => {
+  let currentProps;
+  return [
+    () => currentProps,
+    class extends Component {
+      render() {
+        let props = this.props;
+        return (
+          <GraphQL query={{ query1: [queryA, { a: this.props.a }], query2: [queryB, { b: this.props.b }] }}>
+            {props => {
+              currentProps = props;
+              return null;
+            }}
+          </GraphQL>
+        );
+      }
     }
-  };
+  ];
+};
 
 test("loading props passed", async () => {
-  ComponentToUse = getComponent();
-  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+  render(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
-  verifyPropsFor(wrapper, DummyA, loadingPacket);
-  verifyPropsFor(wrapper, DummyB, loadingPacket);
+  expect(getProps().query1).toMatchObject(loadingPacket);
+  expect(getProps().query2).toMatchObject(loadingPacket);
 });
 
 test("Resolve both promises", async () => {
-  ComponentToUse = getComponent();
-
   client1.generateResponse = query => ({ data: { tasks: [{ name: query }] } });
-  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+  render(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
-  await pause(wrapper);
+  await pause();
 
-  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: queryA }] }));
-  verifyPropsFor(wrapper, DummyB, dataPacket({ tasks: [{ name: queryB }] }));
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ name: queryA }] }));
+  expect(getProps().query2).toMatchObject(dataPacket({ tasks: [{ name: queryB }] }));
 });
 
 const getDeferreds = howMany => Array.from({ length: howMany }, () => deferred());
@@ -75,35 +67,32 @@ const getDataFunction = (As, Bs) => query => {
 };
 
 test("Resolve both promises in turn", async () => {
-  ComponentToUse = getComponent();
-
   let [a1, a2, b1, b2] = getDeferreds(4);
   client1.generateResponse = getDataFunction([a2, a1], [b2, b1]);
 
-  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} />);
+  let { rerender } = render(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
-  verifyPropsFor(wrapper, DummyA, loadingPacket);
-  verifyPropsFor(wrapper, DummyB, loadingPacket);
+  expect(getProps().query1).toMatchObject(loadingPacket);
+  expect(getProps().query2).toMatchObject(loadingPacket);
 
-  await resolveDeferred(a1, { data: { tasks: [{ name: "a1" }] } }, wrapper);
+  await resolveDeferred(a1, { data: { tasks: [{ name: "a1" }] } });
 
-  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
-  verifyPropsFor(wrapper, DummyB, loadingPacket);
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ name: "a1" }] }));
+  expect(getProps().query2).toMatchObject(loadingPacket);
 
-  await resolveDeferred(b1, { data: { tasks: [{ name: "b1" }] } }, wrapper);
+  await resolveDeferred(b1, { data: { tasks: [{ name: "b1" }] } });
 
-  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: "a1" }] }));
-  verifyPropsFor(wrapper, DummyB, dataPacket({ tasks: [{ name: "b1" }] }));
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ name: "a1" }] }));
+  expect(getProps().query2).toMatchObject(dataPacket({ tasks: [{ name: "b1" }] }));
 
-  wrapper.setProps({ a: 2, b: 2 });
-  wrapper.update();
+  rerender(<ComponentToUse a={2} b={2} unused={0} />);
 
-  verifyPropsFor(wrapper, DummyA, { ...dataPacket({ tasks: [{ name: "a1" }] }), loading: true });
-  verifyPropsFor(wrapper, DummyB, { ...dataPacket({ tasks: [{ name: "b1" }] }), loading: true });
+  expect(getProps().query1).toMatchObject({ ...dataPacket({ tasks: [{ name: "a1" }] }), loading: true });
+  expect(getProps().query2).toMatchObject({ ...dataPacket({ tasks: [{ name: "b1" }] }), loading: true });
 
-  await resolveDeferred(a2, { data: { tasks: [{ name: "a2" }] } }, wrapper);
-  await resolveDeferred(b2, { data: { tasks: [{ name: "b2" }] } }, wrapper);
+  await resolveDeferred(a2, { data: { tasks: [{ name: "a2" }] } });
+  await resolveDeferred(b2, { data: { tasks: [{ name: "b2" }] } });
 
-  verifyPropsFor(wrapper, DummyA, dataPacket({ tasks: [{ name: "a2" }] }));
-  verifyPropsFor(wrapper, DummyB, dataPacket({ tasks: [{ name: "b2" }] }));
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ name: "a2" }] }));
+  expect(getProps().query2).toMatchObject(dataPacket({ tasks: [{ name: "b2" }] }));
 });
