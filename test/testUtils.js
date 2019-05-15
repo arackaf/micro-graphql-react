@@ -72,19 +72,20 @@ export const pause = wrapper =>
     }, 10)
   );
 
-export const hookComponentFactory = (...args) => (...options) => {
-  let howManyHooks = args.length;
-  let currentProps = Array.from({ length: howManyHooks }, () => ({}));
-  let lambdas = currentProps.map((o, i) => () => currentProps[i]);
+export const hookComponentFactory = (...hookPackets) => (...hookOptions) => {
+  let howManyHooks = hookPackets.length;
+  let currentHookResults = Array.from({ length: howManyHooks }, () => ({}));
+  let lambdas = currentHookResults.map((o, i) => () => currentHookResults[i]);
 
   return [
     ...lambdas,
     props => {
-      args.forEach((packet, i) => {
+      hookPackets.forEach((packet, i) => {
+        let options = typeof hookOptions[i] == "function" ? hookOptions[i](props) : hookOptions[i];
         if (Array.isArray(packet)) {
-          currentProps[i] = useQuery([packet[0], packet[1] ? packet[1](props) : {}, options[i]]);
+          currentHookResults[i] = useQuery([packet[0], packet[1] ? packet[1](props) : {}, options]);
         } else {
-          currentProps[i] = useMutation([packet[0], options[i]]);
+          currentHookResults[i] = useMutation([packet, options]);
         }
       });
       return null;
