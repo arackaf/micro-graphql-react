@@ -12,7 +12,7 @@ To see a live demo of this library managing GraphQL requests, check out this [Co
 
 **A note on cache invalidation**
 
-This library will _not_ add metadata to your queries, nor attempt to automatically update your cached entries from mutation results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailor your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. This is all explained at length below.
+This library will _not_ add metadata to your queries, and attempt to automatically update your cached entries from mutation results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailor your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. This is all explained at length below.
 
 For more information on the difficulties of GraphQL caching, see [this explanation](./docs/readme-cache.md)
 
