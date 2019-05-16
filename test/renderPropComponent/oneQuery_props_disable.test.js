@@ -1,118 +1,97 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL } from "../testSuiteInitialize";
-import {
-  verifyPropsFor,
-  deferred,
-  resolveDeferred,
-  loadingPacket,
-  dataPacket,
-  errorPacket,
-  rejectDeferred,
-  pause,
-  defaultPacket
-} from "../testUtils";
-
-const queryA = "A";
-const queryB = "B";
+import { React, render, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { deferred, resolveDeferred, loadingPacket, dataPacket, pause, defaultPacket, renderPropComponentFactory } from "../testUtils";
 
 let client1;
+let ComponentToUse;
+let getProps;
 
-class Dummy extends Component {
-  render() {
-    return <div />;
-  }
-}
-
-class ComponentToUse extends Component {
-  render() {
-    let props = this.props;
-    return <GraphQL query={{ query1: [queryA, { a: props.a }, { active: props.active }] }}>{props => <Dummy {...props.query1} />}</GraphQL>;
-  }
-}
+const getQueryAndMutationComponent = options =>
+  renderPropComponentFactory(props => ({ query: { query1: ["A", { a: props.a }, { active: props.active }] } }));
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
+  [getProps, ComponentToUse] = getQueryAndMutationComponent();
 });
 
 test("loading props passed", async () => {
-  let wrapper = mount(<ComponentToUse a={1} unused={0} active={false} />);
+  render(<ComponentToUse a={1} unused={0} active={false} />);
 
-  verifyPropsFor(wrapper, Dummy, defaultPacket);
+  expect(getProps().query1).toMatchObject(defaultPacket);
 });
 
 test("Query resolves and data updated - freezes if inactive", async () => {
   let p = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} active={true} />);
+  let { rerender } = render(<ComponentToUse a={1} unused={0} active={true} />);
 
-  verifyPropsFor(wrapper, Dummy, loadingPacket);
+  expect(getProps().query1).toMatchObject(loadingPacket);
 
-  await resolveDeferred(p, { data: { tasks: [] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
+  await resolveDeferred(p, { data: { tasks: [] } });
 
-  wrapper.setProps({ a: 2, active: false });
-  wrapper.update();
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [] }));
 
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [] }));
+  rerender(<ComponentToUse a={2} unused={0} active={false} />);
+
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [] }));
 });
 
 test("Query resolves and errors updated", async () => {
   let p = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} active={false} />);
+  let { rerender } = render(<ComponentToUse a={1} unused={0} active={false} />);
 
-  verifyPropsFor(wrapper, Dummy, defaultPacket);
+  expect(getProps().query1).toMatchObject(defaultPacket);
 
-  await resolveDeferred(p, { errors: [{ msg: "a" }] }, wrapper);
-  verifyPropsFor(wrapper, Dummy, defaultPacket);
+  await resolveDeferred(p, { errors: [{ msg: "a" }] });
+  expect(getProps().query1).toMatchObject(defaultPacket);
 });
 
 test("Out of order promise handled", async () => {
   let pFirst = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} active={false} />);
+  let { rerender } = render(<ComponentToUse a={1} unused={0} active={false} />);
 
   let pSecond = (client1.nextResult = deferred());
-  wrapper.setProps({ a: 2 });
+  rerender(<ComponentToUse a={2} unused={0} active={false} />);
 
-  await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, defaultPacket);
+  await resolveDeferred(pSecond, { data: { tasks: [{ id: 1 }] } });
+  expect(getProps().query1).toMatchObject(defaultPacket);
 
-  await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, defaultPacket);
+  await resolveDeferred(pFirst, { data: { tasks: [{ id: -999 }] } });
+  expect(getProps().query1).toMatchObject(defaultPacket);
 });
 
 test("Cached data handled", async () => {
   let pData = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} active={true} />);
+  let { rerender } = render(<ComponentToUse a={1} unused={0} active={true} />);
 
-  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } });
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
 
   pData = client1.nextResult = deferred();
-  wrapper.setProps({ a: 2, active: false });
+  rerender(<ComponentToUse a={2} unused={0} active={false} />);
 
-  await resolveDeferred(pData, { data: { tasks: [{ id: 2 }] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+  await resolveDeferred(pData, { data: { tasks: [{ id: 2 }] } });
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
 
-  wrapper.setProps({ a: 1, active: true });
-  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+  rerender(<ComponentToUse a={1} unused={0} active={true} />);
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } });
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
 
   expect(client1.queriesRun).toBe(1);
 });
 
 test("Cached data while loading handled", async () => {
   let pData = (client1.nextResult = deferred());
-  let wrapper = mount(<ComponentToUse a={1} unused={0} active={true} />);
+  let { rerender } = render(<ComponentToUse a={1} unused={0} active={true} />);
 
-  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } }, wrapper);
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+  await resolveDeferred(pData, { data: { tasks: [{ id: 1 }] } });
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
 
   pData = client1.nextResult = deferred();
-  wrapper.setProps({ a: 2, active: false });
-  wrapper.update();
-  verifyPropsFor(wrapper, Dummy, { ...dataPacket({ tasks: [{ id: 1 }] }), loading: false });
+  rerender(<ComponentToUse a={2} unused={0} active={false} />);
 
-  await pause(wrapper);
-  wrapper.setProps({ a: 1, active: true });
-  wrapper.update();
-  verifyPropsFor(wrapper, Dummy, dataPacket({ tasks: [{ id: 1 }] }));
+  expect(getProps().query1).toMatchObject({ ...dataPacket({ tasks: [{ id: 1 }] }), loading: false });
+
+  await pause();
+  rerender(<ComponentToUse a={1} unused={0} active={true} />);
+  expect(getProps().query1).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
 });

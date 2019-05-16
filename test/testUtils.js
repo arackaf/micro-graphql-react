@@ -1,13 +1,5 @@
-export const getPropsFor = (wrapper, target) =>
-  wrapper
-    .children()
-    .find(target)
-    .props();
-
-export const verifyPropsFor = (wrapper, target, expected) => {
-  let props = getPropsFor(wrapper, target);
-  expect(props).toMatchObject(expected);
-};
+import React, { Component } from "react";
+import { useQuery, useMutation, GraphQL } from "../src";
 
 export const deferred = () => {
   let resolve, reject;
@@ -31,7 +23,7 @@ export const rejectDeferred = async (p, val, wrapper) => {
   try {
     await p;
   } catch (er) {}
-  wrapper.update();
+  wrapper && wrapper.update();
 };
 
 export const defaultPacket = {
@@ -65,7 +57,47 @@ export const errorPacket = error => ({
 export const pause = wrapper =>
   new Promise(res =>
     setTimeout(() => {
-      wrapper.update();
+      wrapper && wrapper.update();
       res();
     }, 10)
   );
+
+export const hookComponentFactory = (...hookPackets) => (...hookOptions) => {
+  let howManyHooks = hookPackets.length;
+  let currentHookResults = Array.from({ length: howManyHooks }, () => ({}));
+  let lambdas = currentHookResults.map((o, i) => () => currentHookResults[i]);
+
+  return [
+    ...lambdas,
+    props => {
+      hookPackets.forEach((packet, i) => {
+        let options = typeof hookOptions[i] == "function" ? hookOptions[i](props) : hookOptions[i];
+        if (Array.isArray(packet)) {
+          currentHookResults[i] = useQuery([packet[0], packet[1] ? packet[1](props) : {}, options]);
+        } else {
+          currentHookResults[i] = useMutation([packet, options]);
+        }
+      });
+      return null;
+    }
+  ];
+};
+
+export const renderPropComponentFactory = config => {
+  let currentProps = {};
+  return [
+    () => currentProps,
+    class extends Component {
+      render() {
+        return (
+          <GraphQL {...config(this.props)}>
+            {props => {
+              currentProps = props;
+              return null;
+            }}
+          </GraphQL>
+        );
+      }
+    }
+  ];
+};

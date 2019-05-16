@@ -81,7 +81,7 @@ export default class QueryManager {
         });
       },
       cachedEntry => {
-        this.updateState({ data: cachedEntry.data, error: cachedEntry.error, loading: false, loaded: true, currentQuery: graphqlQuery });
+        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
       () => this.execute()
     );
@@ -103,7 +103,7 @@ export default class QueryManager {
         this.cache.setResults(promise, cacheKey, resp);
 
         if (resp.errors) {
-          this.updateState({ loaded: true, loading: false, data: null, error: resp.errors, currentQuery: cacheKey });
+          this.updateState({ loaded: true, loading: false, data: null, error: resp.errors || null, currentQuery: cacheKey });
         } else {
           this.updateState({ loaded: true, loading: false, data: resp.data, error: null, currentQuery: cacheKey });
         }

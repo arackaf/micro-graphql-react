@@ -1,47 +1,37 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, useMutation } from "../testSuiteInitialize";
-import { getPropsFor, deferred, resolveDeferred } from "../testUtils";
+import { React, render, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { hookComponentFactory } from "../testUtils";
 
 let client1;
 let ComponentA;
+let getProps;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
-  ComponentA = getComponentA();
+  [getProps, ComponentA] = getComponentA();
 });
 
-const Dummy = () => <div />;
-
-const getComponentA = () => props => {
-  let mutationState = useMutation(["A"]);
-  return <Dummy mutation1={{ ...mutationState }} />;
-};
+const getComponentA = hookComponentFactory("A");
 
 test("Mutation function exists", () => {
-  let wrapper = mount(<ComponentA />);
-  let props = getPropsFor(wrapper, Dummy);
+  render(<ComponentA />);
 
-  expect(typeof props.mutation1.runMutation).toBe("function");
-  expect(props.mutation1.running).toBe(false);
-  expect(props.mutation1.finished).toBe(false);
+  expect(typeof getProps().runMutation).toBe("function");
+  expect(getProps().running).toBe(false);
+  expect(getProps().finished).toBe(false);
 });
 
 test("Mutation function calls", () => {
-  let wrapper = mount(<ComponentA />);
-  let props = getPropsFor(wrapper, Dummy);
-  props.mutation1.runMutation();
+  render(<ComponentA />);
+  getProps().runMutation();
 
   expect(client1.mutationsRun).toBe(1);
 });
 
 test("Mutation function calls twice", () => {
-  let wrapper = mount(<ComponentA />);
-  let props = getPropsFor(wrapper, Dummy);
-  props.mutation1.runMutation();
-
-  wrapper.update();
-  props = getPropsFor(wrapper, Dummy);
-  props.mutation1.runMutation();
+  render(<ComponentA />);
+  getProps().runMutation();
+  getProps().runMutation();
 
   expect(client1.mutationsRun).toBe(2);
 });
