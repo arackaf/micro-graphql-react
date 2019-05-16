@@ -1,61 +1,42 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
-import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, pause, dataPacket, defaultPacket } from "../testUtils";
-import { buildQuery } from "../../src/util";
+import { React, render, Component, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
+import { pause, defaultPacket, hookComponentFactory } from "../testUtils";
 
 const queryA = "A";
 const queryB = "B";
 
 let client1;
+let ComponentToUse;
+let getProps1;
+let getProps2;
 
 beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
+  [getProps1, getProps2, ComponentToUse] = getComponent();
 });
 
-const DummyA = () => <div />;
-const DummyB = () => <div />;
-
-function ComponentToUse(props) {
-  let query1Props = useQuery(buildQuery(queryA, { a: props.a }, { active: props.activeA }));
-  let query2Props = useQuery(buildQuery(queryB, { b: props.b }, { active: props.activeB }));
-
-  return (
-    <div>
-      <DummyA {...query1Props} />
-      <DummyB {...query2Props} />
-    </div>
-  );
-}
+const getComponent = hookComponentFactory([queryA, props => ({ a: props.a })], [queryB, props => ({ b: props.b })]).bind(
+  null,
+  props => ({ active: props.activeA }),
+  props => ({ active: props.activeB })
+);
 
 test("loading props passed", async () => {
-  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} activeA={false} activeB={false} />);
+  render(<ComponentToUse a={"a"} b={"b"} unused={0} activeA={false} activeB={false} />);
 
-  verifyPropsFor(wrapper, DummyA, defaultPacket);
-  verifyPropsFor(wrapper, DummyB, defaultPacket);
+  expect(getProps1()).toMatchObject(defaultPacket);
+  expect(getProps2()).toMatchObject(defaultPacket);
 });
 
 test("Resolve both promises", async () => {
   client1.generateResponse = query => ({ data: { tasks: [{ name: query }] } });
-  let wrapper = mount(<ComponentToUse a={"a"} b={"b"} unused={0} activeA={false} activeB={false} />);
+  render(<ComponentToUse a={"a"} b={"b"} unused={0} activeA={false} activeB={false} />);
 
-  verifyPropsFor(wrapper, DummyA, defaultPacket);
-  verifyPropsFor(wrapper, DummyB, defaultPacket);
+  expect(getProps1()).toMatchObject(defaultPacket);
+  expect(getProps2()).toMatchObject(defaultPacket);
 
-  await pause(wrapper);
+  await pause();
 
-  verifyPropsFor(wrapper, DummyA, defaultPacket);
-  verifyPropsFor(wrapper, DummyB, defaultPacket);
+  expect(getProps1()).toMatchObject(defaultPacket);
+  expect(getProps2()).toMatchObject(defaultPacket);
 });
-
-const getDeferreds = howMany => Array.from({ length: howMany }, () => deferred());
-
-const getDataFunction = (As, Bs) => query => {
-  let A = As;
-  let B = Bs;
-
-  if (query == queryA) {
-    return A.pop();
-  } else if (query == queryB) {
-    return B.pop();
-  }
-};

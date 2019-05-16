@@ -1,5 +1,4 @@
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, buildQuery } from "../testSuiteInitialize";
-import { verifyPropsFor, deferred, resolveDeferred, loadingPacket, pause, dataPacket } from "../testUtils";
+import { React, render, Component, ClientMock, setDefaultClient, GraphQL, buildQuery } from "../testSuiteInitialize";
 
 const LOAD_TASKS = "A";
 const LOAD_USERS = "B";
@@ -12,17 +11,6 @@ beforeEach(() => {
   client1 = new ClientMock("endpoint1");
   setDefaultClient(client1);
 });
-
-class DummyA extends Component {
-  render() {
-    return <div />;
-  }
-}
-class DummyB extends Component {
-  render() {
-    return <div />;
-  }
-}
 
 test("loading props passed initially", async () => {
   class ComponentToUse extends Component {
@@ -57,10 +45,9 @@ test("loading props passed initially", async () => {
   }
 
   client1.nextResult = { data: {} };
-  let wrapper = mount(<ComponentToUse />);
-  wrapper.setProps({ x: 12 });
-  wrapper.setProps({ x: 13 });
-  wrapper.update();
-  wrapper.setProps({ x: 13 });
-  await pause(wrapper);
+  let { rerender } = render(<ComponentToUse />);
+
+  rerender(<ComponentToUse x={12} />);
+  rerender(<ComponentToUse x={13} />);
+  rerender(<ComponentToUse x={13} />);
 });
