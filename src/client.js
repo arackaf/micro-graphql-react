@@ -39,7 +39,9 @@ export default class Client {
     return fetch(uri, this.fetchOptions || void 0).then(resp => resp.json());
   }
   getGraphqlQuery({ query, variables }) {
-    return `${this.endpoint}?query=${encodeURIComponent(query)}${typeof variables === "object" ? `&variables=${encodeURIComponent(JSON.stringify(variables))}` : ""}`;
+    return `${this.endpoint}?query=${encodeURIComponent(query)}${
+      typeof variables === "object" ? `&variables=${encodeURIComponent(JSON.stringify(variables))}` : ""
+    }`;
   }
   subscribeMutation(subscription, options = {}) {
     if (!Array.isArray(subscription)) {
@@ -90,7 +92,7 @@ export default class Client {
     });
   }
   runMutation(mutation, variables) {
-    let { headers = {}, ...otherOptions } = this.fetchOptions;
+    let { headers = {}, ...otherOptions } = this.fetchOptions || {};
     return fetch(this.endpoint, {
       method: "post",
       headers: {
