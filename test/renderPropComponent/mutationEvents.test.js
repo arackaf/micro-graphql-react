@@ -1,6 +1,4 @@
-import { render } from "react-testing-library";
-
-import { React, ClientMock, setDefaultClient } from "../testSuiteInitialize";
+import { React, render, ClientMock, setDefaultClient } from "../testSuiteInitialize";
 import { pause, renderPropComponentFactory } from "../testUtils";
 
 let client1;
