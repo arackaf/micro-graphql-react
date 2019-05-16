@@ -1,5 +1,4 @@
-import { render } from "react-testing-library";
-import { React, ClientMock, setDefaultClient, useQuery, useMutation } from "../testSuiteInitialize";
+import { React, render, ClientMock, setDefaultClient, useQuery, useMutation } from "../testSuiteInitialize";
 
 const LOAD_TASKS = "A";
 const LOAD_USERS = "B";

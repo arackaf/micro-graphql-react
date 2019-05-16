@@ -1,5 +1,4 @@
-import { render } from "react-testing-library";
-import { React, Component, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
+import { React, render, Component, mount, ClientMock, setDefaultClient, GraphQL, useQuery } from "../testSuiteInitialize";
 import { pause, defaultPacket, hookComponentFactory } from "../testUtils";
 
 const queryA = "A";
