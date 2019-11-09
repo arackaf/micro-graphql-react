@@ -16,10 +16,10 @@ type MutationHandlerPayload = {
 type QueryPacket = [string, any, any];
 type MutationPacket = [string, any];
 
-export type QueryPayload = {
+export type QueryPayload<TResults = any> = {
   loading: boolean;
   loaded: boolean;
-  data: any;
+  data: TResults;
   error: any;
   currentQuery: string;
   reload: () => void;
@@ -27,18 +27,18 @@ export type QueryPayload = {
   clearCacheAndReload: () => void;
 };
 
-export type MutationPayload = {
+export type MutationPayload<TResults = any> = {
   running: boolean;
   finished: boolean;
-  runMutation: (variables: any) => Promise<any>;
+  runMutation: (variables: any) => Promise<TResults>;
 };
 
 export class Cache {
   constructor(cacheSize?: number);
   entries: [string, any][];
-  get(key): any;
-  set(key, results): void;
-  delete(key): void;
+  get(key: string): any;
+  set(key: string, results: any): void;
+  delete(key: string): void;
   clearCache(): void;
 }
 
@@ -51,8 +51,8 @@ export class Client {
   getCache(query: string): Cache;
   newCacheForQuery(query: string): Cache;
   setCache(query: string, cache: Cache): void;
-  subscribeMutation(subscription, options?): () => void;
-  forceUpdate(query): void;
+  subscribeMutation(subscription: any, options?: any): () => void;
+  forceUpdate(query: string): void;
 }
 
 type BuildQueryOptions = {
@@ -75,9 +75,9 @@ export const compress: any;
 export const setDefaultClient: (client: Client) => void;
 export const getDefaultClient: () => Client;
 
-export function useQuery(queryPacket: QueryPacket): QueryPayload;
+export function useQuery<TResults = any>(queryPacket: QueryPacket): QueryPayload<TResults>;
 
-export function useMutation(mutationPacket: MutationPacket): MutationPayload;
+export function useMutation<TResults = any>(mutationPacket: MutationPacket): MutationPayload<TResults>;
 
 type RenderProps<Query, Mutation> = Record<keyof Query, QueryPayload> & Record<keyof Mutation, MutationPayload>;
 
