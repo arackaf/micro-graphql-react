@@ -27,8 +27,6 @@ export type QueryPayload<TResults = any> = {
   clearCacheAndReload: () => void;
 };
 
-export const QueryManager: any;
-
 export type MutationPayload<TResults = any> = {
   running: boolean;
   finished: boolean;
