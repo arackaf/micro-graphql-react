@@ -10,9 +10,11 @@ export default function useQuery(packet) {
   let [queryState, setQueryState] = useState(QueryManager.initialState);
   let [queryManager] = useState(() => new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet));
 
+  queryManager.throwIfPending(packet);
+
   useLayoutEffect(() => {
     if (!("active" in options && !options.active)) {
-      queryManager.load(packet, false, true);
+      queryManager.load(packet, false, false);
     }
   });
 
