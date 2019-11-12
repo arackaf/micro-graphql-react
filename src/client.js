@@ -29,9 +29,11 @@ export default class Client {
 
     let graphqlQuery = this.getGraphqlQuery({ query, variables });
 
+    let promiseResult;
     cache.getFromCache(
       graphqlQuery,
       promise => {
+        promiseResult = promise;
         /* already preloading - cool */
       },
       cachedEntry => {
@@ -40,11 +42,13 @@ export default class Client {
       () => {
         let promise = this.runUri(graphqlQuery);
         cache.setPendingResult(graphqlQuery, promise);
+        promiseResult = promise;
         promise.then(resp => {
           cache.setResults(promise, graphqlQuery, resp);
         });
       }
     );
+    return promiseResult;
   }
   getCache(query) {
     return this.caches.get(query);
