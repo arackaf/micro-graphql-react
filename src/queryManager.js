@@ -89,6 +89,10 @@ export default class QueryManager {
         promiseResult = this.execute();
       }
     );
+
+    if (suspend && promiseResult) {
+      throw promiseResult;
+    }
   }
   execute() {
     let graphqlQuery = this.currentUri;

@@ -40,6 +40,9 @@ export default class Client {
       () => {
         let promise = this.runUri(graphqlQuery);
         cache.setPendingResult(graphqlQuery, promise);
+        promise.then(resp => {
+          cache.setResults(promise, graphqlQuery, resp);
+        });
       }
     );
   }
