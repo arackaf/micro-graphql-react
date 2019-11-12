@@ -85,9 +85,6 @@ export default class QueryManager {
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
-        if (this.currentPromise != promise) {
-          this.handleExecution(promise, graphqlQuery);
-        }
         Promise.resolve(promise).then(() => {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
           this.load();
