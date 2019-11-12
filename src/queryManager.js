@@ -60,7 +60,7 @@ export default class QueryManager {
   reload = () => {
     this.execute();
   };
-  load(packet, force) {
+  load(packet, force, suspend) {
     if (packet) {
       const [query, variables] = deConstructQueryPacket(packet);
       let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
@@ -72,9 +72,11 @@ export default class QueryManager {
     }
 
     let graphqlQuery = this.currentUri;
+    let promiseResult;
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
+        promiseResult = promise;
         Promise.resolve(promise).then(() => {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
           this.load();
@@ -83,7 +85,9 @@ export default class QueryManager {
       cachedEntry => {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
-      () => this.execute()
+      () => {
+        promiseResult = this.execute();
+      }
     );
   }
   execute() {
@@ -92,6 +96,7 @@ export default class QueryManager {
     let promise = this.client.runUri(this.currentUri);
     this.cache.setPendingResult(graphqlQuery, promise);
     this.handleExecution(promise, graphqlQuery);
+    return promise;
   }
   handleExecution = (promise, cacheKey) => {
     this.currentPromise = promise;
