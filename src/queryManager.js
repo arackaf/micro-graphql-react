@@ -22,6 +22,16 @@ export default class QueryManager {
     this.setState = setState;
     this.cache = cache || client.getCache(query) || client.newCacheForQuery(query);
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
+    this.options = options;
+    this.__initialized = false;
+
+    this.currentState.reload = this.reload;
+    this.currentState.clearCache = () => this.cache.clearCache();
+    this.currentState.clearCacheAndReload = this.clearCacheAndReload;
+  }
+  init() {
+    this.__initialized = true;
+    let options = this.options;
     if (typeof options.onMutation === "object") {
       if (!Array.isArray(options.onMutation)) {
         options.onMutation = [options.onMutation];
@@ -34,9 +44,6 @@ export default class QueryManager {
         currentResults: () => this.currentState.data
       });
     }
-    this.currentState.reload = this.reload;
-    this.currentState.clearCache = () => this.cache.clearCache();
-    this.currentState.clearCacheAndReload = this.clearCacheAndReload;
   }
   updateState = newState => {
     Object.assign(this.currentState, newState);
@@ -61,6 +68,9 @@ export default class QueryManager {
     this.execute();
   };
   load(packet, force) {
+    if (!this.__initialized) {
+      this.init();
+    }
     if (packet) {
       const [query, variables] = deConstructQueryPacket(packet);
       let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
@@ -75,6 +85,9 @@ export default class QueryManager {
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
+        if (this.currentPromise != promise) {
+          this.handleExecution(promise, graphqlQuery);
+        }
         Promise.resolve(promise).then(() => {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
           this.load();
