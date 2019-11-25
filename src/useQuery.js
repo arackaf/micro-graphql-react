@@ -17,11 +17,18 @@ export default function useQuery(packet) {
     return result;
   });
 
+  let currentQuery = useRef(queryManager.currentUri);
+  let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
+  let isActive = !("active" in options && !options.active);
+
   useLayoutEffect(() => {
-    if (!("active" in options && !options.active)) {
-      queryManager.load(packet);
+    if (nextQuery != currentQuery.current) {
+      if (isActive) {
+        currentQuery.current = nextQuery;
+        queryManager.load(packet);
+      }
     }
-  });
+  }, [nextQuery, isActive]);
 
   useLayoutEffect(() => () => queryManager && queryManager.dispose(), []);
 
