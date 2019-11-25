@@ -7,8 +7,15 @@ import QueryManager from "./queryManager";
 export default function useQuery(packet) {
   let [query, variables, options = {}] = packet;
   let client = options.client || defaultClientManager.getDefaultClient();
+
   let [queryState, setQueryState] = useState(QueryManager.initialState);
-  let [queryManager] = useState(() => new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet));
+  let [queryManager] = useState(() => {
+    let result = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
+    if (!("active" in options && !options.active)) {
+      result.load(packet);
+    }
+    return result;
+  });
 
   useLayoutEffect(() => {
     if (!("active" in options && !options.active)) {
@@ -18,5 +25,5 @@ export default function useQuery(packet) {
 
   useLayoutEffect(() => () => queryManager && queryManager.dispose(), []);
 
-  return queryState;
+  return queryManager.currentState;
 }
