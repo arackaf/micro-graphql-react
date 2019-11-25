@@ -8,33 +8,26 @@ export default function useQuery(packet) {
   let [query, variables, options = {}] = packet;
   let client = options.client || defaultClientManager.getDefaultClient();
 
-  let [queryState, setQueryState] = useState(QueryManager.initialState);
-  let [queryManager] = useState(() => new QueryManager({ client, cache: options.cache }, packet));
-
-  let currentQuery = useRef(null);
-  let initialRender = useRef(true);
-  let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
   let isActive = !("active" in options && !options.active);
-
-  if (initialRender.current) {
-    initialRender.current = false;
-    queryManager.setState = setQueryState;
+  let [queryManager] = useState(() => {
+    let result = new QueryManager({ client, cache: options.cache }, packet);
     if (isActive) {
-      queryManager.load(packet);
-      currentQuery.current = nextQuery;
+      result.load(packet);
     }
-  }
+    return result;
+  });
+  let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
+
+  let [queryState, setQueryState] = useState(queryManager.currentState);
+  queryManager.setState = setQueryState;
 
   useLayoutEffect(() => {
-    if (nextQuery != currentQuery.current) {
-      if (isActive) {
-        queryManager.load(packet);
-        currentQuery.current = nextQuery;
-      }
+    if (isActive) {
+      queryManager.load(packet);
     }
   }, [nextQuery, isActive]);
 
   useLayoutEffect(() => () => queryManager && queryManager.dispose(), []);
 
-  return queryManager.currentState;
+  return queryState;
 }

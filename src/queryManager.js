@@ -47,7 +47,7 @@ export default class QueryManager {
   }
   updateState = newState => {
     Object.assign(this.currentState, newState);
-    this.setState(Object.assign({}, this.currentState));
+    this.setState && this.setState(Object.assign({}, this.currentState));
   };
   refresh = () => {
     this.load();
