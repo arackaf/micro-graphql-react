@@ -24,6 +24,7 @@ export default class QueryManager {
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
     this.options = options;
     this.__initialized = false;
+    this.active = false;
 
     this.currentState.reload = this.reload;
     this.currentState.clearCache = () => this.cache.clearCache();
@@ -50,7 +51,7 @@ export default class QueryManager {
     this.setState && this.setState(Object.assign({}, this.currentState));
   };
   refresh = () => {
-    this.load();
+    this.update();
   };
   softReset = newResults => {
     this.cache.clearCache();
@@ -67,18 +68,25 @@ export default class QueryManager {
   reload = () => {
     this.execute();
   };
-  load(packet, force) {
-    if (!this.__initialized) {
+  sync({ packet, isActive }) {
+    let wasInactive = !this.active;
+    this.active = isActive;
+    if (this.active && !this.__initialized) {
       this.init();
     }
-    if (packet) {
-      const [query, variables] = deConstructQueryPacket(packet);
-      let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-      if (force || graphqlQuery != this.currentUri) {
-        this.currentUri = graphqlQuery;
-      } else {
-        return;
-      }
+
+    const [query, variables] = deConstructQueryPacket(packet);
+    let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
+    if (graphqlQuery != this.currentUri) {
+      this.currentUri = graphqlQuery;
+      this.update();
+    } else if (wasInactive && this.active) {
+      this.update();
+    }
+  }
+  update() {
+    if (!this.active) {
+      return;
     }
 
     let graphqlQuery = this.currentUri;
@@ -87,7 +95,7 @@ export default class QueryManager {
       promise => {
         Promise.resolve(promise).then(() => {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
-          this.load();
+          this.update();
         });
       },
       cachedEntry => {

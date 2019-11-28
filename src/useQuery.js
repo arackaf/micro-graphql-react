@@ -11,9 +11,7 @@ export default function useQuery(packet) {
   let isActive = !("active" in options && !options.active);
   let [queryManager] = useState(() => {
     let result = new QueryManager({ client, cache: options.cache }, packet);
-    if (isActive) {
-      result.load(packet);
-    }
+    result.sync({ packet, isActive });
     return result;
   });
   let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
@@ -22,9 +20,7 @@ export default function useQuery(packet) {
   queryManager.setState = setQueryState;
 
   useLayoutEffect(() => {
-    if (isActive) {
-      queryManager.load(packet);
-    }
+    queryManager.sync({ packet, isActive });
   }, [nextQuery, isActive]);
 
   useLayoutEffect(() => () => queryManager && queryManager.dispose(), []);
