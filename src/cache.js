@@ -61,7 +61,7 @@ export default class Cache {
     }
   }
 
-  getFromCache(key, ifPending, ifResults, ifNotFound) {
+  getFromCache(key, ifPending, ifResults, ifNotFound = () => {}) {
     let cache = this._cache;
     if (this.noCaching) {
       ifNotFound();

@@ -6,14 +6,9 @@ import QueryManager from "./queryManager";
 
 export default function useQuery(packet) {
   let [query, variables, options = {}] = packet;
-  let client = options.client || defaultClientManager.getDefaultClient();
 
   let isActive = !("active" in options && !options.active);
-  let [queryManager] = useState(() => {
-    let result = new QueryManager({ client, cache: options.cache }, packet);
-    result.sync({ packet, isActive });
-    return result;
-  });
+  let [queryManager] = useState(() => new QueryManager({ ...options, packet, isActive }));
   let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
 
   let [queryState, setQueryState] = useState(queryManager.currentState);
@@ -25,5 +20,5 @@ export default function useQuery(packet) {
 
   useLayoutEffect(() => () => queryManager && queryManager.dispose(), []);
 
-  return queryState;
+  return queryManager.currentState;
 }

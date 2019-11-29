@@ -1,3 +1,5 @@
+import { defaultClientManager } from "./client";
+
 const deConstructQueryPacket = packet => {
   if (typeof packet === "string") {
     return [packet, null, {}];
@@ -16,11 +18,10 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, setState, cache }, packet) {
+  constructor({ client, cache, packet, isActive }) {
     const [query, variables, options] = deConstructQueryPacket(packet);
-    this.client = client;
-    this.setState = setState;
-    this.cache = cache || client.getCache(query) || client.newCacheForQuery(query);
+    this.client = client || defaultClientManager.getDefaultClient();
+    this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
     this.options = options;
     this.__initialized = false;
@@ -29,6 +30,10 @@ export default class QueryManager {
     this.currentState.reload = this.reload;
     this.currentState.clearCache = () => this.cache.clearCache();
     this.currentState.clearCacheAndReload = this.clearCacheAndReload;
+
+    if (isActive) {
+      this.initialSync(packet);
+    }
   }
   init() {
     this.__initialized = true;
@@ -68,10 +73,25 @@ export default class QueryManager {
   reload = () => {
     this.execute();
   };
-  sync({ packet, isActive }) {
+  initialSync(packet) {
+    const [query, variables] = deConstructQueryPacket(packet);
+    let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
+
+    this.cache.getFromCache(
+      graphqlQuery,
+      promise => {
+        this.updateState({ loading: true });
+      },
+      cachedEntry => {
+        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
+      }
+    );
+  }
+  sync({ packet, isActive /* suspense */ }) {
     let wasInactive = !this.active;
     this.active = isActive;
     if (this.active && !this.__initialized) {
+      /* && !suspense ^ */
       this.init();
     }
 

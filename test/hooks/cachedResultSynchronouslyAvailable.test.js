@@ -15,7 +15,7 @@ beforeEach(() => {
   renders = 0;
 });
 
-test("Cache object behaves correctly", async () => {
+test("Initial results sync available if possible", async () => {
   const ComponentToUse = props => {
     const loadTasks = useQuery([LOAD_TASKS, { a: 12 }]);
     return null;
