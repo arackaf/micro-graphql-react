@@ -18,7 +18,10 @@ export default function useQuery(packet) {
     queryManager.sync({ packet, isActive });
   }, [nextQuery, isActive]);
 
-  useLayoutEffect(() => () => queryManager && queryManager.dispose(), []);
+  useLayoutEffect(() => {
+    queryManager.init();
+    return () => queryManager && queryManager.dispose();
+  }, []);
 
   return queryManager.currentState;
 }

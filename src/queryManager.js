@@ -24,7 +24,6 @@ export default class QueryManager {
     this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
     this.options = options;
-    this.__initialized = false;
     this.active = false;
 
     this.currentState.reload = this.reload;
@@ -36,7 +35,6 @@ export default class QueryManager {
     }
   }
   init() {
-    this.__initialized = true;
     let options = this.options;
     if (typeof options.onMutation === "object") {
       if (!Array.isArray(options.onMutation)) {
@@ -91,10 +89,6 @@ export default class QueryManager {
   sync({ packet, isActive /* suspense */ }) {
     let wasInactive = !this.active;
     this.active = isActive;
-    if (this.active && !this.__initialized) {
-      /* && !suspense ^ */
-      this.init();
-    }
 
     const [query, variables] = deConstructQueryPacket(packet);
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
