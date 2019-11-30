@@ -5,6 +5,8 @@ import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";
 
 export default function useQuery(packet) {
+  let currentActive = useRef(null);
+  let currentQuery = useRef(null);
   let [query, variables, options = {}] = packet;
 
   let isActive = !("active" in options && !options.active);
@@ -14,13 +16,15 @@ export default function useQuery(packet) {
   let [queryState, setQueryState] = useState(queryManager.currentState);
   queryManager.setState = setQueryState;
 
-  useLayoutEffect(() => {
+  if (currentActive.current != isActive || currentQuery.current != nextQuery) {
+    currentActive.current = isActive;
+    currentQuery.current = nextQuery;
     queryManager.sync({ packet, isActive });
-  }, [nextQuery, isActive]);
+  }
 
   useLayoutEffect(() => {
     queryManager.init();
-    return () => queryManager && queryManager.dispose();
+    return () => queryManager.dispose();
   }, []);
 
   return queryManager.currentState;
