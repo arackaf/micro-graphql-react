@@ -104,8 +104,13 @@ export default class Client {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
       let mutationKeys = Object.keys(resp);
       let mutationKeysLookup = new Set(mutationKeys);
-      [...this.mutationListeners].forEach(({ subscription, options: { currentResults, ...rest } }) => {
+      [...this.mutationListeners].forEach(({ subscription, options: { currentResults, isActive, ...rest } }) => {
         subscription.forEach(singleSubscription => {
+          if (typeof isActive === "function") {
+            if (!isActive()) {
+              return;
+            }
+          }
           if (typeof singleSubscription.when === "string") {
             if (mutationKeysLookup.has(singleSubscription.when)) {
               singleSubscription.run({ currentResults: currentResults(), ...rest }, resp, variables);
