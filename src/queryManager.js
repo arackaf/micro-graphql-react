@@ -47,7 +47,8 @@ export default class QueryManager {
         softReset: this.softReset,
         hardReset: this.hardReset,
         refresh: this.refresh,
-        currentResults: () => this.currentState.data
+        currentResults: () => this.currentState.data,
+        isActive: () => this.active
       });
     }
   }
