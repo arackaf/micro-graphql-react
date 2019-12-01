@@ -4,7 +4,7 @@ const { useState, useRef, useLayoutEffect } = React;
 import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";
 
-export default function useQuery(packet) {
+export default function useQuery(packet, { suspense } = {}) {
   let currentActive = useRef(null);
   let currentQuery = useRef(null);
   let [query, variables, options = {}] = packet;
@@ -19,7 +19,7 @@ export default function useQuery(packet) {
   if (currentActive.current != isActive || currentQuery.current != nextQuery) {
     currentActive.current = isActive;
     currentQuery.current = nextQuery;
-    queryManager.sync({ packet, isActive });
+    queryManager.sync({ packet, isActive, suspense });
   }
 
   useLayoutEffect(() => {
@@ -29,3 +29,5 @@ export default function useQuery(packet) {
 
   return queryManager.currentState;
 }
+
+export const useSuspenseQuery = packet => useQuery(packet, { suspense: true });
