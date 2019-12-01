@@ -86,7 +86,7 @@ export default class QueryManager {
       }
     );
   }
-  sync({ packet, isActive /* suspense */ }) {
+  sync({ packet, isActive, suspense }) {
     let wasInactive = !this.active;
     this.active = isActive;
 
@@ -94,12 +94,12 @@ export default class QueryManager {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     if (graphqlQuery != this.currentUri) {
       this.currentUri = graphqlQuery;
-      this.update();
+      this.update({ suspense });
     } else if (wasInactive && this.active) {
-      this.update();
+      this.update({ suspense });
     }
   }
-  update() {
+  update({ suspense } = {}) {
     if (!this.active) {
       return;
     }
@@ -112,6 +112,9 @@ export default class QueryManager {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
           this.update();
         });
+        if (suspense) {
+          throw promise;
+        }
       },
       cachedEntry => {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
@@ -120,14 +123,6 @@ export default class QueryManager {
         this.execute();
       }
     );
-  }
-  throwIfPending(packet) {
-    const [query, variables] = deConstructQueryPacket(packet);
-    const promiseResult = this.client.preload(query, variables);
-
-    if (promiseResult) {
-      throw promiseResult;
-    }
   }
   execute() {
     let graphqlQuery = this.currentUri;
