@@ -108,12 +108,12 @@ export default class QueryManager {
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
-        Promise.resolve(promise).then(() => {
+        let updatingPromise = Promise.resolve(promise).then(() => {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
           this.update();
         });
         if (suspense) {
-          throw promise;
+          throw updatingPromise;
         }
       },
       cachedEntry => {
