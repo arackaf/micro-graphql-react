@@ -112,6 +112,7 @@ export default class QueryManager {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
           this.update();
         });
+        this.updateState({ loading: true });
         if (suspense) {
           throw updatingPromise;
         }
