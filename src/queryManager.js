@@ -120,17 +120,19 @@ export default class QueryManager {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
       () => {
-        this.execute();
+        this.execute(suspense);
       }
     );
   }
-  execute() {
+  execute(suspense) {
     let graphqlQuery = this.currentUri;
     this.updateState({ loading: true });
     let promise = this.client.runUri(this.currentUri);
     this.cache.setPendingResult(graphqlQuery, promise);
     this.handleExecution(promise, graphqlQuery);
-    return promise;
+    if (suspense) {
+      throw promise;
+    }
   }
   handleExecution = (promise, cacheKey) => {
     this.currentPromise = promise;
