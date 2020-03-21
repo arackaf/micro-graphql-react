@@ -53,6 +53,7 @@ export class Client {
   setCache(query: string, cache: Cache): void;
   subscribeMutation(subscription: any, options?: any): () => void;
   forceUpdate(query: string): void;
+  preload(query: string, variables: any): void;
 }
 
 type BuildQueryOptions = {
@@ -76,6 +77,7 @@ export const setDefaultClient: (client: Client) => void;
 export const getDefaultClient: () => Client;
 
 export function useQuery<TResults = any>(queryPacket: QueryPacket): QueryPayload<TResults>;
+export function useSuspenseQuery<TResults = any>(queryPacket: QueryPacket): QueryPayload<TResults>;
 
 export function useMutation<TResults = any>(mutationPacket: MutationPacket): MutationPayload<TResults>;
 

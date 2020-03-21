@@ -20,15 +20,17 @@ For more information on the difficulties of GraphQL caching, see [this explanati
 
 - [Installation](#installation)
 - [Creating a client](#creating-a-client)
+  - [Accessing the client](#accessing-the-client)
   - [Client options](#client-options)
   - [Client api](#client-api)
 - [Running queries and mutations](#running-queries-and-mutations)
+  - [Preloading queries](#preloading-queries)
   - [Hooks](#hooks)
-  - [Render props](#render-props)
   - [Building queries](#building-queries)
   - [Props passed for each query](#props-passed-for-each-query)
   - [Building mutations](#building-mutations)
   - [Props passed for each mutation](#props-passed-for-each-mutation)
+  - [React Suspense](#react-suspense)
 - [Caching](#caching)
   - [Cache object](#cache-object)
     - [Cache api](#cache-api)
@@ -75,7 +77,17 @@ const client = new Client({
 setDefaultClient(client);
 ```
 
-Now that client will be used by default, everywhere, unless you manually pass in a different client to a component's options, as discussed below.
+Now that client will be used by default, everywhere, unless you manually pass in a different client to a hook's options, as discussed below.
+
+### Accessing the client
+
+To access the default client anywhere in your codebase, you can use the `getDefaultClient` method.
+
+```javascript
+import { getDefaultClient } from "micro-graphql-react";
+
+const client = getDefaultClient();
+```
 
 ### Client options
 
@@ -98,9 +110,20 @@ Now that client will be used by default, everywhere, unless you manually pass in
 
 ## Running queries and mutations
 
+### Preloading queries
+
+Regardless of whether you're using Suspense, it's a good idea to preload a query as soon as you know it'll be requested downstream by a (possibly lazy loaded) component. To preload a query, just call the `preload` method on the client, and pass a query, and any args you might have.
+
+```javascript
+import { getDefaultClient } from "micro-graphql-react";
+
+const client = getDefaultClient();
+client.preload(YourQuery, variables);
+```
+
 ### Hooks
 
-This project exports a `useQuery` and `useMutation` hook.
+This project exports a `useQuery`, `useSuspenseQuery`, and `useMutation` hook.
 
 ```javascript
 import { useQuery, useMutation, buildQuery, buildMutation } from "micro-graphql-react";
@@ -111,30 +134,6 @@ const ComponentWithQueryAndMutation = props => {
 
   return <DoStuff {...props} {...{ loading, loaded, currentQuery, data, running, runMutation }} />;
 };
-```
-
-### Render props
-
-There's also a render props-based GraphQL component that supports both mutations and queries.
-
-```javascript
-import { GraphQL, buildQuery, buildMutation } from "micro-graphql-react";
-
-<GraphQL
-  query={{
-    loadBooks: buildQuery(LOAD_BOOKS, { title: this.state.titleSearch }, { onMutation: hardResetStrategy("Book") })
-  }}
-  mutation={{ updateBook: buildMutation(UPDATE_BOOK) }}
->
-  {({ loadBooks: { loading, loaded, data, error }, updateBook: { runMutation } }) => (
-    <div>
-      {loading ? <span>Loading...</span> : null}
-      {loaded && data && data.allBooks ? <DisplayBooks books={data.allBooks.Books} editBook={this.editBook} /> : null}
-      <br />
-      {this.state.editingBook ? <UpdateBook book={this.state.editingBook} updateBook={runMutation} /> : null}
-    </div>
-  )}
-</GraphQL>;
 ```
 
 ### Building queries
@@ -151,7 +150,7 @@ Construct each query with the `buildQuery` method. The first argument is the que
 
 Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
 
-An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your nextwork requests altogether, but also from your bundled code.
+An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your network requests altogether, but also from your bundled code.
 
 ### Props passed for each query
 
@@ -183,6 +182,10 @@ For each mutation you specify, an object will be passed in the component's props
 | `running`     | Mutation is executing |
 | `finished`    | Mutation has finished executing|
 | `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
+
+### React Suspense
+
+If you're using Suspense, just use the `useSuspenseQuery` hook. It has an identical api as `useQuery`, except it'll throw a promise whenever a data fetch is inflight, so your `useTransition()` calls and `Suspense` boundaries can respond accordingly.
 
 ## Caching
 

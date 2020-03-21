@@ -1,25 +1,33 @@
 import React from "react";
-const { useState, useRef, useLayoutEffect } = React;
+const { useState, useRef, useEffect } = React;
 
 import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";
 
-export default function useQuery(packet) {
+export default function useQuery(packet, { suspense } = {}) {
+  let currentActive = useRef(null);
+  let currentQuery = useRef(null);
   let [query, variables, options = {}] = packet;
-  let client = options.client || defaultClientManager.getDefaultClient();
-  let [queryState, setQueryState] = useState(QueryManager.initialState);
-  let queryManager = useRef(null);
 
-  useLayoutEffect(() => {
-    if ("active" in options && !options.active) {
-      return;
-    }
-    if (!queryManager.current) {
-      queryManager.current = new QueryManager({ client, cache: options.cache, setState: setQueryState }, packet);
-    }
-    queryManager.current.load(packet);
-  });
-  useLayoutEffect(() => () => queryManager.current && queryManager.current.dispose(), []);
+  let isActive = !("active" in options && !options.active);
+  let [queryManager] = useState(() => new QueryManager({ ...options, packet, isActive }));
+  let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
 
-  return queryState;
+  let [queryState, setQueryState] = useState(queryManager.currentState);
+  queryManager.setState = setQueryState;
+
+  if (currentActive.current != isActive || currentQuery.current != nextQuery) {
+    currentActive.current = isActive;
+    currentQuery.current = nextQuery;
+    queryManager.sync({ packet, isActive, suspense });
+  }
+
+  useEffect(() => {
+    queryManager.init();
+    return () => queryManager.dispose();
+  }, []);
+
+  return queryManager.currentState;
 }
+
+export const useSuspenseQuery = packet => useQuery(packet, { suspense: true });
