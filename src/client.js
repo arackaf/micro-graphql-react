@@ -21,6 +21,35 @@ export default class Client {
     }
     return DEFAULT_CACHE_SIZE;
   }
+  preload(query, variables) {
+    let cache = this.getCache(query);
+    if (!cache) {
+      cache = this.newCacheForQuery(query);
+    }
+
+    let graphqlQuery = this.getGraphqlQuery({ query, variables });
+
+    let promiseResult;
+    cache.getFromCache(
+      graphqlQuery,
+      promise => {
+        promiseResult = promise;
+        /* already preloading - cool */
+      },
+      cachedEntry => {
+        /* already loaded - cool */
+      },
+      () => {
+        let promise = this.runUri(graphqlQuery);
+        cache.setPendingResult(graphqlQuery, promise);
+        promiseResult = promise;
+        promise.then(resp => {
+          cache.setResults(promise, graphqlQuery, resp);
+        });
+      }
+    );
+    return promiseResult;
+  }
   getCache(query) {
     return this.caches.get(query);
   }
@@ -75,8 +104,13 @@ export default class Client {
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
       let mutationKeys = Object.keys(resp);
       let mutationKeysLookup = new Set(mutationKeys);
-      [...this.mutationListeners].forEach(({ subscription, options: { currentResults, ...rest } }) => {
+      [...this.mutationListeners].forEach(({ subscription, options: { currentResults, isActive, ...rest } }) => {
         subscription.forEach(singleSubscription => {
+          if (typeof isActive === "function") {
+            if (!isActive()) {
+              return;
+            }
+          }
           if (typeof singleSubscription.when === "string") {
             if (mutationKeysLookup.has(singleSubscription.when)) {
               singleSubscription.run({ currentResults: currentResults(), ...rest }, resp, variables);

@@ -1,3 +1,5 @@
+import { defaultClientManager } from "./client";
+
 const deConstructQueryPacket = packet => {
   if (typeof packet === "string") {
     return [packet, null, {}];
@@ -16,12 +18,24 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, setState, cache }, packet) {
+  constructor({ client, cache, packet, isActive }) {
     const [query, variables, options] = deConstructQueryPacket(packet);
-    this.client = client;
-    this.setState = setState;
-    this.cache = cache || client.getCache(query) || client.newCacheForQuery(query);
+    this.client = client || defaultClientManager.getDefaultClient();
+    this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
+    this.options = options;
+    this.active = false;
+
+    this.currentState.reload = this.reload;
+    this.currentState.clearCache = () => this.cache.clearCache();
+    this.currentState.clearCacheAndReload = this.clearCacheAndReload;
+
+    if (isActive) {
+      this.initialSync(packet);
+    }
+  }
+  init() {
+    let options = this.options;
     if (typeof options.onMutation === "object") {
       if (!Array.isArray(options.onMutation)) {
         options.onMutation = [options.onMutation];
@@ -31,19 +45,17 @@ export default class QueryManager {
         softReset: this.softReset,
         hardReset: this.hardReset,
         refresh: this.refresh,
-        currentResults: () => this.currentState.data
+        currentResults: () => this.currentState.data,
+        isActive: () => this.active
       });
     }
-    this.currentState.reload = this.reload;
-    this.currentState.clearCache = () => this.cache.clearCache();
-    this.currentState.clearCacheAndReload = this.clearCacheAndReload;
   }
   updateState = newState => {
     Object.assign(this.currentState, newState);
-    this.setState(Object.assign({}, this.currentState));
+    this.setState && this.setState(Object.assign({}, this.currentState));
   };
   refresh = () => {
-    this.load();
+    this.update();
   };
   softReset = newResults => {
     this.cache.clearCache();
@@ -60,38 +72,68 @@ export default class QueryManager {
   reload = () => {
     this.execute();
   };
-  load(packet, force) {
-    if (packet) {
-      const [query, variables] = deConstructQueryPacket(packet);
-      let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-      if (force || graphqlQuery != this.currentUri) {
-        this.currentUri = graphqlQuery;
-      } else {
-        return;
+  initialSync(packet) {
+    const [query, variables] = deConstructQueryPacket(packet);
+    let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
+
+    this.cache.getFromCache(
+      graphqlQuery,
+      promise => {
+        this.updateState({ loading: true });
+      },
+      cachedEntry => {
+        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       }
+    );
+  }
+  sync({ packet, isActive, suspense }) {
+    let wasInactive = !this.active;
+    this.active = isActive;
+
+    const [query, variables] = deConstructQueryPacket(packet);
+    let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
+    if (graphqlQuery != this.currentUri) {
+      this.currentUri = graphqlQuery;
+      this.update({ suspense });
+    } else if (wasInactive && this.active) {
+      this.update({ suspense });
+    }
+  }
+  update({ suspense } = {}) {
+    if (!this.active) {
+      return;
     }
 
     let graphqlQuery = this.currentUri;
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
-        Promise.resolve(promise).then(() => {
+        let updatingPromise = Promise.resolve(promise).then(() => {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
-          this.load();
+          this.update();
         });
+        this.updateState({ loading: true });
+        if (suspense) {
+          throw updatingPromise;
+        }
       },
       cachedEntry => {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
-      () => this.execute()
+      () => {
+        this.execute(suspense);
+      }
     );
   }
-  execute() {
+  execute(suspense) {
     let graphqlQuery = this.currentUri;
     this.updateState({ loading: true });
     let promise = this.client.runUri(this.currentUri);
     this.cache.setPendingResult(graphqlQuery, promise);
     this.handleExecution(promise, graphqlQuery);
+    if (suspense) {
+      throw promise;
+    }
   }
   handleExecution = (promise, cacheKey) => {
     this.currentPromise = promise;
