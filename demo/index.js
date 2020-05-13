@@ -1,21 +1,22 @@
 import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
-import { Client, setDefaultClient } from "../index-local";
-import { BookQueryComponent1 as BookQueryComponent, BookEditing } from "./newComponents/useCase3Books";
-import { SubjectQueryComponent1 as SubjectQueryComponent, SubjectEditWork } from "./newComponents/useCase2Subjects";
+import { Client, setDefaultClient } from "../src/index";
+//import { BookQueryComponent1 as BookQueryComponent, BookEditing } from "./newComponents/useCase3Books";
+//import { SubjectQueryComponent1 as SubjectQueryComponent, SubjectEditWork } from "./newComponents/useCase2Subjects";
 
-const client = new Client({
-  endpoint: "/graphql",
-  fetchOptions: { credentials: "include" }
-});
+// const client = new Client({
+//   endpoint: "/graphql",
+//   fetchOptions: { credentials: "include" }
+// });
 
-const client2 = new Client({
-  endpoint: "/graphql2",
-  fetchOptions: { credentials: "include" }
-});
+// const client2 = new Client({
+//   endpoint: "/graphql2",
+//   fetchOptions: { credentials: "include" }
+// });
 
-setDefaultClient(client2);
+// setDefaultClient(client2);
 
+/*
 class TestingSandbox1 extends Component {
   state = { page: 1, shown: true, pageConflict1: 1, pageConflict2: 1, version: 0, title: "" };
   render() {
@@ -51,5 +52,14 @@ class TestingSandbox1 extends Component {
     );
   }
 }
+*/
 
-render(<TestingSandbox1 />, document.getElementById("home1"));
+const Home = props => {
+  return (
+    <div>
+      <h1>Hi there</h1>
+    </div>
+  )
+}
+
+render(<Home />, document.getElementById("home1"));
