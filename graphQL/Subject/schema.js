@@ -4,10 +4,10 @@ export const type = `
     _id: String
     name: String
   }
-  
+
   type SubjectQueryResults {
-    Subjects: [Subject],
-    Meta: QueryResultsMetadata
+    Subjects: [Subject!]!
+    Meta: QueryResultsMetadata!
   }
 
   type SubjectSingleQueryResult {
@@ -15,37 +15,41 @@ export const type = `
   }
 
   type SubjectMutationResult {
-    success: Boolean
     Subject: Subject
+    success: Boolean!
+    Meta: MutationResultInfo!
   }
-  
+
   type SubjectMutationResultMulti {
-    success: Boolean
     Subjects: [Subject]
-  }  
+    success: Boolean!
+    Meta: MutationResultInfo!
+  }
 
   type SubjectBulkMutationResult {
-    success: Boolean
-  }  
+    success: Boolean!
+    Meta: MutationResultInfo!
+  }
 
   input SubjectInput {
     _id: String
     name: String
   }
-  
+
   input SubjectMutationInput {
     name: String
   }
-  
+
   input SubjectSort {
     _id: Int
     name: Int
   }
-      
+
   input SubjectFilters {
     _id: String
     _id_ne: String
     _id_in: [String]
+    _id_nin: [String]
     name_contains: String
     name_startsWith: String
     name_endsWith: String
@@ -53,46 +57,46 @@ export const type = `
     name: String
     name_ne: String
     name_in: [String]
+    name_nin: [String]
     OR: [SubjectFilters]
   }
   
 `;
-  
-  
+
 export const mutation = `
-  
-  createSubject(
+
+  createSubject (
     Subject: SubjectInput
   ): SubjectMutationResult
-  
-  updateSubject(
+
+  updateSubject (
     _id: String,
     Updates: SubjectMutationInput
   ): SubjectMutationResult
 
-  updateSubjects(
+  updateSubjects (
     _ids: [String],
     Updates: SubjectMutationInput
   ): SubjectMutationResultMulti
 
-  updateSubjectsBulk(
+  updateSubjectsBulk (
     Match: SubjectFilters,
     Updates: SubjectMutationInput
-  ): SubjectBulkMutationResult    
-  
-  deleteSubject(
+  ): SubjectBulkMutationResult
+
+  deleteSubject (
     _id: String
-  ): Boolean
-  
+  ): DeletionResultInfo
+
 `;
-  
-  
+
 export const query = `
-  
-  allSubjects(
+
+  allSubjects (
     _id: String,
     _id_ne: String,
     _id_in: [String],
+    _id_nin: [String],
     name_contains: String,
     name_startsWith: String,
     name_endsWith: String,
@@ -100,6 +104,7 @@ export const query = `
     name: String,
     name_ne: String,
     name_in: [String],
+    name_nin: [String],
     OR: [SubjectFilters],
     SORT: SubjectSort,
     SORTS: [SubjectSort],
@@ -107,13 +112,10 @@ export const query = `
     SKIP: Int,
     PAGE: Int,
     PAGE_SIZE: Int
-  ): SubjectQueryResults
-  
-  getSubject(
+  ): SubjectQueryResults!
+
+  getSubject (
     _id: String
-  ): SubjectSingleQueryResult
-  
+  ): SubjectSingleQueryResult!
+
 `;
-  
-  
-  

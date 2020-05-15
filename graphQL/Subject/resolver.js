@@ -1,56 +1,72 @@
-import { queryUtilities, processHook } from "mongo-graphql-starter";
+import {
+  insertUtilities,
+  queryUtilities,
+  projectUtilities,
+  updateUtilities,
+  processHook,
+  dbHelpers,
+  resolverHelpers
+} from "mongo-graphql-starter";
 import hooksObj from "../hooks";
-const { decontructGraphqlQuery, parseRequestedFields, getMongoProjection, newObjectFromArgs, getUpdateObject } = queryUtilities;
+const runHook = processHook.bind(this, hooksObj, "Subject");
+const { decontructGraphqlQuery, cleanUpResults, dataLoaderId } = queryUtilities;
+const { setUpOneToManyRelationships, newObjectFromArgs } = insertUtilities;
+const { getMongoProjection, parseRequestedFields } = projectUtilities;
+const { getUpdateObject, setUpOneToManyRelationshipsForUpdate } = updateUtilities;
 import { ObjectId } from "mongodb";
-import Subject from "./Subject";
-import * as dbHelpers from "../dbHelpers";
+import SubjectMetadata from "./Subject";
 
-export async function loadSubjects(db, queryPacket) {
-  let { $match, $project, $sort, $limit, $skip } = queryPacket;
-
-  let aggregateItems = [
-    { $match }, 
-    { $project },
-    $sort ? { $sort } : null, 
-    $skip != null ? { $skip } : null, 
-    $limit != null ? { $limit } : null
-  ].filter(item => item);
-
-  let Subjects = await dbHelpers.runQuery(db, "subjects", aggregateItems);
-  
+async function loadSubjects(db, aggregationPipeline, root, args, context, ast) {
+  await processHook(hooksObj, "Subject", "queryPreAggregate", aggregationPipeline, { db, root, args, context, ast });
+  let Subjects = await dbHelpers.runQuery(db, "subjects", aggregationPipeline);
   await processHook(hooksObj, "Subject", "adjustResults", Subjects);
-  return Subjects;
+  Subjects.forEach(o => {
+    if (o._id) {
+      o._id = "" + o._id;
+    }
+  });
+  return cleanUpResults(Subjects, SubjectMetadata);
 }
+
+export const Subject = {};
 
 export default {
   Query: {
     async getSubject(root, args, context, ast) {
-      await processHook(hooksObj, "Subject", "queryPreprocess", root, args, context, ast);
-      let db = await root.db;
-      let queryPacket = decontructGraphqlQuery(args, ast, Subject, "Subject");
-      await processHook(hooksObj, "Subject", "queryMiddleware", queryPacket, root, args, context, ast);
-      let results = await loadSubjects(db, queryPacket);
+      let db = await (typeof root.db === "function" ? root.db() : root.db);
+      await runHook("queryPreprocess", { db, root, args, context, ast });
+      context.__mongodb = db;
+      let queryPacket = decontructGraphqlQuery(args, ast, SubjectMetadata, "Subject");
+      let { aggregationPipeline } = queryPacket;
+      await runHook("queryMiddleware", queryPacket, { db, root, args, context, ast });
+      let results = await loadSubjects(db, aggregationPipeline, root, args, context, ast, "Subject");
 
       return {
         Subject: results[0] || null
       };
     },
     async allSubjects(root, args, context, ast) {
-      await processHook(hooksObj, "Subject", "queryPreprocess", root, args, context, ast);
-      let db = await root.db;
-      let queryPacket = decontructGraphqlQuery(args, ast, Subject, "Subjects");
-      await processHook(hooksObj, "Subject", "queryMiddleware", queryPacket, root, args, context, ast);
+      let db = await (typeof root.db === "function" ? root.db() : root.db);
+      await runHook("queryPreprocess", { db, root, args, context, ast });
+      context.__mongodb = db;
+      let queryPacket = decontructGraphqlQuery(args, ast, SubjectMetadata, "Subjects");
+      let { aggregationPipeline } = queryPacket;
+      await runHook("queryMiddleware", queryPacket, { db, root, args, context, ast });
       let result = {};
 
       if (queryPacket.$project) {
-        result.Subjects = await loadSubjects(db, queryPacket);
+        result.Subjects = await loadSubjects(db, aggregationPipeline, root, args, context, ast);
       }
 
       if (queryPacket.metadataRequested.size) {
         result.Meta = {};
 
         if (queryPacket.metadataRequested.get("count")) {
-          let countResults = await dbHelpers.runQuery(db, "subjects", [{ $match: queryPacket.$match }, { $group: { _id: null, count: { $sum: 1 } } }]);  
+          let $match = aggregationPipeline.find(item => item.$match);
+          let countResults = await dbHelpers.runQuery(db, "subjects", [
+            $match,
+            { $group: { _id: null, count: { $sum: 1 } } }
+          ]);
           result.Meta.count = countResults.length ? countResults[0].count : 0;
         }
       }
@@ -60,85 +76,134 @@ export default {
   },
   Mutation: {
     async createSubject(root, args, context, ast) {
-      let db = await root.db;
-      let newObject = newObjectFromArgs(args.Subject, Subject);
-      let requestMap = parseRequestedFields(ast, "Subject");
-      let $project = getMongoProjection(requestMap, Subject, args);
+      let gqlPacket = { root, args, context, ast, hooksObj };
+      let { db, session, transaction } = await resolverHelpers.startDbMutation(gqlPacket, "Subject", SubjectMetadata, {
+        create: true
+      });
+      return await resolverHelpers.runMutation(session, transaction, async () => {
+        let newObject = await newObjectFromArgs(args.Subject, SubjectMetadata, { ...gqlPacket, db, session });
+        let requestMap = parseRequestedFields(ast, "Subject");
+        let $project = requestMap.size ? getMongoProjection(requestMap, SubjectMetadata, args) : null;
 
-      if (await processHook(hooksObj, "Subject", "beforeInsert", newObject, root, args, context, ast) === false) {
-        return { Subject: null };
-      }
-      await dbHelpers.runInsert(db, "subjects", newObject);
-      await processHook(hooksObj, "Subject", "afterInsert", newObject, root, args, context, ast);
+        newObject = await dbHelpers.processInsertion(db, newObject, {
+          ...gqlPacket,
+          typeMetadata: SubjectMetadata,
+          session
+        });
+        if (newObject == null) {
+          return { Subject: null, success: false };
+        }
+        await setUpOneToManyRelationships(newObject, args.Subject, SubjectMetadata, { ...gqlPacket, db, session });
+        await resolverHelpers.mutationComplete(session, transaction);
 
-      let result = (await loadSubjects(db, { $match: { _id: newObject._id }, $project, $limit: 1 }))[0];
-      return {
-        Subject: result
-      }
+        let result = $project
+          ? (
+              await loadSubjects(
+                db,
+                [{ $match: { _id: newObject._id } }, { $project }, { $limit: 1 }],
+                root,
+                args,
+                context,
+                ast
+              )
+            )[0]
+          : null;
+        return resolverHelpers.mutationSuccessResult({ Subject: result, transaction, elapsedTime: 0 });
+      });
     },
     async updateSubject(root, args, context, ast) {
-      if (!args._id) {
-        throw "No _id sent";
-      }
-      let db = await root.db;
-      let { $match, $project } = decontructGraphqlQuery({ _id: args._id }, ast, Subject, "Subject");
-      let updates = getUpdateObject(args.Updates || {}, Subject);
+      let gqlPacket = { root, args, context, ast, hooksObj };
+      let { db, session, transaction } = await resolverHelpers.startDbMutation(gqlPacket, "Subject", SubjectMetadata, {
+        update: true
+      });
+      return await resolverHelpers.runMutation(session, transaction, async () => {
+        let { $match, $project } = decontructGraphqlQuery(
+          args._id ? { _id: args._id } : {},
+          ast,
+          SubjectMetadata,
+          "Subject"
+        );
+        let updates = await getUpdateObject(args.Updates || {}, SubjectMetadata, { ...gqlPacket, db, session });
 
-      if (await processHook(hooksObj, "Subject", "beforeUpdate", $match, updates, root, args, context, ast) === false) {
-        return { Subject: null };
-      }
-      await dbHelpers.runUpdate(db, "subjects", $match, updates);
-      await processHook(hooksObj, "Subject", "afterUpdate", $match, updates, root, args, context, ast);
-      
-      let result = $project ? (await loadSubjects(db, { $match, $project, $limit: 1 }))[0] : null;
-      return {
-        Subject: result,
-        success: true
-      };
+        if ((await runHook("beforeUpdate", $match, updates, { ...gqlPacket, db, session })) === false) {
+          return resolverHelpers.mutationCancelled({ transaction });
+        }
+        if (!$match._id) {
+          throw "No _id sent, or inserted in middleware";
+        }
+        await setUpOneToManyRelationshipsForUpdate([args._id], args, SubjectMetadata, { ...gqlPacket, db, session });
+        await dbHelpers.runUpdate(db, "subjects", $match, updates, { session });
+        await runHook("afterUpdate", $match, updates, { ...gqlPacket, db, session });
+        await resolverHelpers.mutationComplete(session, transaction);
+
+        let result = $project
+          ? (await loadSubjects(db, [{ $match }, { $project }, { $limit: 1 }], root, args, context, ast))[0]
+          : null;
+        return resolverHelpers.mutationSuccessResult({ Subject: result, transaction, elapsedTime: 0 });
+      });
     },
     async updateSubjects(root, args, context, ast) {
-      let db = await root.db;
-      let { $match, $project } = decontructGraphqlQuery({ _id_in: args._ids }, ast, Subject, "Subjects");
-      let updates = getUpdateObject(args.Updates || {}, Subject);
+      let gqlPacket = { root, args, context, ast, hooksObj };
+      let { db, session, transaction } = await resolverHelpers.startDbMutation(gqlPacket, "Subject", SubjectMetadata, {
+        update: true
+      });
+      return await resolverHelpers.runMutation(session, transaction, async () => {
+        let { $match, $project } = decontructGraphqlQuery({ _id_in: args._ids }, ast, SubjectMetadata, "Subjects");
+        let updates = await getUpdateObject(args.Updates || {}, SubjectMetadata, { ...gqlPacket, db, session });
 
-      if (await processHook(hooksObj, "Subject", "beforeUpdate", $match, updates, root, args, context, ast) === false) {
-        return { success: true };
-      }
-      await dbHelpers.runUpdate(db, "subjects", $match, updates, { multi: true });
-      await processHook(hooksObj, "Subject", "afterUpdate", $match, updates, root, args, context, ast);
-      
-      let result = $project ? await loadSubjects(db, { $match, $project }) : null;
-      return {
-        Subjects: result,
-        success: true
-      };
+        if ((await runHook("beforeUpdate", $match, updates, { ...gqlPacket, db, session })) === false) {
+          return resolverHelpers.mutationCancelled({ transaction });
+        }
+        await setUpOneToManyRelationshipsForUpdate(args._ids, args, SubjectMetadata, { ...gqlPacket, db, session });
+        await dbHelpers.runUpdate(db, "subjects", $match, updates, { session });
+        await runHook("afterUpdate", $match, updates, { ...gqlPacket, db, session });
+        await resolverHelpers.mutationComplete(session, transaction);
+
+        let result = $project ? await loadSubjects(db, [{ $match }, { $project }], root, args, context, ast) : null;
+        return resolverHelpers.mutationSuccessResult({ Subjects: result, transaction, elapsedTime: 0 });
+      });
     },
     async updateSubjectsBulk(root, args, context, ast) {
-      let db = await root.db;
-      let { $match } = decontructGraphqlQuery(args.Match, ast, Subject);
-      let updates = getUpdateObject(args.Updates || {}, Subject);
+      let gqlPacket = { root, args, context, ast, hooksObj };
+      let { db, session, transaction } = await resolverHelpers.startDbMutation(gqlPacket, "Subject", SubjectMetadata, {
+        update: true
+      });
+      return await resolverHelpers.runMutation(session, transaction, async () => {
+        let { $match } = decontructGraphqlQuery(args.Match, ast, SubjectMetadata);
+        let updates = await getUpdateObject(args.Updates || {}, SubjectMetadata, { ...gqlPacket, db, session });
 
-      if (await processHook(hooksObj, "Subject", "beforeUpdate", $match, updates, root, args, context, ast) === false) {
-        return { success: true };
-      }
-      await dbHelpers.runUpdate(db, "subjects", $match, updates, { multi: true });
-      await processHook(hooksObj, "Subject", "afterUpdate", $match, updates, root, args, context, ast);
+        if ((await runHook("beforeUpdate", $match, updates, { ...gqlPacket, db, session })) === false) {
+          return resolverHelpers.mutationCancelled({ transaction });
+        }
+        await dbHelpers.runUpdate(db, "subjects", $match, updates, { session });
+        await runHook("afterUpdate", $match, updates, { ...gqlPacket, db, session });
 
-      return { success: true };
-    },    
+        return await resolverHelpers.finishSuccessfulMutation(session, transaction);
+      });
+    },
     async deleteSubject(root, args, context, ast) {
       if (!args._id) {
         throw "No _id sent";
       }
-      let db = await root.db;
-      let $match = { _id: ObjectId(args._id) };
-      
-      if (await processHook(hooksObj, "Subject", "beforeDelete", $match, root, args, context, ast) === false) {
-        return false;
+      let gqlPacket = { root, args, context, ast, hooksObj };
+      let { db, session, transaction } = await resolverHelpers.startDbMutation(gqlPacket, "Subject", SubjectMetadata, {
+        delete: true
+      });
+      try {
+        let $match = { _id: ObjectId(args._id) };
+
+        if ((await runHook("beforeDelete", $match, { ...gqlPacket, db, session })) === false) {
+          return { success: false };
+        }
+        await dbHelpers.runDelete(db, "subjects", $match);
+        await runHook("afterDelete", $match, { ...gqlPacket, db, session });
+        return await resolverHelpers.finishSuccessfulMutation(session, transaction);
+      } catch (err) {
+        await resolverHelpers.mutationError(err, session, transaction);
+        return { success: false };
+      } finally {
+        resolverHelpers.mutationOver(session);
       }
-      await dbHelpers.runDelete(db, "subjects", $match);
-      await processHook(hooksObj, "Subject", "afterDelete", $match, root, args, context, ast);
-      return true;
     }
   }
 };

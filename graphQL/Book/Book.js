@@ -17,5 +17,6 @@ export default {
     tags: "StringArray",
     isRead: "Boolean",
     dateAdded: "String"
-  }
+  },
+  relationships: {}
 };

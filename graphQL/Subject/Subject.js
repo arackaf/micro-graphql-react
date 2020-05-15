@@ -4,5 +4,6 @@ export default {
   fields: {
     _id: "MongoId",
     name: "String"
-  }
+  },
+  relationships: {}
 };
