@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { query, mutation } from "../index-local";
-import { SUBJECTS_QUERY, SUBJECTS_MUTATION, SUBJECTS_MUTATION_MULTI, SUBJECT_CREATE, SUBJECT_DELETE } from "./savedQueries";
+import { SUBJECTS_QUERY, SUBJECTS_MUTATION, SUBJECTS_MUTATION_MULTI, SUBJECT_CREATE, SUBJECT_DELETE } from "../savedQueries";
 
 @query(SUBJECTS_QUERY, props => ({ page: props.page }))
 @mutation(SUBJECTS_MUTATION, { mapProps: props => ({ singleMutation: props }) })

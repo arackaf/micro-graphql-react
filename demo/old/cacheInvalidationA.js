@@ -11,14 +11,11 @@ import {
   SUBJECTS_MUTATION_MULTI,
   SUBJECT_CREATE,
   SUBJECT_DELETE
-} from "./savedQueries";
+} from "../savedQueries";
 
-const hardResetStrategy = name => ({
-  when: new RegExp(`(update|create|delete)${name}s?`),
-  run: (args, resp, { hardReset }) => hardReset()
-});
-
-@query(BOOKS_QUERY, props => ({ page: props.page }), { onMutation: hardResetStrategy("Book") })
+@query(BOOKS_QUERY, props => ({ page: props.page }), {
+  onMutation: { when: /(update|create|delete)Books?/, run: (args, resp, { hardReset }) => hardReset() }
+})
 export class BookQueryComponent extends Component {
   render() {
     let { data } = this.props;
@@ -26,7 +23,9 @@ export class BookQueryComponent extends Component {
   }
 }
 
-@query(SUBJECTS_QUERY, props => ({ page: props.page }), { onMutation: hardResetStrategy("Subject") })
+@query(SUBJECTS_QUERY, props => ({ page: props.page }), {
+  onMutation: { when: /(update|create|delete)Subjects?/, run: (args, resp, { hardReset }) => hardReset() }
+})
 export class SubjectQueryComponent extends Component {
   render() {
     let { data } = this.props;

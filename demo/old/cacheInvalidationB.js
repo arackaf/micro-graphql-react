@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { query, mutation } from "../index-local";
-import { BOOKS_QUERY, BOOKS_MUTATION, SUBJECTS_QUERY, SUBJECTS_MUTATION } from "./savedQueries";
+import { BOOKS_QUERY, BOOKS_MUTATION, SUBJECTS_QUERY, SUBJECTS_MUTATION } from "../savedQueries";
 
 @query(BOOKS_QUERY, props => ({ page: props.page }), {
   onMutation: {
