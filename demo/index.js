@@ -10,8 +10,8 @@ import { BooksEdit } from "./shared/books-edit";
 import { BOOKS_QUERY, SUBJECTS_QUERY } from "./savedQueries";
 
 const client = new Client({
-  endpoint: "/graphql",
-  fetchOptions: { credentials: "include" }
+  endpoint: "https://mylibrary.io/graphql-public",
+  fetchOptions: { mode: "cors" }
 });
 
 setDefaultClient(client);
