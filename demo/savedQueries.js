@@ -40,8 +40,8 @@ export const BOOK_CREATE = `mutation createBook($Book: BookInput) {
 }`;
 
 export const SUBJECTS_QUERY = `
-query ALL_SUBJECTS($page: Int) {
-  allSubjects(SORT: { name: 1 }, PAGE: $page, PAGE_SIZE: 3) {
+query ALL_SUBJECTS {
+  allSubjects(SORT: { name: 1 }) {
     Subjects { _id name }
   }
 }`;
