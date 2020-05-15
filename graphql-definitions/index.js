@@ -1,2 +1,2 @@
-require = require("@std/esm")(module, { esm: "js", cjs: true });
+require = require("esm")(module, { mode: "auto", cjs: true });
 require("./createSchema.js");
