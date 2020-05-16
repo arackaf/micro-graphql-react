@@ -6,6 +6,7 @@ import { Books } from "./use-case-1/books";
 import { Subjects } from "./use-case-1/subjects";
 
 import { BooksEdit } from "./shared/books-edit";
+import { SubjectsEdit } from "./shared/subjects-edit";
 
 import { BOOKS_QUERY, SUBJECTS_QUERY } from "./savedQueries";
 
@@ -26,7 +27,7 @@ const Home = props => {
         </div>
         <div style={{ marginLeft: "40px" }}>
           <BooksEdit />
-          <Subjects />
+          <SubjectsEdit />
         </div>
       </div>
     </div>

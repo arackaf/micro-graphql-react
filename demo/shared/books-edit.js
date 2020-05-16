@@ -18,7 +18,7 @@ export const BooksEdit = props => {
     <div>
       <div>
         {books.map(book => (
-          <Book book={book} />
+          <Book key={book._id} book={book} />
         ))}
         <button disabled={page == 1} onClick={() => setPage(page => page - 1)}>
           Prev
