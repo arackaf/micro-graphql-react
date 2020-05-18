@@ -31,11 +31,11 @@ mutation {
 }
 ```
 
-Apollo will dutifully modify the orignial query from above to now return
+Apollo will dutifully modify the original query from above to now return
 
 ```json
 [
-  { "id": 1, "description": "Adam's Task 1", "assignedTo": "Adam" },
+  { "id": 1, "description": "Bob's Task", "assignedTo": "Bob" },
   { "id": 2, "description": "Adam's Task 2", "assignedTo": "Adam" }
 ];
 ```
