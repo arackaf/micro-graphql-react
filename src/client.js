@@ -118,7 +118,7 @@ export default class Client {
             }
           } else if (typeof singleSubscription.when === "object" && singleSubscription.when.test) {
             if ([...mutationKeysLookup].some(k => singleSubscription.when.test(k))) {
-              singleSubscription.run({ currentResults: currentResults(), ...rest }, resp, variables);
+              singleSubscription.run({ currentResults: currentResults(), refreshActiveQueries, ...rest }, resp, variables);
             }
           }
         });
