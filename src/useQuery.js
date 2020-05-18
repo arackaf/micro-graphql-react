@@ -27,7 +27,7 @@ export default function useQuery(packet, { suspense } = {}) {
     return () => queryManager.dispose();
   }, []);
 
-  return queryManager.currentState;
+  return queryState;
 }
 
 export const useSuspenseQuery = packet => useQuery(packet, { suspense: true });
