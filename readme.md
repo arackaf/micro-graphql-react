@@ -165,7 +165,7 @@ For each query you specify, an object will be returned from the hook, or for ren
 |`currentQuery`|The query that was run, which produced the current results. This updates synchronously with updates to `data`, so you can use changes here as an easy way to subscribe to query result changes. This will not have a value until there are results passed to `data`. In other words, changes to `loading` do not affect this value|
 |`error`|If the last fetch did not finish successfully, this will contain the errors that were returned, else `null`|
 |`reload`|A function you can call to manually re-fetch the current query|
-|`clearCache`|Clear the cache for this component|
+|`clearCache`|Clear the cache for this query|
 |`clearCacheAndReload`|Calls `clearCache`, followed by `reload`|
 
 ### Building mutations
