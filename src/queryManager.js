@@ -1,4 +1,5 @@
 import { defaultClientManager } from "./client";
+import shallowEqual from "shallow-equal/objects";
 
 const deConstructQueryPacket = packet => {
   if (typeof packet === "string") {
@@ -86,7 +87,7 @@ export default class QueryManager {
       }
     );
   }
-  sync({ packet, isActive, suspense }) {
+  sync({ packet, isActive, suspense, queryState }) {
     let wasInactive = !this.active;
     this.active = isActive;
 
@@ -97,6 +98,8 @@ export default class QueryManager {
       this.update({ suspense });
     } else if (wasInactive && this.active) {
       this.update({ suspense });
+    } else if (suspense && queryState.currentQuery != this.currentUri) {
+      this.setState && this.setState(this.currentState);
     }
   }
   update({ suspense } = {}) {
@@ -114,7 +117,7 @@ export default class QueryManager {
             return;
           }
           //cache should now be updated, unless it was cleared. Either way, re-run this method
-          this.update({ });
+          this.update({});
         });
         this.updateState({ loading: true });
         if (suspense) {
@@ -131,7 +134,7 @@ export default class QueryManager {
   }
   execute(suspense) {
     let graphqlQuery = this.currentUri;
-    
+
     this.updateState({ loading: true });
     let promise = this.client.runUri(this.currentUri);
     this.cache.setPendingResult(graphqlQuery, promise);
