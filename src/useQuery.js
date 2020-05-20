@@ -22,11 +22,16 @@ export default function useQuery(packet, { suspense } = {}) {
       isActive,
       suspense,
       onFinish: () => {
-        currentActive.current = isActive;
-        currentQuery.current = nextQuery;
+        //currentActive.current = isActive;
+        //currentQuery.current = nextQuery;
       }
     });
   }
+
+  useEffect(() => {
+    currentActive.current = queryManager.active;
+    currentQuery.current = queryManager.currentUri;
+  })
 
   useEffect(() => {
     queryManager.init();
