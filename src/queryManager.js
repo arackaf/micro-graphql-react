@@ -95,26 +95,33 @@ export default class QueryManager {
       }
     );
   }
-  sync({ packet, isActive, suspense, queryState }) {
+  sync({ packet, isActive, suspense, preloadToken }) {
+    const [query, variables] = deConstructQueryPacket(packet);
+
+    const existingPreloadToken = this.client.activePreloads.get(query);
+
+    query == 5 && console.log("ppt", preloadToken);
+    if (!preloadToken && existingPreloadToken) {
+      preloadToken = existingPreloadToken;
+    }
+
+    query == 5 && console.log("ept", existingPreloadToken);
+    query == 5 && console.log("cpt", preloadToken);
+    query == 5 && console.log("xpt", this.client.computePreloadToken(query, variables));
+
     let wasInactive = !this.active;
     this.active = isActive;
 
     if (!this.active) {
-      if (queryState.active) {
-        this.updateState({ active: false });
-      }
       return;
     }
 
-    const [query, variables] = deConstructQueryPacket(packet);
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     if (graphqlQuery != this.currentUri) {
       this.currentUri = graphqlQuery;
       this.update({ suspense });
     } else if (wasInactive && this.active) {
       this.update({ suspense });
-    } else if (queryState.activeUri != this.currentUri) {
-      this.updateState(this.currentState);
     }
   }
   update({ suspense } = {}) {

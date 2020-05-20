@@ -17,7 +17,7 @@ export default function useQuery(packet, { suspense } = {}) {
   queryManager.setState = setQueryState;
 
   if (currentActive.current != isActive || currentQuery.current != nextQuery) {
-    queryManager.sync({ packet, isActive, suspense, queryState });
+    queryManager.sync({ packet, isActive, suspense, preloadToken: options.preloadToken });
   }
 
   useEffect(() => {

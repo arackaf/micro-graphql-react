@@ -21,13 +21,19 @@ export default class Client {
     }
     return DEFAULT_CACHE_SIZE;
   }
+  activePreloads = new Map([]);
+  computePreloadToken(query, variables) {
+    return this.getGraphqlQuery({ query, variables });
+  }
   preload(query, variables) {
     let cache = this.getCache(query);
     if (!cache) {
       cache = this.newCacheForQuery(query);
     }
 
-    let graphqlQuery = this.getGraphqlQuery({ query, variables });
+    let graphqlQuery = this.computePreloadToken(query, variables);
+
+    this.activePreloads.set(query, graphqlQuery);
 
     let promiseResult;
     cache.getFromCache(
@@ -48,7 +54,7 @@ export default class Client {
         });
       }
     );
-    return promiseResult;
+    return { preloadToken: graphqlQuery };
   }
   getCache(query) {
     return this.caches.get(query);
