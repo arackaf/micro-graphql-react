@@ -22,8 +22,8 @@ export default function useQuery(packet, { suspense } = {}) {
 
   useEffect(() => {
     currentActive.current = queryManager.active;
-    currentQuery.current = queryState.currentQuery;
-  }, [queryState.currentQuery, queryManager.active]);
+    currentQuery.current = queryState.activeUri;
+  }, [queryState.activeUri, queryManager.active]);
 
   useEffect(() => {
     queryManager.init();
