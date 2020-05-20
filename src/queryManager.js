@@ -105,7 +105,7 @@ export default class QueryManager {
       this.update({ suspense });
     } else if (wasInactive && this.active) {
       this.update({ suspense });
-    } else if (suspense && queryState.activeUri != this.currentUri) {
+    } else if (this.active && queryState.activeUri != this.currentUri) {
       this.setState && this.setState(this.currentState);
     }
   }
