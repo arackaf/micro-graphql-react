@@ -15,12 +15,14 @@ export default function useQuery(packet, { suspense } = {}) {
 
   let [queryState, setQueryState] = useState(queryManager.currentState);
   queryManager.setState = setQueryState;
+  
 
   if (currentActive.current != isActive || currentQuery.current != nextQuery) {
     queryManager.sync({ packet, isActive, suspense, queryState });
   }
 
   useEffect(() => {
+    queryManager.currentUri = queryState.activeUri;
     currentActive.current = queryState.active;
     currentQuery.current = queryState.activeUri;
   }, [queryState.activeUri, queryState.active]);

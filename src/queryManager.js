@@ -167,7 +167,7 @@ export default class QueryManager {
     this.currentPromise = promise;
     Promise.resolve(promise)
       .then(resp => {
-        if (this.currentPromise !== promise) {
+        if (this.currentPromise !== promise || cacheKey != this.currentUri) {
           return;
         }
         this.cache.setResults(promise, cacheKey, resp);
