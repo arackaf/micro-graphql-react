@@ -86,7 +86,7 @@ export default class QueryManager {
       }
     );
   }
-  sync({ packet, isActive, suspense, onFinish }) {
+  sync({ packet, isActive, suspense }) {
     let wasInactive = !this.active;
     this.active = isActive;
 
@@ -94,12 +94,12 @@ export default class QueryManager {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     if (graphqlQuery != this.currentUri) {
       this.currentUri = graphqlQuery;
-      this.update({ suspense, onFinish });
+      this.update({ suspense });
     } else if (wasInactive && this.active) {
-      this.update({ suspense, onFinish });
+      this.update({ suspense });
     }
   }
-  update({ suspense, onFinish } = {}) {
+  update({ suspense } = {}) {
     if (!this.active) {
       return;
     }
@@ -114,7 +114,7 @@ export default class QueryManager {
             return;
           }
           //cache should now be updated, unless it was cleared. Either way, re-run this method
-          this.update({ onFinish });
+          this.update({ });
         });
         this.updateState({ loading: true });
         if (suspense) {
@@ -123,26 +123,25 @@ export default class QueryManager {
       },
       cachedEntry => {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
-        onFinish && onFinish();
       },
       () => {
-        this.execute(suspense, onFinish);
+        this.execute(suspense);
       }
     );
   }
-  execute(suspense, onFinish) {
+  execute(suspense) {
     let graphqlQuery = this.currentUri;
     
     this.updateState({ loading: true });
     let promise = this.client.runUri(this.currentUri);
     this.cache.setPendingResult(graphqlQuery, promise);
-    this.handleExecution(promise, graphqlQuery, onFinish);
+    this.handleExecution(promise, graphqlQuery);
 
     if (suspense) {
       throw promise;
     }
   }
-  handleExecution = (promise, cacheKey, onFinish) => {
+  handleExecution = (promise, cacheKey) => {
     this.currentPromise = promise;
     Promise.resolve(promise)
       .then(resp => {
@@ -156,12 +155,10 @@ export default class QueryManager {
         } else {
           this.updateState({ loaded: true, loading: false, data: resp.data, error: null, currentQuery: cacheKey });
         }
-        onFinish && onFinish();
       })
       .catch(err => {
         this.cache.setResults(promise, cacheKey, null, err);
         this.updateState({ loaded: true, loading: false, data: null, error: err, currentQuery: cacheKey });
-        onFinish && onFinish();
       });
   };
   dispose() {

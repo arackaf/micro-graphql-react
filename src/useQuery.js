@@ -17,28 +17,20 @@ export default function useQuery(packet, { suspense } = {}) {
   queryManager.setState = setQueryState;
 
   if (currentActive.current != isActive || currentQuery.current != nextQuery) {
-    queryManager.sync({
-      packet,
-      isActive,
-      suspense,
-      onFinish: () => {
-        //currentActive.current = isActive;
-        //currentQuery.current = nextQuery;
-      }
-    });
+    queryManager.sync({ packet, isActive, suspense });
   }
 
   useEffect(() => {
     currentActive.current = queryManager.active;
-    currentQuery.current = queryManager.currentUri;
-  })
+    currentQuery.current = queryManager.currentState.currentQuery;
+  }, [queryManager.currentState.currentQuery, queryManager.active]);
 
   useEffect(() => {
     queryManager.init();
     return () => queryManager.dispose();
   }, []);
 
-  return queryState;
+  return queryManager.currentState;
 }
 
 export const useSuspenseQuery = packet => useQuery(packet, { suspense: true });
