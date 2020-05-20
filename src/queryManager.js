@@ -123,7 +123,7 @@ export default class QueryManager {
       graphqlQuery,
       promise => {
         let updatingPromise = Promise.resolve(promise).then(() => {
-          //out of sync
+          //async requests out of sync
           if (graphqlQuery != this.currentUri) {
             return;
           }
