@@ -10,7 +10,7 @@ export default function useQuery(packet, { suspense } = {}) {
   let [query, variables, options = {}] = packet;
 
   let isActive = !("active" in options && !options.active);
-  let [queryManager] = useState(() => new QueryManager({ ...options, packet, isActive }));
+  let [queryManager] = useState(() => new QueryManager({ ...options, packet, isActive, suspense }));
   let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
 
   let [queryState, setQueryState] = useState(queryManager.currentState);
@@ -19,7 +19,7 @@ export default function useQuery(packet, { suspense } = {}) {
   if (currentActive.current != isActive || currentQuery.current != nextQuery) {
     currentActive.current = isActive;
     currentQuery.current = nextQuery;
-    queryManager.sync({ packet, isActive, suspense });
+    queryManager.sync({ packet, isActive });
   }
 
   useEffect(() => {

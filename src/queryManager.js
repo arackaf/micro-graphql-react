@@ -18,13 +18,14 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, cache, packet, isActive }) {
+  constructor({ client, cache, packet, isActive, suspense }) {
     const [query, variables, options] = deConstructQueryPacket(packet);
     this.client = client || defaultClientManager.getDefaultClient();
     this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
     this.options = options;
     this.active = false;
+    this.suspense = suspense;
 
     this.currentState.reload = this.reload;
     this.currentState.clearCache = () => this.cache.clearCache();
@@ -70,7 +71,7 @@ export default class QueryManager {
     this.reload();
   };
   reload = () => {
-    this.execute();
+    this.execute(this.currentUri);
   };
   initialSync(packet) {
     const [query, variables] = deConstructQueryPacket(packet);
@@ -86,7 +87,7 @@ export default class QueryManager {
       }
     );
   }
-  sync({ packet, isActive, suspense }) {
+  sync({ packet, isActive }) {
     let wasInactive = !this.active;
     this.active = isActive;
 
@@ -98,12 +99,13 @@ export default class QueryManager {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     if (graphqlQuery != this.currentUri) {
       this.currentUri = graphqlQuery;
-      this.update({ suspense });
+      this.update();
     } else if (wasInactive && this.active) {
-      this.update({ suspense });
+      this.update();
     }
   }
-  update({ suspense } = {}) {
+  update() {
+    let suspense = this.suspense;
     let graphqlQuery = this.currentUri;
     this.cache.getFromCache(
       graphqlQuery,
@@ -112,38 +114,39 @@ export default class QueryManager {
           //cache should now be updated, unless it was cleared. Either way, re-run this method
           this.update();
         });
-        this.updateState({ loading: true });
-        if (suspense) {
-          throw updatingPromise;
-        }
+
+        this.promisePending(updatingPromise);
       },
       cachedEntry => {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
       () => {
-        this.execute(suspense);
+        let promise = this.execute(graphqlQuery);
+        this.promisePending(promise);
       }
     );
   }
-  execute(suspense) {
-    let graphqlQuery = this.currentUri;
-    this.updateState({ loading: true });
-    let promise = this.client.runUri(this.currentUri);
-    this.cache.setPendingResult(graphqlQuery, promise);
-    this.handleExecution(promise, graphqlQuery, suspense);
-    if (suspense) {
+  promisePending(promise) {
+    if (this.suspense) {
       throw promise;
+    } else {
+      this.updateState({ loading: true });
     }
   }
-  handleExecution = (promise, cacheKey, suspense) => {
-    Promise.resolve(promise)
+  execute(graphqlQuery) {
+    let promise = this.client.runUri(graphqlQuery);
+    this.cache.setPendingResult(graphqlQuery, promise);
+    return this.handleExecution(promise, graphqlQuery);
+  }
+  handleExecution = (promise, cacheKey) => {
+    return Promise.resolve(promise)
       .then(resp => {
         this.cache.setResults(promise, cacheKey, resp);
-        this.update({ suspense });
+        this.update();
       })
       .catch(err => {
         this.cache.setResults(promise, cacheKey, null, err);
-        this.update({ suspense });
+        this.update();
       });
   };
   dispose() {
