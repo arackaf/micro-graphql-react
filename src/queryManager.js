@@ -71,7 +71,11 @@ export default class QueryManager {
     this.reload();
   };
   reload = () => {
-    this.execute(this.currentUri);
+    let uri = this.currentState.currentQuery || this.currentUri;
+    if (uri) {
+      this.cache.removeItem(uri);
+      this.update();
+    }
   };
   initialSync(packet) {
     const [query, variables] = deConstructQueryPacket(packet);
@@ -97,12 +101,8 @@ export default class QueryManager {
 
     const [query, variables] = deConstructQueryPacket(packet);
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-    if (graphqlQuery != this.currentUri) {
-      this.currentUri = graphqlQuery;
-      this.update();
-    } else if (wasInactive && this.active) {
-      this.update();
-    }
+    this.currentUri = graphqlQuery;
+    this.update();
   }
   update() {
     let suspense = this.suspense;

@@ -23,6 +23,10 @@ export default class Cache {
     this._cache.set(key, results);
   }
 
+  removeItem(key) {
+    this._cache.delete(key);
+  }
+
   clearCache() {
     this._cache.clear();
   }
@@ -30,12 +34,12 @@ export default class Cache {
   setPendingResult(graphqlQuery, promise) {
     let cache = this._cache;
     //front of the line now, to support LRU ejection
-      cache.delete(graphqlQuery);
-      if (cache.size === this.cacheSize) {
-        //maps iterate entries and keys in insertion order - zero'th key should be oldest
-        cache.delete([...cache.keys()][0]);
-      }
-      cache.set(graphqlQuery, promise);
+    cache.delete(graphqlQuery);
+    if (cache.size === this.cacheSize) {
+      //maps iterate entries and keys in insertion order - zero'th key should be oldest
+      cache.delete([...cache.keys()][0]);
+    }
+    cache.set(graphqlQuery, promise);
   }
 
   setResults(promise, cacheKey, resp, err) {
@@ -69,8 +73,8 @@ export default class Cache {
         this.set(key, cachedEntry);
         ifResults(cachedEntry);
       }
-      // no caching means we only use the cache to read results from locally, once. This is to simplify code-flow in queryManager, and to ease Suspense integration 
-      if (this.noCaching){
+      // no caching means we only use the cache to read results from locally, once. This is to simplify code-flow in queryManager, and to ease Suspense integration
+      if (this.noCaching) {
         cache.delete(key);
       }
     } else {
