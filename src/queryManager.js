@@ -67,11 +67,14 @@ export default class QueryManager {
     this.reload();
   };
   clearCacheAndReload = () => {
-    this.cache.clearCache();
-    this.reload();
+    let uri = this.currentState.currentQuery;
+    if (uri) {
+      this.cache.clearCache();
+      this.update();
+    }
   };
-  reload = () => {
-    let uri = this.currentState.currentQuery || this.currentUri;
+  reload = uriToUse => {
+    let uri = this.currentState.currentQuery;
     if (uri) {
       this.cache.removeItem(uri);
       this.update();

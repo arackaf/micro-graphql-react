@@ -51,8 +51,13 @@ test("Clear cache and reload", async () => {
 
   let cache = client1.getCache(basicQuery);
   expect(cache.entries.length).toBe(1);
+  
+  await pause();
 
   getProps1().clearCacheAndReload();
+
+  await pause();
+
   expect(cache.entries.length).toBe(1);
   expect(client1.queriesRun).toBe(2);
 });
