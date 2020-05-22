@@ -18,7 +18,7 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, cache, packet, isActive, suspense }) {
+  constructor({ client, cache, packet, isActive, suspense, preloadOnly }) {
     const [query, variables, options] = deConstructQueryPacket(packet);
     this.client = client || defaultClientManager.getDefaultClient();
     this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
@@ -26,14 +26,11 @@ export default class QueryManager {
     this.options = options;
     this.active = false;
     this.suspense = suspense;
+    this.preloadOnly = preloadOnly;
 
     this.currentState.reload = this.reload;
     this.currentState.clearCache = () => this.cache.clearCache();
     this.currentState.clearCacheAndReload = this.clearCacheAndReload;
-
-    if (isActive) {
-      this.initialSync(packet);
-    }
   }
   init() {
     let options = this.options;
@@ -80,20 +77,6 @@ export default class QueryManager {
       this.update();
     }
   };
-  initialSync(packet) {
-    const [query, variables] = deConstructQueryPacket(packet);
-    let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-
-    this.cache.getFromCache(
-      graphqlQuery,
-      promise => {
-        this.updateState({ loading: true });
-      },
-      cachedEntry => {
-        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
-      }
-    );
-  }
   sync({ packet, isActive }) {
     let wasInactive = !this.active;
     this.active = isActive;
@@ -124,8 +107,10 @@ export default class QueryManager {
         this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
       () => {
-        let promise = this.execute(graphqlQuery);
-        this.promisePending(promise);
+        if (!(this.suspense && this.preloadOnly)) {
+          let promise = this.execute(graphqlQuery);
+          this.promisePending(promise);
+        }
       }
     );
   }
