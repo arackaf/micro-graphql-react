@@ -1,0 +1,38 @@
+.flow-paragraph-items > p {
+  display: flex;
+  flex-direction: row;
+}
+
+.flow-paragraph-items > p > * + * {
+  margin-left: 5px;;
+}
+
+table {
+  font-size: .95rem;
+}
+table code {
+  font-size: .85rem;
+}
+
+table > thead > tr > th { 
+  border-bottom: 2px solid var(--navbar-bg);
+}
+
+table > tbody > tr > td { 
+  border-bottom: 1px solid var(--sidebar-bg);
+}
+table > tbody > tr > td:not(:last-child) { 
+  border-right: 1px solid var(--sidebar-bg);
+}
+
+table > tbody > tr > td:first-child { 
+  padding-right: 5px;
+}
+table > tbody > tr > td:not(:first-child) { 
+  padding-left: 5px;
+}
+
+table code { 
+  background: unset;
+  padding: unset;
+}

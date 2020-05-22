@@ -1,4 +1,8 @@
+<div class="flow-paragraph-items">
+
 [![npm version](https://img.shields.io/npm/v/micro-graphql-react.svg?style=flat)](https://www.npmjs.com/package/micro-graphql-react) [![Build Status](https://travis-ci.com/arackaf/micro-graphql-react.svg?branch=master)](https://travis-ci.com/arackaf/micro-graphql-react) [![codecov](https://codecov.io/gh/arackaf/micro-graphql-react/branch/master/graph/badge.svg)](https://codecov.io/gh/arackaf/micro-graphql-react) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
+</div>
 
 # micro-graphql-react
 
@@ -72,10 +76,11 @@ const client = getDefaultClient();
 
 ### Client api
 
+
 <!-- prettier-ignore -->
 | Option  | Description |
 | -------| ----------- |
-| `runQuery(query: String, variables?: Object)` | Manually run this GraphQL query |
+| <code class="small">runQuery(query: String, variables?: Object)</code> | Manually run this GraphQL query |
 | `runMutation(mutation: String, variables?: Object)`  | Manually run this GraphQL mutation|
 | `forceUpdate(query)`  | Manually update any components rendering that query. This is useful if you (dangerously) update a query's cache, as discussed in the caching section, below|
 
