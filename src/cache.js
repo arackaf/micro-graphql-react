@@ -23,6 +23,10 @@ export default class Cache {
     this._cache.set(key, results);
   }
 
+  removeItem(key) {
+    this._cache.delete(key);
+  }
+
   clearCache() {
     this._cache.clear();
   }
@@ -30,21 +34,16 @@ export default class Cache {
   setPendingResult(graphqlQuery, promise) {
     let cache = this._cache;
     //front of the line now, to support LRU ejection
-    if (!this.noCaching) {
-      cache.delete(graphqlQuery);
-      if (cache.size === this.cacheSize) {
-        //maps iterate entries and keys in insertion order - zero'th key should be oldest
-        cache.delete([...cache.keys()][0]);
-      }
-      cache.set(graphqlQuery, promise);
+    cache.delete(graphqlQuery);
+    if (cache.size === this.cacheSize) {
+      //maps iterate entries and keys in insertion order - zero'th key should be oldest
+      cache.delete([...cache.keys()][0]);
     }
+    cache.set(graphqlQuery, promise);
   }
 
   setResults(promise, cacheKey, resp, err) {
     let cache = this._cache;
-    if (this.noCaching) {
-      return;
-    }
 
     //cache may have been cleared while we were running. If so, we'll respect that, and not touch the cache, but
     //we'll still use the results locally
@@ -63,22 +62,23 @@ export default class Cache {
 
   getFromCache(key, ifPending, ifResults, ifNotFound = () => {}) {
     let cache = this._cache;
-    if (this.noCaching) {
-      ifNotFound();
-    } else {
-      let cachedEntry = cache.get(key);
-      if (cachedEntry) {
-        if (typeof cachedEntry.then === "function") {
-          ifPending(cachedEntry);
-        } else {
-          //re-insert to put it at the fornt of the line
-          cache.delete(key);
-          this.set(key, cachedEntry);
-          ifResults(cachedEntry);
-        }
+    let cachedEntry = cache.get(key);
+
+    if (cachedEntry) {
+      if (typeof cachedEntry.then === "function") {
+        ifPending(cachedEntry);
       } else {
-        ifNotFound();
+        //re-insert to put it at the fornt of the line
+        cache.delete(key);
+        this.set(key, cachedEntry);
+        ifResults(cachedEntry);
       }
+      // no caching means we only use the cache to read results from locally, once. This is to simplify code-flow in queryManager, and to ease Suspense integration
+      if (this.noCaching) {
+        cache.delete(key);
+      }
+    } else {
+      ifNotFound();
     }
   }
 }

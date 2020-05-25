@@ -1,4 +1,8 @@
+<div class="flow-paragraph-items">
+
 [![npm version](https://img.shields.io/npm/v/micro-graphql-react.svg?style=flat)](https://www.npmjs.com/package/micro-graphql-react) [![Build Status](https://travis-ci.com/arackaf/micro-graphql-react.svg?branch=master)](https://travis-ci.com/arackaf/micro-graphql-react) [![codecov](https://codecov.io/gh/arackaf/micro-graphql-react/branch/master/graph/badge.svg)](https://codecov.io/gh/arackaf/micro-graphql-react) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
+</div>
 
 # micro-graphql-react
 
@@ -16,35 +20,6 @@ This library will _not_ add metadata to your queries, and attempt to automatical
 
 For more information on the difficulties of GraphQL caching, see [this explanation](./docs/readme-cache.md)
 
-<!-- TOC -->
-
-- [Installation](#installation)
-- [Creating a client](#creating-a-client)
-  - [Accessing the client](#accessing-the-client)
-  - [Client options](#client-options)
-  - [Client api](#client-api)
-- [Running queries and mutations](#running-queries-and-mutations)
-  - [Preloading queries](#preloading-queries)
-  - [Hooks](#hooks)
-  - [Building queries](#building-queries)
-  - [Props passed for each query](#props-passed-for-each-query)
-  - [Building mutations](#building-mutations)
-  - [Props passed for each mutation](#props-passed-for-each-mutation)
-  - [React Suspense](#react-suspense)
-- [Caching](#caching)
-  - [Cache object](#cache-object)
-    - [Cache api](#cache-api)
-  - [Cache invalidation](#cache-invalidation)
-    - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
-    - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
-    - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
-    - [Use Case 4: Globally modify the cache as needed](#use-case-4-globally-modify-the-cache-as-needed)
-    - [A note on cache management code](#a-note-on-cache-management-code)
-- [Manually running queries or mutations](#manually-running-queries-or-mutations)
-  - [Client api](#client-api-1)
-- [Use in old browsers](#use-in-old-browsers)
-
-<!-- /TOC -->
 
 ## Installation
 
@@ -101,10 +76,11 @@ const client = getDefaultClient();
 
 ### Client api
 
+
 <!-- prettier-ignore -->
 | Option  | Description |
 | -------| ----------- |
-| `runQuery(query: String, variables?: Object)` | Manually run this GraphQL query |
+| <code class="small">runQuery(query: String, variables?: Object)</code> | Manually run this GraphQL query |
 | `runMutation(mutation: String, variables?: Object)`  | Manually run this GraphQL mutation|
 | `forceUpdate(query)`  | Manually update any components rendering that query. This is useful if you (dangerously) update a query's cache, as discussed in the caching section, below|
 
@@ -148,7 +124,7 @@ Construct each query with the `buildQuery` method. The first argument is the que
 | `cache`  | Manually pass in a cache object to be used for this query|
 | `active`  | If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
-Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
+Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](compress/).
 
 An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your network requests altogether, but also from your bundled code.
 

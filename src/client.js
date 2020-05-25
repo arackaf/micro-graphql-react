@@ -101,6 +101,7 @@ export default class Client {
     return () => this.forceListeners.get(query).delete(refresh);
   }
   processMutation(mutation, variables) {
+    const refreshActiveQueries = query => this.forceUpdate(query);
     return Promise.resolve(this.runMutation(mutation, variables)).then(resp => {
       let mutationKeys = Object.keys(resp);
       let mutationKeysLookup = new Set(mutationKeys);
@@ -113,11 +114,11 @@ export default class Client {
           }
           if (typeof singleSubscription.when === "string") {
             if (mutationKeysLookup.has(singleSubscription.when)) {
-              singleSubscription.run({ currentResults: currentResults(), ...rest }, resp, variables);
+              singleSubscription.run({ currentResults: currentResults(), refreshActiveQueries, ...rest }, resp, variables);
             }
           } else if (typeof singleSubscription.when === "object" && singleSubscription.when.test) {
             if ([...mutationKeysLookup].some(k => singleSubscription.when.test(k))) {
-              singleSubscription.run({ currentResults: currentResults(), ...rest }, resp, variables);
+              singleSubscription.run({ currentResults: currentResults(), refreshActiveQueries, ...rest }, resp, variables);
             }
           }
         });
