@@ -35,7 +35,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
   - [Cache object](#cache-object)
     - [Cache api](#cache-api)
   - [Cache invalidation](#cache-invalidation)
-    - [Use Case 1: Hard reset and reload after any mutation](#use-case-1-hard-reset-and-reload-after-any-mutation)
+    - [Hard Reset: Reload the query after any relevant mutation](#hard-reset-reload-the-query-after-any-relevant-mutation)
     - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
     - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
     - [Use Case 4: Globally modify the cache as needed](#use-case-4-globally-modify-the-cache-as-needed)
@@ -237,116 +237,115 @@ The onMutation option that query options take is an object, or array of objects,
 
 Many use cases follow. They're based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
-The code below was tested on an actual GraphQL endpoint created by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter)
+The code below uses a publicly available GraphQL endpoint created by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter). You can run these examples from the demo folder of this repository. Just run `npm i` then start the `demo-client` and `demo-server` scripts in separate terminals, and open `http://localhost:3000/`
 
-All examples use the `query` decorator, but the format is identical to the `GraphQL` component.
-
-#### Use Case 1: Hard reset and reload after any mutation
+#### Hard Reset: Reload the query after any relevant mutation
 
 Let's say that whenever a mutation happens, we want to immediately invalidate any related queries' caches, and reload the current queries from the network. We understand that this may cause a book that we just edited to immediately disappear from our current search results, since it no longer matches our search criteria, but that's what we want.
 
 The hard reload method that's passed makes this easy. Let's see how to use this in a (contrived) component that queries, and displays some books.
 
 ```javascript
-export const BookQueryComponent = props => (
-  <div>
-    <GraphQL
-      query={{
-        books: buildQuery(
-          BOOKS_QUERY,
-          { page: props.page },
-          { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
-        )
-      }}
-    >
-      {({ books: { data } }) =>
-        data ? (
-          <ul>
-            {data.allBooks.Books.map(b => (
-              <li key={b._id}>
-                {b.title} - {b.pages}
-              </li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
+export const Books = props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useQuery(
+    BOOKS_QUERY,
+    { page },
+    { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
+  );
+
+  const books = data?.allBooks?.Books ?? [];
+
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
 ```
 
 Here we specify a regex matching every kind of book mutation we have, and upon completion, we just clear the cache, and reload by calling `hardReset()`. It's hard not to be at least a littler dissatisfied with this solution; the boilerplate is non-trivial. Let's take a look at a similar (again contrived) component, but for the subjects we can apply to books
 
 ```javascript
-export const SubjectQueryComponent = props => (
-  <div>
-    <GraphQL
-      query={{
-        subjects: buildQuery(
-          SUBJECTS_QUERY,
-          { page: props.page },
-          { onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() } }
-        )
-      }}
-    >
-      {({ subjects: { data } }) =>
-        data ? (
-          <ul>
-            {data.allSubjects.Subjects.map(s => (
-              <li key={s._id}>{s.name}</li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
+export const Subjects = props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useQuery(
+    SUBJECTS_QUERY,
+    { page },
+    {
+      onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
+    }
+  );
+
+  const subjects = data?.allSubjects?.Subjects ?? [];
+
+  return (
+    <div>
+      <div>
+        {subjects.map(subject => (
+          <div key={subject._id}>{subject.name}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
 ```
 
-Assuming our GraphQL operations have a consistent naming structure—and they should—then some pretty obvious patterns emerge. We can auto-generate this structure just from the name of our type, like so
+Assuming our GraphQL operations have a consistent naming structure—and they should, and in this case do—then some pretty obvious patterns emerge. We can leverage the composability of hooks and emit this structure from the name of our type, like so
 
 ```javascript
-const hardResetStrategy = name => ({
-  when: new RegExp(`(update|create|delete)${name}s?`),
-  run: ({ hardReset }) => hardReset()
-});
+export const useHardResetQuery = (type, query, variables, options = {}) =>
+  useQuery(query, variables, {
+    ...options,
+    onMutation: {
+      when: new RegExp(`(update|create|delete)${type}s?`),
+      run: ({ hardReset }) => hardReset()
+    }
+  });
 ```
 
-and then apply it like so
+which we _could_ use like this
 
 ```javascript
-export const BookQueryComponent = props => (
-  <div>
-    <GraphQL query={{ books: buildQuery(BOOKS_QUERY, { page: props.page }, { onMutation: hardResetStrategy("Book") }) }}>
-      {({ books: { data } }) =>
-        data ? (
-          <ul>
-            {data.allBooks.Books.map(b => (
-              <li key={b._id}>
-                {b.title} - {b.pages}
-              </li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
+const { data, loading } = useHardResetQuery("Book", BOOKS_QUERY, { page });
+```
 
-export const SubjectQueryComponent = props => (
-  <div>
-    <GraphQL query={{ subjects: buildQuery(SUBJECTS_QUERY, { page: props.page }, { onMutation: hardResetStrategy("Subject") }) }}>
-      {({ subjects: { data } }) =>
-        data ? (
-          <ul>
-            {data.allSubjects.Subjects.map(s => (
-              <li key={s._id}>{s.name}</li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
+but really, why not just go the extra mile and make hooks for our various types for which hard resetting applies, like so
+
+```javascript
+export const useBookHardResetQuery = (...args) => useHardResetQuery("Book", ...args);
+export const useSubjectHardResetQuery = (...args) => useHardResetQuery("Subject", ...args);
+```
+
+which trims the code to just this
+
+```javascript
+export const Books = props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useBookHardResetQuery(BOOKS_QUERY, { page });
+
+  const books = data?.allBooks?.Books ?? [];
+
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
 );
 ```
 
