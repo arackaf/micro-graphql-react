@@ -1,5 +1,5 @@
 import { React, render, ClientMock, setDefaultClient, Cache } from "../testSuiteInitialize";
-import { deferred, dataPacket, hookComponentFactory } from "../testUtils";
+import { deferred, dataPacket, hookComponentFactory, pause } from "../testUtils";
 
 let client1;
 let client2;
@@ -30,6 +30,8 @@ test("Reload query", async () => {
   render(<Component1 page={1} unused={10} />);
   expect(client1.queriesRun).toBe(1);
 
+  await pause();
+
   getProps1().reload();
   expect(client1.queriesRun).toBe(2);
 });
@@ -49,8 +51,13 @@ test("Clear cache and reload", async () => {
 
   let cache = client1.getCache(basicQuery);
   expect(cache.entries.length).toBe(1);
+  
+  await pause();
 
   getProps1().clearCacheAndReload();
+
+  await pause();
+
   expect(cache.entries.length).toBe(1);
   expect(client1.queriesRun).toBe(2);
 });
