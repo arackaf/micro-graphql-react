@@ -1,4 +1,4 @@
-import { React, render, ClientMock, setDefaultClient, useQuery, useMutation } from "../testSuiteInitialize";
+import { React, render, ClientMock, setDefaultClient, useQuery } from "../testSuiteInitialize";
 import { pause } from "../testUtils";
 
 const LOAD_TASKS = "A";
@@ -17,7 +17,7 @@ beforeEach(() => {
 
 test("Cache object behaves correctly", async () => {
   const ComponentToUse = props => {
-    const loadTasks = useQuery([LOAD_TASKS, { a: 12 }]);
+    const loadTasks = useQuery(LOAD_TASKS, { a: 12 });
     return null;
   };
 

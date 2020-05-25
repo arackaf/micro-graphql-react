@@ -14,9 +14,9 @@ beforeEach(() => {
 
 test("loading props passed initially", async () => {
   const ComponentToUse = props => {
-    const loadTasks = useQuery([LOAD_TASKS, { assignedTo: props.assignedTo }]);
-    const loadUsers = useQuery([LOAD_USERS, { name: props.name }]);
-    const updateUser = useMutation([UPDATE_USER]);
+    const loadTasks = useQuery(LOAD_TASKS, { assignedTo: props.assignedTo });
+    const loadUsers = useQuery(LOAD_USERS, { name: props.name });
+    const updateUser = useMutation(UPDATE_USER);
 
     expect(typeof loadTasks.loading).toEqual("boolean");
     expect(typeof loadTasks.loaded).toEqual("boolean");
@@ -44,9 +44,9 @@ test("loading props passed initially", async () => {
 
 test("Initial load of cached entry has correct state", async () => {
   const ComponentToUse = props => {
-    const loadTasks = useQuery([LOAD_TASKS, { assignedTo: props.assignedTo }]);
-    const loadUsers = useQuery([LOAD_USERS, { name: props.name }]);
-    const updateUser = useMutation([UPDATE_USER]);
+    const loadTasks = useQuery(LOAD_TASKS, { assignedTo: props.assignedTo });
+    const loadUsers = useQuery(LOAD_USERS, { name: props.name });
+    const updateUser = useMutation(UPDATE_USER);
 
     expect(typeof loadTasks.loading).toEqual("boolean");
     expect(typeof loadTasks.loaded).toEqual("boolean");

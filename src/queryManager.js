@@ -1,13 +1,5 @@
 import { defaultClientManager } from "./client";
 
-const deConstructQueryPacket = packet => {
-  if (typeof packet === "string") {
-    return [packet, null, {}];
-  } else if (Array.isArray(packet)) {
-    return [packet[0], packet[1] || null, packet[2] || {}];
-  }
-};
-
 export default class QueryManager {
   mutationSubscription = null;
   static initialState = {
@@ -18,8 +10,7 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, cache, packet, isActive, suspense, preloadOnly }) {
-    const [query, variables, options] = deConstructQueryPacket(packet);
+  constructor({ client, cache, query, variables, options, isActive, suspense, preloadOnly }) {
     this.client = client || defaultClientManager.getDefaultClient();
     this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
@@ -77,7 +68,7 @@ export default class QueryManager {
       this.update();
     }
   };
-  sync({ packet, isActive }) {
+  sync({ query, variables, isActive }) {
     let wasInactive = !this.active;
     this.active = isActive;
 
@@ -85,7 +76,6 @@ export default class QueryManager {
       return;
     }
 
-    const [query, variables] = deConstructQueryPacket(packet);
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     this.currentUri = graphqlQuery;
     this.update();
