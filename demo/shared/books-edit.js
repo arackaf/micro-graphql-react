@@ -37,7 +37,6 @@ const Book = ({ book }) => {
   const [editing, setEditing] = useState(false);
   const save = () =>
     runMutation({ _id: book._id, title: inputRef.current.value }).then(() => setEditing(false));
-
   return (
     <div>
       {editing ? (

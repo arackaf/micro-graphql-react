@@ -48,7 +48,7 @@ query ALL_SUBJECTS {
 
 export const SUBJECTS_MUTATION = `mutation modifySubject($_id: String, $name: String) {
   updateSubject(_id: $_id, name: $name) {
-    _id name
+    Subjects { _id name }
   }
 }`;
 

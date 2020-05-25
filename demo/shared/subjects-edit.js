@@ -31,13 +31,14 @@ const Subject = ({ subject }) => {
   const { runMutation } = useMutation(buildMutation(SUBJECTS_MUTATION));
   const inputRef = useRef(null);
   const [editing, setEditing] = useState(false);
-  const save = () =>
+  const save = () => {
     runMutation({ _id: subject._id, name: inputRef.current.value }).then(() => setEditing(false));
+  };
 
   return editing ? (
     <div>
       <input ref={inputRef} defaultValue={subject.name} />
-      <button onClick={() => save()}>Save</button>
+      <button onClick={save}>Save</button>
     </div>
   ) : (
     <div>
