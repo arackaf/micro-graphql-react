@@ -17,7 +17,7 @@ beforeEach(() => {
 
 test("loading props passed initially", async () => {
   const ComponentToUse = props => {
-    const loadTasks = useQuery([LOAD_TASKS, { assignedTo: props.assignedTo }]);
+    const loadTasks = useQuery(LOAD_TASKS, { assignedTo: props.assignedTo });
     renders++;
 
     return null;
@@ -40,10 +40,10 @@ test("force update from client mutation subscription -- string", async () => {
 
   const ComponentToUse = props => {
     const hasRun = useRef(false);
-    const { data } = useQuery([LOAD_TASKS, { assignedTo: props.assignedTo }]);
+    const { data } = useQuery(LOAD_TASKS, { assignedTo: props.assignedTo });
     lastResults = data;
 
-    const { runMutation } = useMutation(["X"]);
+    const { runMutation } = useMutation("X");
     renders++;
 
     if (!hasRun.current && props.run) {
@@ -84,10 +84,10 @@ test("force update from client mutation subscription -- regex", async () => {
 
   const ComponentToUse = props => {
     const hasRun = useRef(false);
-    const { data } = useQuery([LOAD_TASKS, { assignedTo: props.assignedTo }]);
+    const { data } = useQuery(LOAD_TASKS, { assignedTo: props.assignedTo });
     lastResults = data;
 
-    const { runMutation } = useMutation(["X"]);
+    const { runMutation } = useMutation("X");
     renders++;
 
     if (!hasRun.current && props.run) {

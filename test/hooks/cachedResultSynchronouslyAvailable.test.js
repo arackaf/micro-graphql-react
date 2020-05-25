@@ -1,4 +1,4 @@
-import { React, render, ClientMock, setDefaultClient, useQuery, useMutation } from "../testSuiteInitialize";
+import { React, render, ClientMock, setDefaultClient, useQuery } from "../testSuiteInitialize";
 import { pause } from "../testUtils";
 
 const LOAD_TASKS = "A";
@@ -17,12 +17,12 @@ beforeEach(() => {
 
 test("Initial results sync available if possible", async () => {
   const ComponentToUse = props => {
-    const loadTasks = useQuery([LOAD_TASKS, { a: 12 }]);
+    const loadTasks = useQuery(LOAD_TASKS, { a: 12 });
     return null;
   };
 
   const ComponentToUseNext = props => {
-    const loadTasks = useQuery([LOAD_TASKS, { a: 12 }]);
+    const loadTasks = useQuery(LOAD_TASKS, { a: 12 });
     expect(loadTasks.data).not.toBeNull();
     return null;
   };

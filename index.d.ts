@@ -13,9 +13,6 @@ type MutationHandlerPayload = {
   refresh: () => void;
 };
 
-type QueryPacket = [string, any, any];
-type MutationPacket = [string, any];
-
 export type QueryPayload<TResults = any> = {
   loading: boolean;
   loaded: boolean;
@@ -68,31 +65,14 @@ type BuildMutationOptions = {
   client?: Client;
 };
 
-export const buildQuery: (queryText: string, variables?: any, options?: BuildQueryOptions) => QueryPacket;
-export const buildMutation: (mutationText: string, options?: BuildQueryOptions) => MutationPacket;
-
 type IReactComponent<P = any> = StatelessComponent<P> | ComponentClass<P> | ClassicComponentClass<P>;
 
 export const compress: any;
 export const setDefaultClient: (client: Client) => void;
 export const getDefaultClient: () => Client;
 
-export function useQuery<TResults = any>(queryPacket: QueryPacket): QueryPayload<TResults>;
-export function useSuspenseQuery<TResults = any>(queryPacket: QueryPacket): QueryPayload<TResults>;
+export function useQuery<TResults = any>(queryText: string, variables?: any, options?: BuildQueryOptions): QueryPayload<TResults>;
+export function useSuspenseQuery<TResults = any>(queryText: string, variables?: any, options?: BuildQueryOptions): QueryPayload<TResults>;
 
-export function useMutation<TResults = any>(mutationPacket: MutationPacket): MutationPayload<TResults>;
+export function useMutation<TResults = any>(mutationText: string, options?: BuildQueryOptions): MutationPayload<TResults>;
 
-type RenderProps<Query, Mutation> = Record<keyof Query, QueryPayload> & Record<keyof Mutation, MutationPayload>;
-
-type QueryMap = { [s: string]: QueryPacket };
-type MutationMap = { [s: string]: MutationPacket };
-
-type ComponentPacket<Query extends QueryMap, Mutation extends MutationMap> = {
-  query?: Query;
-  mutation?: Mutation;
-  children(fn: RenderProps<Query, Mutation>): React.ReactNode;
-};
-
-export function GraphQL<QueryType extends QueryMap = {}, MutationType extends MutationMap = {}>(
-  props: ComponentPacket<QueryType, MutationType>
-): JSX.Element;

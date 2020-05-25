@@ -73,9 +73,9 @@ export const hookComponentFactory = (...hookPackets) => (...hookOptions) => {
       hookPackets.forEach((packet, i) => {
         let options = typeof hookOptions[i] == "function" ? hookOptions[i](props) : hookOptions[i];
         if (Array.isArray(packet)) {
-          currentHookResults[i] = useQuery([packet[0], packet[1] ? packet[1](props) : {}, options]);
+          currentHookResults[i] = useQuery(packet[0], packet[1] ? packet[1](props) : {}, options);
         } else {
-          currentHookResults[i] = useMutation([packet, options]);
+          currentHookResults[i] = useMutation(packet, options);
         }
       });
       return null;
