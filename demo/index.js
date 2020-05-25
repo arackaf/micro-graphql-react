@@ -2,8 +2,8 @@ import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
 import { Client, setDefaultClient, useQuery, buildQuery } from "../src/index";
 
-import { Books } from "./hard-reset/base/books";
-import { Subjects } from "./hard-reset/base/subjects";
+import { Books } from "./hard-reset/books";
+import { Subjects } from "./hard-reset/subjects";
 
 import { BooksEdit } from "./shared/books-edit";
 import { SubjectsEdit } from "./shared/subjects-edit";

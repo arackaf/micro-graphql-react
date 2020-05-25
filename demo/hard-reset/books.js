@@ -1,16 +1,20 @@
 import React, { useState } from "react";
-import { BOOKS_QUERY } from "../../savedQueries";
-import { useQuery, buildQuery } from "../../../src/index";
+import { BOOKS_QUERY } from "../savedQueries";
+import { useQuery, buildQuery } from "../../src/index";
+import { useHardResetQuery } from "./hard-reset-hooks";
 
 export const Books = props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useQuery(
-    buildQuery(
-      BOOKS_QUERY,
-      { page },
-      { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
-    )
-  );
+  // const { data, loading } = useQuery(
+  //   buildQuery(
+  //     BOOKS_QUERY,
+  //     { page },
+  //     { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
+  //   )
+  // );
+
+  const { data, loading } = useHardResetQuery("Book", BOOKS_QUERY, { page });
+
   const books = data?.allBooks?.Books ?? [];
 
   return (
