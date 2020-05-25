@@ -40,7 +40,7 @@ export class Cache {
 }
 
 export class Client {
-  constructor(options: { endpoint: string; noCaching?: boolean; cacheSize?: number; fetchOptions?: any });
+  constructor(options: { endpoint: string; cacheSize?: number; fetchOptions?: any });
   runQuery(query: string, variables?: any): Promise<any>;
   getGraphqlQuery({ query, variables }: { query: string; variables: any }): string;
   processMutation(mutation: string, variables?: any): Promise<any>;

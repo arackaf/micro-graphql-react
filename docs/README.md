@@ -72,10 +72,8 @@ const client = getDefaultClient();
 | `endpoint` | URL for your GraphQL endpoint |
 | `fetchOptions`  | Options to send along with all fetches|
 | `cacheSize`  | Default cache size to use for all caches created by this client, as needed, for all queries it processes|
-| `noCaching`  | If true, this will turn off caching altogether for all queries it processes|
 
 ### Client api
-
 
 <!-- prettier-ignore -->
 | Option  | Description |
@@ -180,8 +178,6 @@ When instantiating a new cache object, you can optionally pass in a cache size.
 ```javascript
 let cache = new Cache(15);
 ```
-
-To turn caching off for a given query, just create a cache with size `0`, and pass that in for the query. Or as noted above, you can create a client with the `noCaching` option set to true, to turn caching off for all queries processed by that client.
 
 #### Cache api
 
