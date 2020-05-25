@@ -1,15 +1,13 @@
 import React, { useState, useRef } from "react";
 import { BOOKS_QUERY, MODIFY_BOOK_TITLE } from "../savedQueries";
-import { useQuery, buildQuery, useMutation, buildMutation } from "../../src/index";
+import { useQuery, useMutation } from "../../src/index";
 
 export const BooksEdit = props => {
   const [page, setPage] = useState(1);
   const { data, loading } = useQuery(
-    buildQuery(
-      BOOKS_QUERY,
-      { page },
-      { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
-    )
+    BOOKS_QUERY,
+    { page },
+    { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
   );
 
   const books = data?.allBooks?.Books ?? [];
@@ -32,7 +30,7 @@ export const BooksEdit = props => {
 };
 
 const Book = ({ book }) => {
-  const { runMutation } = useMutation(buildMutation(MODIFY_BOOK_TITLE));
+  const { runMutation } = useMutation(MODIFY_BOOK_TITLE);
   const inputRef = useRef(null);
   const [editing, setEditing] = useState(false);
   const save = () =>

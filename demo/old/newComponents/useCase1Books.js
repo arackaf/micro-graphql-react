@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { GraphQL, buildQuery, buildMutation } from "../../index-local";
-import { BOOKS_QUERY, MODIFY_BOOK_TITLE, MODIFY_BOOK_PAGE } from "../savedQueries";
+import { BOOKS_QUERY, MODIFY_BOOK_TITLE, MODIFY_BOOK_PAGE } from "../../savedQueries";
 import { hardResetStrategy } from "./strategies";
 
 export const BookQueryComponent1 = props => (

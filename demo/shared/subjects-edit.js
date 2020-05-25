@@ -1,17 +1,15 @@
 import React, { useState, useRef } from "react";
 import { SUBJECTS_QUERY, SUBJECTS_MUTATION } from "../savedQueries";
-import { useQuery, buildQuery, useMutation, buildMutation } from "../../src/index";
+import { useQuery, useMutation } from "../../src/index";
 
 export const SubjectsEdit = props => {
   const [page, setPage] = useState(1);
   const { data, loading } = useQuery(
-    buildQuery(
-      SUBJECTS_QUERY,
-      {},
-      {
-        onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
-      }
-    )
+    SUBJECTS_QUERY,
+    {},
+    {
+      onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
+    }
   );
   const subjects = data?.allSubjects?.Subjects ?? [];
 
@@ -28,7 +26,7 @@ export const SubjectsEdit = props => {
 };
 
 const Subject = ({ subject }) => {
-  const { runMutation } = useMutation(buildMutation(SUBJECTS_MUTATION));
+  const { runMutation } = useMutation(SUBJECTS_MUTATION);
   const inputRef = useRef(null);
   const [editing, setEditing] = useState(false);
   const save = () => {

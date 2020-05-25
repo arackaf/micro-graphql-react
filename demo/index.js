@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
-import { Client, setDefaultClient, useQuery, buildQuery } from "../src/index";
+import { Client, setDefaultClient, useQuery } from "../src/index";
 
 import { Books } from "./hard-reset/books";
 import { Subjects } from "./hard-reset/subjects";
