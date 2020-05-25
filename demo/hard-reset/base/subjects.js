@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { SUBJECTS_QUERY } from "../savedQueries";
-import { useQuery, buildQuery } from "../../src/index";
+import { SUBJECTS_QUERY } from "../../savedQueries";
+import { useQuery, buildQuery } from "../../../src/index";
 
 export const Subjects = props => {
   const [page, setPage] = useState(1);

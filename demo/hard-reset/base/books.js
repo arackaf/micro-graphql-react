@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { BOOKS_QUERY } from "../savedQueries";
-import { useQuery, buildQuery } from "../../src/index";
+import { BOOKS_QUERY } from "../../savedQueries";
+import { useQuery, buildQuery } from "../../../src/index";
 
 export const Books = props => {
   const [page, setPage] = useState(1);
