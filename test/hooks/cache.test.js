@@ -118,7 +118,7 @@ test("Second component shares the same cache", async () => {
   expect(client1.queriesRun).toBe(10);
 });
 
-test("Override cache size", async () => {
+test("Override cache size via custom cache object", async () => {
   let cacheOverride = new Cache(2);
   let [getProps, Component] = getComponent({ cache: cacheOverride });
   let { rerender } = render(<Component page={1} unused={10} />);
@@ -146,7 +146,7 @@ test("Default cache size with overridden client", async () => {
   expect(client2.queriesRun).toBe(10);
 });
 
-test("Override cache size with overridden client", async () => {
+test("Override cache size with overridden cache, and client objects", async () => {
   let cacheOverride = new Cache(2);
   let [getProps, Component] = getComponent({ cache: cacheOverride, client: client2 });
   let { rerender } = render(<Component page={1} unused={10} />);
