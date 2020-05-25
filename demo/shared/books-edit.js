@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { BOOKS_QUERY, MODIFY_BOOK_TITLE } from "../savedQueries";
 import { useQuery, useMutation } from "../../src/index";
+import { RenderPaging } from "./util";
 
 export const BooksEdit = props => {
   const [page, setPage] = useState(1);
@@ -18,12 +19,8 @@ export const BooksEdit = props => {
         {books.map(book => (
           <Book key={book._id} book={book} />
         ))}
-        <button disabled={page == 1} onClick={() => setPage(page => page - 1)}>
-          Prev
-        </button>
-        {page}
-        <button onClick={() => setPage(page => page + 1)}>Next</button>
       </div>
+      <RenderPaging page={page} setPage={setPage} />
       {loading ? <span>Loading ...</span> : null}
     </div>
   );

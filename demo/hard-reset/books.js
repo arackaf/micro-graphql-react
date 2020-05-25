@@ -2,16 +2,17 @@ import React, { useState } from "react";
 import { BOOKS_QUERY } from "../savedQueries";
 import { useQuery } from "../../src/index";
 import { useHardResetQuery } from "./hard-reset-hooks";
+import { RenderPaging } from "../shared/util";
+
+//const { data, loading } = useHardResetQuery("Book", BOOKS_QUERY, { page });
 
 export const Books = props => {
   const [page, setPage] = useState(1);
-  // const { data, loading } = useQuery(
-  //   BOOKS_QUERY,
-  //   { page },
-  //   { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
-  // );
-
-  const { data, loading } = useHardResetQuery("Book", BOOKS_QUERY, { page });
+  const { data, loading } = useQuery(
+    BOOKS_QUERY,
+    { page },
+    { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
+  );
 
   const books = data?.allBooks?.Books ?? [];
 
@@ -21,12 +22,8 @@ export const Books = props => {
         {books.map(book => (
           <div key={book._id}>{book.title}</div>
         ))}
-        <button disabled={page == 1} onClick={() => setPage(page => page - 1)}>
-          Prev
-        </button>
-        {page}
-        <button onClick={() => setPage(page => page + 1)}>Next</button>
       </div>
+      <RenderPaging page={page} setPage={setPage} />
       {loading ? <span>Loading ...</span> : null}
     </div>
   );
