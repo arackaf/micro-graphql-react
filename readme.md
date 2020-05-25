@@ -2,7 +2,7 @@
 
 # micro-graphql-react
 
-A light (2.8K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
+A light (2.6K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
 Queries are fetched via HTTP GET, so while the client-side caching is in some ways not as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
 
