@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
-import { BOOKS_QUERY, MODIFY_BOOK_TITLE } from "../savedQueries";
-import { useQuery, useMutation } from "../../src/index";
+import { BOOKS_QUERY, MODIFY_BOOK_TITLE } from "./savedQueries";
+import { useQuery, useMutation } from "../src/index";
 import { RenderPaging } from "./util";
 
 export const BooksEdit = props => {
