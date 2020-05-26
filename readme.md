@@ -36,7 +36,7 @@ For more information on the difficulties of GraphQL caching, see [this explanati
     - [Cache api](#cache-api)
   - [Cache invalidation](#cache-invalidation)
     - [Hard Reset: Reload the query after any relevant mutation](#hard-reset-reload-the-query-after-any-relevant-mutation)
-    - [Use Case 2: Update current results, but otherwise clear the cache](#use-case-2-update-current-results-but-otherwise-clear-the-cache)
+    - [Soft Reset: Update current results, but clear the cache](#soft-reset-update-current-results-but-clear-the-cache)
     - [Use Case 3: Manually update all affected cache entries](#use-case-3-manually-update-all-affected-cache-entries)
     - [Use Case 4: Globally modify the cache as needed](#use-case-4-globally-modify-the-cache-as-needed)
     - [A note on cache management code](#a-note-on-cache-management-code)
@@ -346,7 +346,7 @@ export const Books = props => {
 );
 ```
 
-#### Use Case 2: Update current results, but otherwise clear the cache
+#### Soft Reset: Update current results, but clear the cache
 
 Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone," but one of the current results was clearly written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
 
