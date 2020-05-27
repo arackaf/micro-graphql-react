@@ -2,11 +2,11 @@ import React, { Component, Fragment } from "react";
 import { render } from "react-dom";
 import { Client, setDefaultClient, useQuery } from "../src/index";
 
-import { Books } from "./books";
-import { Subjects } from "./subjects";
+import { Books } from "./view-data/books";
+import { Subjects } from "./view-data/subjects";
 
-import { BooksEdit } from "./books-edit";
-import { SubjectsEdit } from "./subjects-edit";
+import { BooksEdit } from "./edit-data/books-edit";
+import { SubjectsEdit } from "./edit-data/subjects-edit";
 
 import { BOOKS_QUERY, SUBJECTS_QUERY } from "./savedQueries";
 

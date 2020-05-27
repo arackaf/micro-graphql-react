@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
-import { SUBJECTS_QUERY, SUBJECTS_MUTATION } from "./savedQueries";
-import { useQuery, useMutation } from "../src/index";
-import { RenderPaging } from "./util";
+import { SUBJECTS_QUERY, SUBJECTS_MUTATION } from "../savedQueries";
+import { useQuery, useMutation } from "../../src/index";
+import { RenderPaging } from "../util";
 
 export const SubjectsEdit = props => {
   const [page, setPage] = useState(1);

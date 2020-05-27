@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
-import { BOOKS_QUERY, MODIFY_BOOK_TITLE } from "./savedQueries";
-import { useQuery, useMutation } from "../src/index";
-import { RenderPaging } from "./util";
+import { BOOKS_QUERY, MODIFY_BOOK_TITLE } from "../savedQueries";
+import { useQuery, useMutation } from "../../src/index";
+import { RenderPaging } from "../util";
 
 export const BooksEdit = props => {
   const [page, setPage] = useState(1);

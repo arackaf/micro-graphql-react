@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { BOOKS_QUERY } from "./savedQueries";
-import { useQuery } from "../src/index";
-import { useHardResetQuery, useBookHardResetQuery } from "./cache-helpers/hard-reset-hooks";
-import { RenderPaging } from "./util";
+import { BOOKS_QUERY } from "../savedQueries";
+import { useQuery } from "../../src/index";
+import { useHardResetQuery, useBookHardResetQuery } from "../cache-helpers/hard-reset-hooks";
+import { RenderPaging } from "../util";
 
 //HARD RESET
 // const { data, loading } = useQuery(
