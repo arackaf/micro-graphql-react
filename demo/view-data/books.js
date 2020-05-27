@@ -3,6 +3,7 @@ import { BOOKS_QUERY } from "../savedQueries";
 import { useQuery } from "../../src/index";
 import { useHardResetQuery, useBookHardResetQuery } from "../cache-helpers/hard-reset-hooks";
 import { RenderPaging } from "../util";
+import { useSoftResetQuery } from "../cache-helpers/soft-reset-hook";
 
 //HARD RESET
 // const { data, loading } = useQuery(
@@ -21,10 +22,13 @@ import { RenderPaging } from "../util";
 //   { page },
 //   {
 //     onMutation: {
-//       when: /(update|create|delete)Books?/,
-//       run: ({ softReset, currentResults }, { updateBook: { Book } }) => {
-//         let CachedBook = currentResults.allBooks.Books.find((b) => b._id == Book._id);
-//         CachedBook && Object.assign(CachedBook, Book);
+//       when: /updateBooks?/,
+//       run: ({ softReset, currentResults }, resp) => {
+//         const updatedBooks = resp.updateBooks?.Books ?? [resp.updateBook.Book];
+//         updatedBooks.forEach(book => {
+//           let CachedBook = currentResults.allBooks.Books.find(b => b._id == book._id);
+//           CachedBook && Object.assign(CachedBook, book);
+//         });
 //         softReset(currentResults);
 //       },
 //     },
@@ -33,24 +37,8 @@ import { RenderPaging } from "../util";
 
 export const Books = props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useQuery(
-    BOOKS_QUERY,
-    { page },
-    {
-      onMutation: {
-        when: /updateBooks?/,
-        run: ({ softReset, currentResults }, resp) => {
-          const updatedBooks = resp.updateBooks?.Books ?? [resp.updateBook.Book];
-          updatedBooks.forEach(book => {
-            let CachedBook = currentResults.allBooks.Books.find(b => b._id == book._id);
-            CachedBook && Object.assign(CachedBook, book);
-          });
-          softReset(currentResults);
-        },
-      },
-    }
-  );
-
+  const { data, loading } = useSoftResetQuery("Book", BOOKS_QUERY, { page });
+  
   const books = data?.allBooks?.Books ?? [];
 
   return (

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { SUBJECTS_QUERY } from "../savedQueries";
 import { useQuery } from "../../src/index";
 import { useHardResetQuery, useSubjectHardResetQuery } from "../cache-helpers/hard-reset-hooks";
+import { useSoftResetQuery } from "../cache-helpers/soft-reset-hook";
 import { RenderPaging } from "../util";
 
 //HARD RESET
@@ -21,10 +22,13 @@ import { RenderPaging } from "../util";
 //   { page },
 //   {
 //     onMutation: {
-//       when: /(update|create|delete)Subjects?/,
-//       run: ({ softReset, currentResults }, { updateSubject: { Subject } }) => {
-//         let CachedSubject = currentResults.allSubjects.Subjects.find((s) => s._id == Subject._id);
-//         CachedSubject && Object.assign(CachedSubject, Subject);
+//       when: /updateSubjects?/,
+//       run: ({ softReset, currentResults }, resp) => {
+//         const updatedSubjects = resp.updateSubjects?.Subjects ?? [resp.updateSubject.Subject];
+//         updatedSubjects.forEach(subject => {
+//           let CachedSubject = currentResults.allSubjects.Subjects.find(s => s._id == subject._id);
+//           CachedSubject && Object.assign(CachedSubject, subject);
+//         });
 //         softReset(currentResults);
 //       },
 //     },
@@ -33,23 +37,7 @@ import { RenderPaging } from "../util";
 
 export const Subjects = props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useQuery(
-    SUBJECTS_QUERY,
-    { page },
-    {
-      onMutation: {
-        when: /updateSubjects?/,
-        run: ({ softReset, currentResults }, resp) => {
-          const updatedSubjects = resp.updateSubjects?.Subjects ?? [resp.updateSubject.Subject];
-          updatedSubjects.forEach(subject => {
-            let CachedSubject = currentResults.allSubjects.Subjects.find(s => s._id == subject._id);
-            CachedSubject && Object.assign(CachedSubject, subject);
-          });
-          softReset(currentResults);
-        },
-      },
-    }
-  );
+  const { data, loading } = useSoftResetQuery("Subject", SUBJECTS_QUERY, { page });
 
   const subjects = data?.allSubjects?.Subjects ?? [];
 
