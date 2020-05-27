@@ -3,20 +3,16 @@ import { BOOKS_QUERY, MODIFY_BOOK_TITLE } from "../savedQueries";
 import { useQuery, useMutation } from "../../src/index";
 import { RenderPaging } from "../util";
 
-export const BooksEdit = props => {
+export const BooksEdit = (props) => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useQuery(
-    BOOKS_QUERY,
-    { page },
-    { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
-  );
+  const { data, loading } = useQuery(BOOKS_QUERY, { page });
 
   const books = data?.allBooks?.Books ?? [];
 
   return (
     <div>
       <div>
-        {books.map(book => (
+        {books.map((book) => (
           <Book key={book._id} book={book} />
         ))}
       </div>

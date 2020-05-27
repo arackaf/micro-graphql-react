@@ -15,9 +15,41 @@ import { RenderPaging } from "../util";
 
 // ------------------------
 
+//SOFT RESET
+// const { data, loading } = useQuery(
+//   SUBJECTS_QUERY,
+//   { page },
+//   {
+//     onMutation: {
+//       when: /(update|create|delete)Subjects?/,
+//       run: ({ softReset, currentResults }, { updateSubject: { Subject } }) => {
+//         let CachedSubject = currentResults.allSubjects.Subjects.find((s) => s._id == Subject._id);
+//         CachedSubject && Object.assign(CachedSubject, Subject);
+//         softReset(currentResults);
+//       },
+//     },
+//   }
+// );
+
 export const Subjects = props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useSubjectHardResetQuery(SUBJECTS_QUERY, { page });
+  const { data, loading } = useQuery(
+    SUBJECTS_QUERY,
+    { page },
+    {
+      onMutation: {
+        when: /updateSubjects?/,
+        run: ({ softReset, currentResults }, resp) => {
+          const updatedSubjects = resp.updateSubjects?.Subjects ?? [resp.updateSubject.Subject];
+          updatedSubjects.forEach(subject => {
+            let CachedSubject = currentResults.allSubjects.Subjects.find(s => s._id == subject._id);
+            CachedSubject && Object.assign(CachedSubject, subject);
+          });
+          softReset(currentResults);
+        },
+      },
+    }
+  );
 
   const subjects = data?.allSubjects?.Subjects ?? [];
 

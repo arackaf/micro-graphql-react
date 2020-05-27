@@ -3,21 +3,15 @@ import { SUBJECTS_QUERY, SUBJECTS_MUTATION } from "../savedQueries";
 import { useQuery, useMutation } from "../../src/index";
 import { RenderPaging } from "../util";
 
-export const SubjectsEdit = props => {
+export const SubjectsEdit = (props) => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useQuery(
-    SUBJECTS_QUERY,
-    { page },
-    {
-      onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
-    }
-  );
+  const { data, loading } = useQuery(SUBJECTS_QUERY, { page });
   const subjects = data?.allSubjects?.Subjects ?? [];
 
   return (
     <div>
       <div>
-        {subjects.map(subject => (
+        {subjects.map((subject) => (
           <Subject key={subject._id} subject={subject} />
         ))}
       </div>
