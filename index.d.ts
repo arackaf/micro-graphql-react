@@ -58,7 +58,7 @@ type BuildQueryOptions = {
   client?: Client;
   cache?: Cache;
   active?: boolean;
-  preloadOnly: boolean;
+  preloadOnly?: boolean;
 };
 
 type BuildMutationOptions = {

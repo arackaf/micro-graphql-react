@@ -1,5 +1,9 @@
-demo
 .vscode
 .git
 demo
 dist
+docs
+coverage
+graphQL
+old_docs
+test
