@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { SUBJECTS_QUERY } from "../savedQueries";
 import { useQuery } from "../../src/index";
 import { useHardResetQuery, useSubjectHardResetQuery } from "../cache-helpers/hard-reset-hooks";
-import { useSoftResetQuery } from "../cache-helpers/soft-reset-hook";
+import { useSoftResetQuery, useSubjectSoftResetQuery } from "../cache-helpers/soft-reset-hook";
 import { RenderPaging } from "../util";
 
 //HARD RESET
@@ -34,10 +34,12 @@ import { RenderPaging } from "../util";
 //     },
 //   }
 // );
+// const { data, loading } = useSoftResetQuery("Subject", SUBJECTS_QUERY, { page });
+// const { data, loading } = useSubjectSoftResetQuery(SUBJECTS_QUERY, { page });
 
 export const Subjects = props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useSoftResetQuery("Subject", SUBJECTS_QUERY, { page });
+  const { data, loading } = useSubjectSoftResetQuery(SUBJECTS_QUERY, { page });
 
   const subjects = data?.allSubjects?.Subjects ?? [];
 

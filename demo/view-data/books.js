@@ -3,7 +3,7 @@ import { BOOKS_QUERY } from "../savedQueries";
 import { useQuery } from "../../src/index";
 import { useHardResetQuery, useBookHardResetQuery } from "../cache-helpers/hard-reset-hooks";
 import { RenderPaging } from "../util";
-import { useSoftResetQuery } from "../cache-helpers/soft-reset-hook";
+import { useSoftResetQuery, useBookSoftResetQuery } from "../cache-helpers/soft-reset-hook";
 
 //HARD RESET
 // const { data, loading } = useQuery(
@@ -34,10 +34,12 @@ import { useSoftResetQuery } from "../cache-helpers/soft-reset-hook";
 //     },
 //   }
 // );
+// const { data, loading } = useSoftResetQuery("Book", BOOKS_QUERY, { page });
+// const { data, loading } = useBookSoftResetQuery(BOOKS_QUERY, { page });
 
 export const Books = props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useSoftResetQuery("Book", BOOKS_QUERY, { page });
+  const { data, loading } = useBookSoftResetQuery(BOOKS_QUERY, { page });
   
   const books = data?.allBooks?.Books ?? [];
 
