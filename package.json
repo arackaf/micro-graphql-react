@@ -64,7 +64,9 @@
     "test-local": "jest --runInBand",
     "testw": "jest --runInBand --watchAll"
   },
-  "dependencies": {},
+  "dependencies": {
+    "shallow-equal": "^1.2.1"
+  },
   "sideEffects": false,
   "typings": "index.d.ts"
 }

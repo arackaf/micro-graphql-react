@@ -1,4 +1,5 @@
 import { defaultClientManager } from "./client";
+import shallowEqual from "shallow-equal/objects";
 
 export default class QueryManager {
   mutationSubscription = null;
@@ -42,7 +43,11 @@ export default class QueryManager {
   }
   updateState = newState => {
     Object.assign(this.currentState, newState);
-    this.setState && this.setState(Object.assign({}, this.currentState));
+
+    if (!shallowEqual(this.currentState, this.reactState)) {
+      this.reactState = Object.assign({}, this.currentState);
+      this.setState(this.reactState);
+    }
   };
   refresh = () => {
     this.update();
