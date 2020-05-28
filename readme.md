@@ -125,11 +125,11 @@ client.preload(YourQuery, variables);
 This project exports a `useQuery`, `useSuspenseQuery`, and `useMutation` hook.
 
 ```javascript
-import { useQuery, useMutation, buildQuery, buildMutation } from "micro-graphql-react";
+import { useQuery, useMutation } from "micro-graphql-react";
 
 const ComponentWithQueryAndMutation = props => {
-  let { loading, loaded, data, currentQuery } = useQuery(buildQuery(basicQuery, { query: props.query }, options));
-  let { running, finished, runMutation } = useMutation(buildMutation("someMutation{}"));
+  let { loading, loaded, data, currentQuery } = useQuery(someQuery, { search: props.search }, options);
+  let { running, finished, runMutation } = useMutation(someMutation);
 
   return <DoStuff {...props} {...{ loading, loaded, currentQuery, data, running, runMutation }} />;
 };
@@ -137,7 +137,7 @@ const ComponentWithQueryAndMutation = props => {
 
 ### Building queries
 
-Construct each query with the `buildQuery` method. The first argument is the query text itself. The second, optional argument, is the query's variables. You can also pass a third options argument, which can contain any of the following properties:
+The first argument is the query text itself. The second argument is the query's variables. You can also pass a third options argument, which can contain any of the following properties:
 
 <!-- prettier-ignore -->
 | Option  | Description |
@@ -169,7 +169,7 @@ For each query you specify, an object will be returned from the hook, or for ren
 
 ### Building mutations
 
-Construct each mutation with the `buildMutation` method. The first argument is the mutation text. The second, optional options argument can accept only a `client` property, which will override the client default, same as with queries.
+The first argument is the mutation text. The second, optional options argument can accept only a `client` property, which will override the client default, same as with queries.
 
 ### Props passed for each mutation
 
