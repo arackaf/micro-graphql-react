@@ -37,6 +37,8 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     currentActive.current = isActive;
     currentQuery.current = nextQuery;
     queryManager.sync({ query, variables, isActive });
+  } else if (queryManager.suspendedPromise) {
+    throw queryManager.suspendedPromise;
   }
 
   useLayoutEffect(() => {

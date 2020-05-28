@@ -41,6 +41,7 @@ export default class QueryManager {
     }
   }
   updateState = newState => {
+    this.suspendedPromise = null;
     Object.assign(this.currentState, newState);
     this.setState && this.setState(Object.assign({}, this.currentState));
   };
@@ -107,6 +108,7 @@ export default class QueryManager {
   }
   promisePending(promise) {
     if (this.suspense) {
+      this.suspendedPromise = promise;
       throw promise;
     } else {
       this.updateState({ loading: true });
