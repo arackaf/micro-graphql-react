@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { SUBJECTS_QUERY } from "../savedQueries";
-import { useQuery } from "../../src/index";
+import { useQuery, getDefaultClient } from "../../src/index";
 import { useHardResetQuery, useSubjectHardResetQuery } from "../cache-helpers/hard-reset-hooks";
 import { useSoftResetQuery, useSubjectSoftResetQuery } from "../cache-helpers/soft-reset-hook";
 import { RenderPaging } from "../util";
@@ -41,10 +41,36 @@ import { RenderPaging } from "../util";
 
 //MANUAL CACHE UPDATE
 
+const graphQLClient = getDefaultClient();
+
+const syncCollection = (current, newResultsLookup) => {
+  return current.map(item => {
+    const updatedItem = newResultsLookup.get(item._id);
+    return updatedItem ? Object.assign({}, item, updatedItem) : item;
+  });
+};
+
+graphQLClient.subscribeMutation([
+  {
+    when: /updateSubjects?/,
+    run: ({ refreshActiveQueries }, resp, variables) => {
+      const cache = graphQLClient.getCache(SUBJECTS_QUERY);
+      const newResults = resp.updateSubject ? [resp.updateSubject.Subject] : resp.updateSubjects.Subjects;
+      const newResultsLookup = new Map(newResults.map(item => [item._id, item]));
+
+      for (let [uri, { data }] of cache.entries) {
+        data["allSubjects"]["Subjects"] = syncCollection(data["allSubjects"]["Subjects"], newResultsLookup);
+      }
+
+      refreshActiveQueries(SUBJECTS_QUERY);
+    }
+  }
+]);
+
 
 export default props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useSubjectSoftResetQuery(SUBJECTS_QUERY, { page });
+  const { data, loading } = useQuery(SUBJECTS_QUERY, { page });
 
   const subjects = data?.allSubjects?.Subjects ?? [];
 

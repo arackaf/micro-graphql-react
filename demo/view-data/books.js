@@ -39,6 +39,8 @@ import { useSoftResetQuery, useBookSoftResetQuery } from "../cache-helpers/soft-
 
 // -------------------------
 
+// MANUAL CACHE UPDATE
+
 const graphQLClient = getDefaultClient();
 
 const syncCollection = (current, newResultsLookup) => {
