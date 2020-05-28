@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { BOOKS_QUERY } from "../savedQueries";
-import { useQuery } from "../../src/index";
+import { useQuery, getDefaultClient } from "../../src/index";
 import { useHardResetQuery, useBookHardResetQuery } from "../cache-helpers/hard-reset-hooks";
 import { RenderPaging } from "../util";
 import { useSoftResetQuery, useBookSoftResetQuery } from "../cache-helpers/soft-reset-hook";
@@ -37,10 +37,38 @@ import { useSoftResetQuery, useBookSoftResetQuery } from "../cache-helpers/soft-
 // const { data, loading } = useSoftResetQuery("Book", BOOKS_QUERY, { page });
 // const { data, loading } = useBookSoftResetQuery(BOOKS_QUERY, { page });
 
-export const Books = props => {
+// -------------------------
+
+const graphQLClient = getDefaultClient();
+
+const syncCollection = (current, newResultsLookup) => {
+  return current.map(item => {
+    const updatedItem = newResultsLookup.get(item._id);
+    return updatedItem ? Object.assign({}, item, updatedItem) : item;
+  });
+};
+
+graphQLClient.subscribeMutation([
+  {
+    when: /updateBooks?/,
+    run: ({ refreshActiveQueries }, resp, variables) => {
+      const cache = graphQLClient.getCache(BOOKS_QUERY);
+      const newResults = resp.updateBook ? [resp.updateBook.Book] : resp.updateBooks.Books;
+      const newResultsLookup = new Map(newResults.map(item => [item._id, item]));
+
+      for (let [uri, { data }] of cache.entries) {
+        data["allBooks"]["Books"] = syncCollection(data["allBooks"]["Books"], newResultsLookup);
+      }
+
+      refreshActiveQueries(BOOKS_QUERY);
+    }
+  }
+]);
+
+export default props => {
   const [page, setPage] = useState(1);
-  const { data, loading } = useBookSoftResetQuery(BOOKS_QUERY, { page });
-  
+  const { data, loading } = useQuery(BOOKS_QUERY, { page });
+
   const books = data?.allBooks?.Books ?? [];
 
   return (

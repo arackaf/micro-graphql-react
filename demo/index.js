@@ -1,9 +1,9 @@
-import React, { Component, Fragment } from "react";
+import React, { Component, Fragment, lazy, Suspense } from "react";
 import { render } from "react-dom";
 import { Client, setDefaultClient, useQuery } from "../src/index";
 
-import { Books } from "./view-data/books";
-import { Subjects } from "./view-data/subjects";
+const Books = lazy(() => import("./view-data/books"));
+const Subjects = lazy(() => import("./view-data/subjects"));
 
 import { BooksEdit } from "./edit-data/books-edit";
 import { SubjectsEdit } from "./edit-data/subjects-edit";
@@ -20,16 +20,18 @@ setDefaultClient(client);
 const Home = props => {
   return (
     <div>
-      <div style={{ display: "flex", flexDirection: "row" }}>
-        <div>
-          <Books />
-          <Subjects />
+      <Suspense fallback={<span>Loading...</span>}>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <div>
+            <Books />
+            <Subjects />
+          </div>
+          <div style={{ marginLeft: "40px" }}>
+            <BooksEdit />
+            <SubjectsEdit />
+          </div>
         </div>
-        <div style={{ marginLeft: "40px" }}>
-          <BooksEdit />
-          <SubjectsEdit />
-        </div>
-      </div>
+      </Suspense>
     </div>
   );
 };

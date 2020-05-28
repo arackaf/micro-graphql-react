@@ -37,7 +37,12 @@ import { RenderPaging } from "../util";
 // const { data, loading } = useSoftResetQuery("Subject", SUBJECTS_QUERY, { page });
 // const { data, loading } = useSubjectSoftResetQuery(SUBJECTS_QUERY, { page });
 
-export const Subjects = props => {
+// ------------------------
+
+//MANUAL CACHE UPDATE
+
+
+export default props => {
   const [page, setPage] = useState(1);
   const { data, loading } = useSubjectSoftResetQuery(SUBJECTS_QUERY, { page });
 
