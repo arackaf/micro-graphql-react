@@ -4,9 +4,9 @@
 
 A light (2.5K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
-This project differs significantly from other GraphQL clients in how it approaches cache invalidation. Rather than adding metadata to all queries and forming a normalized cache, which is managed automatically, it does none of that, and instead provides simple, low-level building blocks to handle cache management yourself. The reason for this ostensibly poor tradeoff is because of the difficulties I've had interacting with other GraphQL clients which attempted to do this. I consistently had difficulty getting the cache to behave exactly as I wanted, and so decided to build a GraphQL client that allowed me to easily put together whatever cache invalidation schemes I wanted. This project is the result.
+This project differs significantly from other GraphQL clients in how it approaches cache invalidation. Rather than adding metadata to all queries and forming a normalized cache, which is managed automatically, it instead provides simple, low-level building blocks to handle cache management yourself. The reason for this ostensibly poor tradeoff is because of my experience with other GraphQL clients which attempted to do this. I consistently had difficulty getting the cache to behave exactly as I wanted, and so decided to build a GraphQL client that gave me the low-level control I always found myself wanting. This project is the result.
 
-The cache management problems this project seeks to solve are described below. If these aren't problems you face, you'll probably be better off with a more well-established GraphQL solution like Urql or Apollo. 
+The cache management problems this project seeks to solve are described below. If these aren't problems you face, you'll probably be better off with a more well-established solution like Urql or Apollo. 
 
 ## Common cache difficulties other GraphQL clients contend with
 
