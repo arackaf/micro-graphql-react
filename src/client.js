@@ -2,24 +2,13 @@ import Cache, { DEFAULT_CACHE_SIZE } from "./cache";
 
 export default class Client {
   constructor(props = { cacheSize: DEFAULT_CACHE_SIZE }) {
-    if (props.noCaching != null && props.cacheSize != null) {
-      throw "Both noCaching, and cacheSize are specified. At most one of these options can be included";
-    }
-
-    if (props.noCaching) {
-      props.cacheSize = 0;
-    }
-
     Object.assign(this, props);
     this.caches = new Map([]);
     this.mutationListeners = new Set([]);
     this.forceListeners = new Map([]);
   }
   get cacheSizeToUse() {
-    if (this.cacheSize != null) {
-      return this.cacheSize;
-    }
-    return DEFAULT_CACHE_SIZE;
+    return this.cacheSize > 0 ? this.cacheSize : DEFAULT_CACHE_SIZE;
   }
   preload(query, variables) {
     let cache = this.getCache(query);

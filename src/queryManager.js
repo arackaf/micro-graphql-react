@@ -10,12 +10,13 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, cache, query, variables, options, isActive, suspense, preloadOnly }) {
+  constructor({ client, refreshCurrent, cache, query, variables, options, isActive, suspense, preloadOnly }) {
     this.client = client || defaultClientManager.getDefaultClient();
     this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
     this.options = options;
     this.active = false;
+    this.refreshCurrent = refreshCurrent;
     this.suspense = suspense;
     this.preloadOnly = preloadOnly;
 
@@ -40,6 +41,7 @@ export default class QueryManager {
     }
   }
   updateState = newState => {
+    this.suspendedPromise = null;
     Object.assign(this.currentState, newState);
     this.setState && this.setState(Object.assign({}, this.currentState));
   };
@@ -65,7 +67,7 @@ export default class QueryManager {
     let uri = this.currentState.currentQuery;
     if (uri) {
       this.cache.removeItem(uri);
-      this.update();
+      this.refreshCurrent();
     }
   };
   sync({ query, variables, isActive }) {
@@ -106,6 +108,7 @@ export default class QueryManager {
   }
   promisePending(promise) {
     if (this.suspense) {
+      this.suspendedPromise = promise;
       throw promise;
     } else {
       this.updateState({ loading: true });

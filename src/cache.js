@@ -3,9 +3,6 @@ export default class Cache {
     this.cacheSize = cacheSize;
   }
   _cache = new Map([]);
-  get noCaching() {
-    return !this.cacheSize;
-  }
 
   get keys() {
     return [...this._cache.keys()];
@@ -72,10 +69,6 @@ export default class Cache {
         cache.delete(key);
         this.set(key, cachedEntry);
         ifResults(cachedEntry);
-      }
-      // no caching means we only use the cache to read results from locally, once. This is to simplify code-flow in queryManager, and to ease Suspense integration
-      if (this.noCaching) {
-        cache.delete(key);
       }
     } else {
       ifNotFound();

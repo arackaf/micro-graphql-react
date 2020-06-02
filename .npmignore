@@ -1,7 +1,9 @@
-demo
 .vscode
 .git
 demo
 dist
+docs
+coverage
 graphQL
-graphql-definitions
+old_docs
+test

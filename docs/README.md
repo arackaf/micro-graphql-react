@@ -1,26 +1,3 @@
-<div class="flow-paragraph-items">
-
-[![npm version](https://img.shields.io/npm/v/micro-graphql-react.svg?style=flat)](https://www.npmjs.com/package/micro-graphql-react) [![Build Status](https://travis-ci.com/arackaf/micro-graphql-react.svg?branch=master)](https://travis-ci.com/arackaf/micro-graphql-react) [![codecov](https://codecov.io/gh/arackaf/micro-graphql-react/branch/master/graph/badge.svg)](https://codecov.io/gh/arackaf/micro-graphql-react) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-
-</div>
-
-# micro-graphql-react
-
-A light (2.8K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
-
-Queries are fetched via HTTP GET, so while the client-side caching is in some ways not as robust as Apollo's, you can set up a Service Worker to cache results there; Google's Workbox, or sw-toolbox make this easy.
-
-**Live Demo**
-
-To see a live demo of this library managing GraphQL requests, check out this [Code Sandbox](https://codesandbox.io/s/l2z74x2687)
-
-**A note on cache invalidation**
-
-This library will _not_ add metadata to your queries, and attempt to automatically update your cached entries from mutation results. The reason, quite simply, is because this is a hard problem, and no existing library handles it completely. Rather than try to solve this, you're given some simple primitives which allow you to specify how given mutations should affect cached results. It's slightly more work, but it allows you to tailor your solution to your app's precise needs, and, given the predictable, standard nature of GraphQL results, composes well. This is all explained at length below.
-
-For more information on the difficulties of GraphQL caching, see [this explanation](./docs/readme-cache.md)
-
-
 ## Installation
 
 ```javascript
@@ -72,15 +49,13 @@ const client = getDefaultClient();
 | `endpoint` | URL for your GraphQL endpoint |
 | `fetchOptions`  | Options to send along with all fetches|
 | `cacheSize`  | Default cache size to use for all caches created by this client, as needed, for all queries it processes|
-| `noCaching`  | If true, this will turn off caching altogether for all queries it processes|
 
 ### Client api
-
 
 <!-- prettier-ignore -->
 | Option  | Description |
 | -------| ----------- |
-| <code class="small">runQuery(query: String, variables?: Object)</code> | Manually run this GraphQL query |
+| `runQuery(query: String, variables?: Object)` | Manually run this GraphQL query |
 | `runMutation(mutation: String, variables?: Object)`  | Manually run this GraphQL mutation|
 | `forceUpdate(query)`  | Manually update any components rendering that query. This is useful if you (dangerously) update a query's cache, as discussed in the caching section, below|
 
@@ -102,11 +77,11 @@ client.preload(YourQuery, variables);
 This project exports a `useQuery`, `useSuspenseQuery`, and `useMutation` hook.
 
 ```javascript
-import { useQuery, useMutation, buildQuery, buildMutation } from "micro-graphql-react";
+import { useQuery, useMutation } from "micro-graphql-react";
 
 const ComponentWithQueryAndMutation = props => {
-  let { loading, loaded, data, currentQuery } = useQuery(buildQuery(basicQuery, { query: props.query }, options));
-  let { running, finished, runMutation } = useMutation(buildMutation("someMutation{}"));
+  let { loading, loaded, data, currentQuery } = useQuery(someQuery, { search: props.search }, options);
+  let { running, finished, runMutation } = useMutation(someMutation);
 
   return <DoStuff {...props} {...{ loading, loaded, currentQuery, data, running, runMutation }} />;
 };
@@ -114,7 +89,7 @@ const ComponentWithQueryAndMutation = props => {
 
 ### Building queries
 
-Construct each query with the `buildQuery` method. The first argument is the query text itself. The second, optional argument, is the query's variables. You can also pass a third options argument, which can contain any of the following properties:
+The first argument is the query text itself. The second argument is the query's variables. You can also pass a third options argument, which can contain any of the following properties:
 
 <!-- prettier-ignore -->
 | Option  | Description |
@@ -124,7 +99,7 @@ Construct each query with the `buildQuery` method. The first argument is the que
 | `cache`  | Manually pass in a cache object to be used for this query|
 | `active`  | If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
-Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](compress/).
+Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
 
 An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your network requests altogether, but also from your bundled code.
 
@@ -146,7 +121,7 @@ For each query you specify, an object will be returned from the hook, or for ren
 
 ### Building mutations
 
-Construct each mutation with the `buildMutation` method. The first argument is the mutation text. The second, optional options argument can accept only a `client` property, which will override the client default, same as with queries.
+The first argument is the mutation text. The second, optional options argument can accept only a `client` property, which will override the client default, same as with queries.
 
 ### Props passed for each mutation
 
@@ -181,8 +156,6 @@ When instantiating a new cache object, you can optionally pass in a cache size.
 let cache = new Cache(15);
 ```
 
-To turn caching off for a given query, just create a cache with size `0`, and pass that in for the query. Or as noted above, you can create a client with the `noCaching` option set to true, to turn caching off for all queries processed by that client.
-
 #### Cache api
 
 The cache object has the following properties and methods
@@ -213,362 +186,364 @@ The onMutation option that query options take is an object, or array of objects,
 
 Many use cases follow. They're based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
-The code below was tested on an actual GraphQL endpoint created by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter)
+The code below uses a publicly available GraphQL endpoint created by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter). You can run these examples from the demo folder of this repository. Just run `npm i` then start the `demo-client` and `demo-server` scripts in separate terminals, and open `http://localhost:3000/`
 
-All examples use the `query` decorator, but the format is identical to the `GraphQL` component.
-
-#### Use Case 1: Hard reset and reload after any mutation
+#### Hard Reset: Reload the query after any relevant mutation
 
 Let's say that whenever a mutation happens, we want to immediately invalidate any related queries' caches, and reload the current queries from the network. We understand that this may cause a book that we just edited to immediately disappear from our current search results, since it no longer matches our search criteria, but that's what we want.
 
 The hard reload method that's passed makes this easy. Let's see how to use this in a (contrived) component that queries, and displays some books.
 
 ```javascript
-export const BookQueryComponent = props => (
-  <div>
-    <GraphQL
-      query={{
-        books: buildQuery(
-          BOOKS_QUERY,
-          { page: props.page },
-          { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
-        )
-      }}
-    >
-      {({ books: { data } }) =>
-        data ? (
-          <ul>
-            {data.allBooks.Books.map(b => (
-              <li key={b._id}>
-                {b.title} - {b.pages}
-              </li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
+export const Books = props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useQuery(
+    BOOKS_QUERY,
+    { page },
+    { onMutation: { when: /(update|create|delete)Books?/, run: ({ hardReset }) => hardReset() } }
+  );
+
+  const books = data?.allBooks?.Books ?? [];
+
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
 ```
 
 Here we specify a regex matching every kind of book mutation we have, and upon completion, we just clear the cache, and reload by calling `hardReset()`. It's hard not to be at least a littler dissatisfied with this solution; the boilerplate is non-trivial. Let's take a look at a similar (again contrived) component, but for the subjects we can apply to books
 
 ```javascript
-export const SubjectQueryComponent = props => (
-  <div>
-    <GraphQL
-      query={{
-        subjects: buildQuery(
-          SUBJECTS_QUERY,
-          { page: props.page },
-          { onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() } }
-        )
-      }}
-    >
-      {({ subjects: { data } }) =>
-        data ? (
-          <ul>
-            {data.allSubjects.Subjects.map(s => (
-              <li key={s._id}>{s.name}</li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
+export const Subjects = props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useQuery(
+    SUBJECTS_QUERY,
+    { page },
+    {
+      onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
+    }
+  );
+
+  const subjects = data?.allSubjects?.Subjects ?? [];
+
+  return (
+    <div>
+      <div>
+        {subjects.map(subject => (
+          <div key={subject._id}>{subject.name}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
 ```
 
-Assuming our GraphQL operations have a consistent naming structure—and they should—then some pretty obvious patterns emerge. We can auto-generate this structure just from the name of our type, like so
+Assuming our GraphQL operations have a consistent naming structure—and they should, and in this case do—then some pretty obvious patterns emerge. We can leverage the composability of hooks and emit this structure from the name of our type, like so
 
 ```javascript
-const hardResetStrategy = name => ({
-  when: new RegExp(`(update|create|delete)${name}s?`),
-  run: ({ hardReset }) => hardReset()
-});
+export const useHardResetQuery = (type, query, variables, options = {}) =>
+  useQuery(query, variables, {
+    ...options,
+    onMutation: {
+      when: new RegExp(`(update|create|delete)${type}s?`),
+      run: ({ hardReset }) => hardReset()
+    }
+  });
 ```
 
-and then apply it like so
+which we _could_ use like this
 
 ```javascript
-export const BookQueryComponent = props => (
-  <div>
-    <GraphQL query={{ books: buildQuery(BOOKS_QUERY, { page: props.page }, { onMutation: hardResetStrategy("Book") }) }}>
-      {({ books: { data } }) =>
-        data ? (
-          <ul>
-            {data.allBooks.Books.map(b => (
-              <li key={b._id}>
-                {b.title} - {b.pages}
-              </li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
+const { data, loading } = useHardResetQuery("Book", BOOKS_QUERY, { page });
+```
 
-export const SubjectQueryComponent = props => (
-  <div>
-    <GraphQL query={{ subjects: buildQuery(SUBJECTS_QUERY, { page: props.page }, { onMutation: hardResetStrategy("Subject") }) }}>
-      {({ subjects: { data } }) =>
-        data ? (
-          <ul>
-            {data.allSubjects.Subjects.map(s => (
-              <li key={s._id}>{s.name}</li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
+but really, why not just go the extra mile and make hooks for our various types for which hard resetting applies, like so
+
+```javascript
+export const useBookHardResetQuery = (...args) => useHardResetQuery("Book", ...args);
+export const useSubjectHardResetQuery = (...args) => useHardResetQuery("Subject", ...args);
+```
+
+which trims the code to just this
+
+```javascript
+export const Books = props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useBookHardResetQuery(BOOKS_QUERY, { page });
+
+  const books = data?.allBooks?.Books ?? [];
+
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
 );
 ```
 
-#### Use Case 2: Update current results, but otherwise clear the cache
+#### Soft Reset: Update current results, but clear the cache
 
 Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone," but one of the current results was clearly written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
 
 Here's the same books component as above, but with our new cache strategy
 
 ```javascript
-export const BookQueryComponent = props => (
-  <div>
-    <GraphQL
-      query={{
-        books: buildQuery(
-          BOOKS_QUERY,
-          { page: props.page },
-          {
-            onMutation: {
-              when: "updateBook",
-              run: ({ softReset, currentResults }, { updateBook: { Book } }) => {
-                let CachedBook = currentResults.allBooks.Books.find(b => b._id == Book._id);
-                CachedBook && Object.assign(CachedBook, Book);
-                softReset(currentResults);
-              }
-            }
-          }
-        )
-      }}
-    >
-      {({ books: { data } }) =>
-        data ? (
-          <ul>
-            {data.allBooks.Books.map(b => (
-              <li key={b._id}>
-                {b.title} - {b.pages}
-              </li>
-            ))}
-          </ul>
-        ) : null
+export default props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useQuery(
+    BOOKS_QUERY,
+    { page },
+    {
+      onMutation: {
+        when: /updateBooks?/,
+        run: ({ softReset, currentResults }, resp) => {
+          const updatedBooks = resp.updateBooks?.Books ?? [resp.updateBook.Book];
+          updatedBooks.forEach(book => {
+            let CachedBook = currentResults.allBooks.Books.find(b => b._id == book._id);
+            CachedBook && Object.assign(CachedBook, book);
+          });
+          softReset(currentResults);
+        }
       }
-    </GraphQL>
-  </div>
-);
-```
+    }
+  );
 
-Whenever a mutation comes back with `updateBook` results, we use `softReset` to update our current results, while clearing our cache, including the current cache result; so if you page up, then come back down to where you were, a **new** network request will be run, and your edited book will no longer be there, as expected. Note that in this example we're actually mutating our current cache result; that's fine.
+  const books = data?.allBooks?.Books ?? [];
 
-This seems like a lot of boilerplate, but again, lets look at the subjects component and see if any patterns emerge.
-
-```javascript
-export const SubjectQueryComponent = props => (
-  <div>
-    <GraphQL
-      query={{
-        subjects: buildQuery(
-          SUBJECTS_QUERY,
-          { page: props.page },
-          {
-            onMutation: {
-              when: "updateSubject",
-              run: ({ softReset, currentResults }, { updateSubject: { Subject } }) => {
-                let CachedSubject = currentResults.allSubjects.Subjects.find(s => s._id == Subject._id);
-                CachedSubject && Object.assign(CachedSubject, Subject);
-                softReset(currentResults);
-              }
-            }
-          }
-        )
-      }}
-    >
-      {({ subjects: { data } }) =>
-        data ? (
-          <ul>
-            {data.allSubjects.Subjects.map(s => (
-              <li key={s._id}>{s.name}</li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
-```
-
-As before, since we've named our GraphQL operations consistently, there's some pretty obvious repetition. Let's again refactor this into a helper method that can be re-used throughout our app.
-
-```javascript
-const standardUpdateSingleStrategy = name => ({
-  when: `update${name}`,
-  run: ({ softReset, currentResults }, { [`update${name}`]: { [name]: updatedItem } }) => {
-    let CachedItem = currentResults[`all${name}s`][`${name}s`].find(x => x._id == updatedItem._id);
-    CachedItem && Object.assign(CachedItem, updatedItem);
-    softReset(currentResults);
-  }
-});
-```
-
-Now we can clean up all that boilerplate from before
-
-```javascript
-export const BookQueryComponent = props => (
-  <div>
-    <GraphQL query={{ books: buildQuery(BOOKS_QUERY, { page: props.page }, { onMutation: standardUpdateSingleStrategy("Book") }) }}>
-      {({ books: { data } }) =>
-        data ? (
-          <ul>
-            {data.allBooks.Books.map(b => (
-              <li key={b._id}>
-                {b.title} - {b.pages}
-              </li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
-
-export const SubjectQueryComponent = props => (
-  <div>
-    <GraphQL query={{ subjects: buildQuery(SUBJECTS_QUERY, { page: props.page }, { onMutation: standardUpdateSingleStrategy("Subject") }) }}>
-      {({ subjects: { data } }) =>
-        data ? (
-          <ul>
-            {data.allSubjects.Subjects.map(s => (
-              <li key={s._id}>{s.name}</li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
-```
-
-And if you have multiple mutations, just pass them in an array
-
-#### Use Case 3: Manually update all affected cache entries
-
-Let's say you want to intercept mutation results, and manually update your cache. This is difficult to get right, so be careful.
-
-There's a `cache` object passed to the `run` callback, with an `entries` property you can iterate, and update. As before, it's fine to just mutate the cached entries directly; just don't forget to call the `refresh` method when done, so your current results will update.
-
-This example shows how you can remove a deleted book from every cache result.
-
-```javascript
-export const BookQueryComponent = props => (
-  <div>
-    <GraphQL
-      query={{
-        books: buildQuery(
-          BOOKS_QUERY,
-          { page: props.page },
-          {
-            onMutation: {
-              when: "deleteBook",
-              run: ({ cache, refresh }, mutationResponse, args) => {
-                cache.entries.forEach(([key, results]) => {
-                  results.data.allBooks.Books = results.data.allBooks.Books.filter(b => b._id != args._id);
-                });
-                refresh();
-              }
-            }
-          }
-        )
-      }}
-    >
-      {({ books: { data } }) =>
-        data ? (
-          <ul>
-            {data.allBooks.Books.map(b => (
-              <li key={b._id}>
-                {b.title} - {b.pages}
-              </li>
-            ))}
-          </ul>
-        ) : null
-      }
-    </GraphQL>
-  </div>
-);
-```
-
-It's worth noting that this solution will have problems if your results are paged. Any non-active entries should really be purged and re-loaded when next needed, so a full, correct page of results will come back.
-
-#### Use Case 4: Globally modify the cache as needed
-
-Prior use cases have all relied on a component or hook to do the cache syncing or updating; however, you can also subscribe to mutation results directly on the relevant client instance, and clear or update cache entries as needed. For example
-
-```javascript
-graphqlClient.subscribeMutation({ when: /createBook/, run: () => clearCache(GetBooksQuery) });
-
-//elsewhere
-export const clearCache = (...cacheNames) => {
-  cacheNames.forEach(name => {
-    let cache = graphqlClient.getCache(name);
-    cache && cache.clearCache();
-  });
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
 };
 ```
 
-This code will clear all book search results whenever a new book is created, no matter if books are currently rendered anywhere by a hook. This ensures that if you create a book in a "create book" screen, and then browse back to a books query, no cached results will show, and instead a new query will run, so the new book will have a chance to show up in the new results (if it matches the search criteria).
+Whenever a mutation comes back with `updateBook` or `updateBooks` results, we manually update our current results, then call `softReset`, which clears our cache, including the current cache result; so if you page up, then come back down to where you were, a **new** network request will be run, and your edited books may no longer be there, if they no longer match the search results.
 
-Of course you can also subscribe to updates, and manually update your cache, subject to the same warnings as above. Be sure to call `graphqlClient.forceUpdate(queryName)` to broadcast your updates to any components rendering them.
+Obviously this is more boilerplate than we'd every want to write in practice, so let's tuck it behind a custom hook, like we did before.
+
+```javascript
+import { useQuery } from "micro-graphql-react";
+
+export const useSoftResetQuery = (type, query, variables, options = {}) =>
+  useQuery(query, variables, {
+    ...options,
+    onMutation: {
+      when: new RegExp(`update${type}s?`),
+      run: ({ softReset, currentResults }, resp) => {
+        const updatedItems = resp[`update${type}s`]?.[`${type}s`] ?? [resp[`update${type}`][type]];
+        updatedItems.forEach(updatedItem => {
+          let CachedItem = currentResults[`all${type}s`][`${type}s`].find(item => item._id == updatedItem._id);
+          CachedItem && Object.assign(CachedItem, updatedItem);
+        });
+        softReset(currentResults);
+      }
+    },
+  });
+
+export const useBookSoftResetQuery = (...args) => useSoftResetQuery("Book", ...args);
+export const useSubjectSoftResetQuery = (...args) => useSoftResetQuery("Subject", ...args);
+```
+
+which we can use to eliminate that boilerplate 
+
+
+```javascript
+export default props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useBookSoftResetQuery(BOOKS_QUERY, { page });
+
+  const books = data?.allBooks?.Books ?? [];
+
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
+```
+
+or similarly for our subjects component 
+
+```javascript
+export default props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useSubjectSoftResetQuery(SUBJECTS_QUERY, { page });
+
+  const subjects = data?.allSubjects?.Subjects ?? [];
+
+  return (
+    <div>
+      <div>
+        {subjects.map(subject => (
+          <div key={subject._id}>{subject.name}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
+```
+
+#### Use Case 3: Manually update all affected cache entries
+
+Let's say you want to intercept mutation results, and manually update your cache. This is difficult to get right, so be careful. You'll likely only want to do this with data that are not searched or filtered.
+
+For this, we can call the `subscribeMutation` method right on the client object, and pass in the same `when` test, and `run` callback as before. Except now the `run` callback will receive a `refreshActiveQueries` callback, which we can use to force any hooks showing data from a particular query to update itself from the now-updated cache.
+
+The manual solution might look something like this
+
+```javascript
+const graphQLClient = getDefaultClient();
+
+const syncCollection = (current, newResultsLookup) => {
+  return current.map(item => {
+    const updatedItem = newResultsLookup.get(item._id);
+    return updatedItem ? Object.assign({}, item, updatedItem) : item;
+  });
+};
+
+graphQLClient.subscribeMutation([
+  {
+    when: /updateBooks?/,
+    run: ({ refreshActiveQueries }, resp, variables) => {
+      const cache = graphQLClient.getCache(BOOKS_QUERY);
+      const newResults = resp.updateBook ? [resp.updateBook.Book] : resp.updateBooks.Books;
+      const newResultsLookup = new Map(newResults.map(item => [item._id, item]));
+
+      for (let [uri, { data }] of cache.entries) {
+        data["allBooks"]["Books"] = syncCollection(data["allBooks"]["Books"], newResultsLookup);
+      }
+
+      refreshActiveQueries(BOOKS_QUERY);
+    }
+  }
+]);
+
+syncQueryToCache(BOOKS_QUERY, "Book");
+
+export default props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useQuery(BOOKS_QUERY, { page });
+
+  const books = data?.allBooks?.Books ?? [];
+
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
+```
+
+It's a lot of code, but as always the idea is that you'd wrap it all into some re-usable helpers, like this
+
+```javascript
+import { getDefaultClient } from "micro-graphql-react";
+
+const graphQLClient = getDefaultClient();
+
+const syncCollection = (current, newResultsLookup) => {
+  return current.map(item => {
+    const updatedItem = newResultsLookup.get(item._id);
+    return updatedItem ? Object.assign({}, item, updatedItem) : item;
+  });
+};
+
+export const syncQueryToCache = (query, type) => {
+  graphQLClient.subscribeMutation([
+    {
+      when: new RegExp(`update${type}s?`),
+      run: ({ refreshActiveQueries }, resp, variables) => {
+        const cache = graphQLClient.getCache(query);
+        const newResults = resp[`update${type}`] ? [resp[`update${type}`][type]] : resp[`update${type}s`][`${type}s`];
+        const newResultsLookup = new Map(newResults.map(item => [item._id, item]));
+
+        for (let [uri, { data }] of cache.entries) {
+          data[`all${type}s`][`${type}s`] = syncCollection(data[`all${type}s`][`${type}s`], newResultsLookup);
+        }
+
+        refreshActiveQueries(query);
+      }
+    }
+  ]);
+};
+```
+which cuts the usage code to just this
+
+```javascript
+syncQueryToCache(BOOKS_QUERY, "Book");
+
+export default props => {
+  const [page, setPage] = useState(1);
+  const { data, loading } = useQuery(BOOKS_QUERY, { page });
+
+  const books = data?.allBooks?.Books ?? [];
+
+  return (
+    <div>
+      <div>
+        {books.map(book => (
+          <div key={book._id}>{book.title}</div>
+        ))}
+      </div>
+      <RenderPaging page={page} setPage={setPage} />
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
+```
 
 #### A note on cache management code
 
-There's always a risk with "micro" libraries resulting in more application code overall, since they do too little. Remember, this library passes on doing client-side cache updating not so that it can artificially shrink it's bundle size, but rather because this is a problem that's all but impossible to do in an automated way. Again, this is explained [here](./docs/readme-cache.md).
+There's always a risk with "micro" libraries resulting in more application code overall, since they do too little. Remember, this library passes on doing client-side cache updating not so that it can artificially shrink it's bundle size, but rather because this is a problem that's all but impossible to do in an automated way that covers all use cases (see the repo's main README for an explanation).
 
-If you see a lot of repetative boilerplate being created in your app code to update caches, take a step back and make sure you're abstracting and generalizing appropriately. Make sure your GraphQL schema is as consistent as possible, so the work to keep the cache in sync will similarly be consistent and predictable, and therefore able to be reused.
+Assuming your GraphQL endpoint has a consistent naming scheme, it should be straightforward to hand-craft a caching strategy that's tailored to your app's needs.
 
 ## Manually running queries or mutations
 
-It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accomodated. The `GraphQL` component, and component decorators run their queries and mutations through the client object you're already setting via `setDefaultClient`. You can call those methods yourself, in your state manager (or anywhere).
+It's entirely possible some pieces of data may need to be loaded from, and stored in your state manager, rather than fetched via a component's lifecycle; this is easily accommodated. The `useQuery` hook runs queries and mutations through the client object you're already setting via `setDefaultClient`. You can use its api to interact with your GraphQL endpoint manually if you need.
 
 ### Client api
 
 - `runQuery(query: String, variables?: Object)`
 - `runMutation(mutation: String, variables?: Object)`
-
-For example, to imperatively run the query from above in application code, you can do
-
-```javascript
-client.runQuery(
-  compress`query ALL_BOOKS ($page: Int) {
-    allBooks(PAGE: $page, PAGE_SIZE: 3) {
-      Books { _id title }
-    }
-  }`,
-  { title: 1 }
-);
-```
-
-and to run the mutation from above, you can do
-
-```javascript
-client.runMutation(
-  `mutation modifyBook($title: String) {
-    updateBook(_id: "591a83af2361e40c542f12ab", Updates: { title: $title }) {
-      Book { _id title }
-    }
-  }`,
-  { title: "New title" }
-);
-```
 
 ## Use in old browsers
 

@@ -8,9 +8,25 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   let currentActive = useRef(null);
   let currentQuery = useRef(null);
 
+  let [deactivateQueryToken, setDeactivateQueryToken] = useState(0);
+  let refreshCurrent = () => {
+    currentQuery.current = "";
+    setDeactivateQueryToken(x => x + 1);
+  };
+
   let isActive = !("active" in options && !options.active);
   let [queryManager] = useState(
-    () => new QueryManager({ ...options, query, variables, options, isActive, suspense, preloadOnly: options.preloadOnly })
+    () =>
+      new QueryManager({
+        ...options,
+        refreshCurrent,
+        query,
+        variables,
+        options,
+        isActive,
+        suspense,
+        preloadOnly: options.preloadOnly
+      })
   );
   let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
 
@@ -21,6 +37,8 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     currentActive.current = isActive;
     currentQuery.current = nextQuery;
     queryManager.sync({ query, variables, isActive });
+  } else if (queryManager.suspendedPromise) {
+    throw queryManager.suspendedPromise;
   }
 
   useLayoutEffect(() => {
