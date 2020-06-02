@@ -56,7 +56,7 @@ This library solves this problem by allowing you to easily declare that a given 
 
 ### Properly processing empty result sets
 
-An interesting approach that the first version of Urql took was to, after any mutation, invalidate any and all queries which dealt with the data type you just mutated. This is a lot closer in terms of correctness, but even here there are edge cases which GraphQL's limited type introspection make difficult. For example, let's say you run this query
+An interesting approach that the first version of Urql took was to, after any mutation, invalidate any and all queries which dealt with the data type you just mutated. It did this by modifying all queries to add in `__typename` metadata to all query results, so it would know which types were in which queries, and therefore needed to be refreshed after which mutations. This is a lot closer in terms of correctness, but even here there are edge cases which GraphQL's limited type introspection make difficult. For example, let's say you run this query
 
 ```graphql
 tasks(assignedTo: "Adam") {
@@ -81,7 +81,9 @@ and get back
 
 It's more or less impossible for any GraphQL client to know what the underlying type of the empty `Tasks` array is, without a build step to introspect the entire endpoint's metadata. 
 
-No single, automated solution will cover all use cases.
+### Are these actual problems you're facing?
+
+These are actual problems I ran into when evaluating GraphQL clients, which left me wanting a low-level, configurable caching solution. That's the value proposition of this project. If you're not facing these problems, for whatever reasons, you'll likely be better off with a more automated solution like Urql or Apollo. 
 
 **Live Demo**
 
