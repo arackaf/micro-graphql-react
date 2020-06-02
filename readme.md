@@ -2,6 +2,12 @@
 
 # micro-graphql-react
 
+---
+
+**NOTE** These docs are still a work in progress. I'm only putting them on Master because the old ones were terribly out-dated and inaccurate, given how much the project has changed since it was originally released.
+
+---
+
 A light (2.5K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
 This project differs significantly from other GraphQL clients in how it approaches cache invalidation. Rather than adding metadata to all queries and forming a normalized cache, which is managed automatically, it instead provides simple, low-level building blocks to handle cache management yourself. The reason for this ostensibly poor tradeoff is because of my experience with other GraphQL clients which attempted to do this. I consistently had difficulty getting the cache to behave exactly as I wanted, and so decided to build a GraphQL client that gave me the low-level control I always found myself wanting. This project is the result.
