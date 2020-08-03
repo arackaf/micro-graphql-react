@@ -24,6 +24,10 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
         preloadOnly: options.preloadOnly
       })
   );
+  useLayoutEffect(() => {
+    queryManager.init();
+    return () => queryManager.dispose();
+  }, []);
 
   let [queryState, setQueryState] = useState(queryManager.currentState);
   queryManager.setState = setQueryState;
@@ -35,10 +39,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     throw queryManager.suspendedPromise;
   }
 
-  useLayoutEffect(() => {
-    queryManager.init();
-    return () => queryManager.dispose();
-  }, []);
 
   return queryState;
 }
