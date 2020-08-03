@@ -31,6 +31,10 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
   queryManager.sync({ query, variables, isActive });
 
+  if (queryManager.suspendedPromise) {
+    throw queryManager.suspendedPromise;
+  }
+
   useLayoutEffect(() => {
     queryManager.init();
     return () => queryManager.dispose();
