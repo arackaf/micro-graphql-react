@@ -93,9 +93,13 @@ export default class QueryManager {
       promise => {
         if (promise !== this.currentPromise) {
           this.currentPromise = promise;
-          this.currentPromise.then(() => {
-            this.update();
-          });
+          this.currentPromise
+            .then(() => {
+              this.update();
+            })
+            .catch(() => {
+              this.update();
+            });
           this.promisePending(promise);
         }
       },

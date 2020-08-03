@@ -43,6 +43,16 @@ test("Query resolves and errors updated", async () => {
   expect(getProps()).toMatchObject(errorPacket([{ msg: "a" }]));
 });
 
+test("Error in promise", async () => {
+  let p = (client1.nextResult = deferred());
+  render(<ComponentToUse a={1} unused={0} />);
+
+  expect(getProps()).toMatchObject(loadingPacket);
+
+  await rejectDeferred(p, { message: "Hello" });
+  expect(getProps()).toMatchObject(errorPacket({ message: "Hello" }));
+});
+
 test("Out of order promise handled", async () => {
   let pFirst = (client1.nextResult = deferred());
   let { rerender } = render(<ComponentToUse a={1} unused={0} />);
