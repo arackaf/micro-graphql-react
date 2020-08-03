@@ -15,26 +15,26 @@ beforeEach(() => {
   renders = 0;
 });
 
-//TODO:
-// test("loading props passed initially", async () => {
-//   const ComponentToUse = props => {
-//     const loadTasks = useQuery(LOAD_TASKS, { assignedTo: props.assignedTo });
-//     renders++;
+test("loading props passed initially", async () => {
+  const ComponentToUse = props => {
+    const loadTasks = useQuery(LOAD_TASKS, { assignedTo: props.assignedTo });
+    renders++;
 
-//     return null;
-//   };
+    return null;
+  };
 
-//   client1.nextResult = { data: {} };
-//   let { rerender } = render(<ComponentToUse />);
-//   let currentRenderCount = renders;
+  client1.nextResult = { data: {} };
+  let { rerender } = render(<ComponentToUse />);
+  let currentRenderCount = renders;
 
-//   client1.forceUpdate(LOAD_TASKS);
-//   expect(renders).toBeGreaterThan(currentRenderCount);
+  client1.forceUpdate(LOAD_TASKS);
+  await pause();
+  expect(renders).toBeGreaterThan(currentRenderCount);
 
-//   currentRenderCount = renders;
-//   client1.forceUpdate(LOAD_USERS);
-//   expect(renders).toBe(currentRenderCount);
-// });
+  currentRenderCount = renders;
+  client1.forceUpdate(LOAD_USERS);
+  expect(renders).toBe(currentRenderCount);
+});
 
 test("force update from client mutation subscription -- string", async () => {
   var lastResults = null;
@@ -73,10 +73,10 @@ test("force update from client mutation subscription -- string", async () => {
   await pause();
 
   expect(lastResults).toEqual({ a: 1 });
-  
+
   rerender(<ComponentToUse run={true} />);
   await pause();
-  
+
   expect(lastResults).toEqual({ a: 99 });
 });
 
@@ -117,9 +117,9 @@ test("force update from client mutation subscription -- regex", async () => {
   await pause();
 
   expect(lastResults).toEqual({ a: 1 });
-  
+
   rerender(<ComponentToUse run={true} />);
   await pause();
-  
+
   expect(lastResults).toEqual({ a: 99 });
 });

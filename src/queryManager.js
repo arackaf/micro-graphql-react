@@ -40,8 +40,8 @@ export default class QueryManager {
       });
     }
   }
-  updateState = newState => {
-    const doUpdate = Object.keys(newState).some(k => newState[k] !== this.currentState[k]);
+  updateState = (newState, force) => {
+    const doUpdate = force || Object.keys(newState).some(k => newState[k] !== this.currentState[k]);
     if (!doUpdate) return;
 
     this.suspendedPromise = null;
@@ -49,7 +49,7 @@ export default class QueryManager {
     this.setState && this.setState(Object.assign({}, this.currentState));
   };
   refresh = () => {
-    this.update();
+    this.update(true);
   };
   softReset = newResults => {
     this.cache.clearCache();
@@ -85,7 +85,7 @@ export default class QueryManager {
     this.currentUri = graphqlQuery;
     this.update();
   }
-  update() {
+  update(force) {
     let suspense = this.suspense;
     let graphqlQuery = this.currentUri;
     this.cache.getFromCache(
@@ -105,7 +105,7 @@ export default class QueryManager {
       },
       cachedEntry => {
         this.currentPromise = null;
-        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
+        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery }, force);
       },
       () => {
         if (!(this.suspense && this.preloadOnly)) {
