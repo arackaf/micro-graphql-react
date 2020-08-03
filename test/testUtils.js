@@ -19,7 +19,9 @@ export const resolveDeferred = async (p, val, wrapper) => {
 };
 
 export const rejectDeferred = async (p, val, wrapper) => {
-  p.reject(val);
+  try {
+    p.reject(val);
+  } catch(er){}
   try {
     await p;
   } catch (er) {}
