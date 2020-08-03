@@ -27,6 +27,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
   let [queryState, setQueryState] = useState(queryManager.currentState);
   queryManager.setState = setQueryState;
+  queryManager.getState = () => queryState;
 
   queryManager.sync({ query, variables, isActive });
 
@@ -35,7 +36,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     return () => queryManager.dispose();
   }, []);
 
-  return queryManager.currentState;
+  return queryState;
 }
 
 export const useSuspenseQuery = (query, variables, options = {}) => useQuery(query, variables, options, { suspense: true });

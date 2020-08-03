@@ -35,18 +35,19 @@ export default class QueryManager {
         softReset: this.softReset,
         hardReset: this.hardReset,
         refresh: this.refresh,
-        currentResults: () => this.currentState.data,
+        currentResults: () => this.getState().data,
         isActive: () => this.active
       });
     }
   }
   updateState = (newState, force) => {
-    const doUpdate = force || Object.keys(newState).some(k => newState[k] !== this.currentState[k]);
+    const existingState = this.getState();
+    const doUpdate = force || Object.keys(newState).some(k => newState[k] !== existingState[k]);
     if (!doUpdate) return;
 
     this.suspendedPromise = null;
-    Object.assign(this.currentState, newState);
-    this.setState && this.setState(Object.assign({}, this.currentState));
+    const newStateToUse = Object.assign({}, this.getState(), newState);
+    this.setState && this.setState(newStateToUse);
   };
   refresh = () => {
     this.update(true);
@@ -60,14 +61,14 @@ export default class QueryManager {
     this.reload();
   };
   clearCacheAndReload = () => {
-    let uri = this.currentState.currentQuery;
+    let uri = this.getState().currentQuery;
     if (uri) {
       this.cache.clearCache();
       this.update();
     }
   };
   reload = () => {
-    let uri = this.currentState.currentQuery;
+    let uri = this.getState().currentQuery;
     if (uri) {
       this.cache.removeItem(uri);
       this.refreshCurrent();
