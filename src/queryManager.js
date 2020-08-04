@@ -20,9 +20,12 @@ export default class QueryManager {
     this.suspense = suspense;
     this.preloadOnly = preloadOnly;
 
-    this.currentState.reload = this.reload;
-    this.currentState.clearCache = () => this.cache.clearCache();
-    this.currentState.clearCacheAndReload = this.clearCacheAndReload;
+    Object.assign(this.currentState, {
+      reload: this.reload,
+      clearCache: () => this.cache.clearCache(),
+      clearCacheAndReload: this.clearCacheAndReload,
+      isActive
+    });
   }
   init() {
     let options = this.options;
@@ -36,7 +39,7 @@ export default class QueryManager {
         hardReset: this.hardReset,
         refresh: this.refresh,
         currentResults: () => this.getState().data,
-        isActive: () => this.active
+        isActive: () => this.getState().isActive
       });
     }
   }
@@ -75,9 +78,9 @@ export default class QueryManager {
   };
   sync({ query, variables, isActive }) {
     let wasInactive = !this.active;
-    this.active = isActive;
+    this.updateState({ isActive });
 
-    if (!this.active) {
+    if (!isActive) {
       return;
     }
 
