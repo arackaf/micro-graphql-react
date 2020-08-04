@@ -40,9 +40,9 @@ export default class QueryManager {
       });
     }
   }
-  updateState = (newState, force) => {
+  updateState = newState => {
     const existingState = this.getState();
-    const doUpdate = force || Object.keys(newState).some(k => newState[k] !== existingState[k]);
+    const doUpdate = Object.keys(newState).some(k => newState[k] !== existingState[k]);
     if (!doUpdate) return;
 
     const newStateToUse = Object.assign({}, this.getState(), newState);
@@ -82,12 +82,9 @@ export default class QueryManager {
     }
 
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-    this.currentUri = graphqlQuery;
-    this.update();
+    this.read(graphqlQuery);
   }
-  update(force) {
-    let suspense = this.suspense;
-    let graphqlQuery = this.currentUri;
+  read(graphqlQuery) {
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
@@ -95,10 +92,7 @@ export default class QueryManager {
       },
       cachedEntry => {
         this.currentPromise = null;
-        this.updateState(
-          { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery },
-          force
-        );
+        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
       },
       () => {
         if (!(this.suspense && this.preloadOnly)) {
