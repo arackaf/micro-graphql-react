@@ -97,6 +97,45 @@ test("Mutation listener updates cache with mutation args - string", async () => 
   expect(queryProps().data).toEqual({ Books: [{ id: 2, title: "Book 2", author: "Eve" }] }); //loads updated data
 });
 
+test("Mutation listener updates cache with mutation args - string - component gets new data", async () => {
+  let [queryProps, mutationProps, Component] = getQueryAndMutationComponent({
+    onMutation: {
+      when: "deleteBook",
+      run: ({ cache, refresh }, resp, args) => {
+        cache.entries.forEach(([key, results]) => {
+          results.data.Books = results.data.Books.filter(b => b.id != args.id);
+          refresh();
+        });
+      }
+    }
+  });
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "Eve" }
+      ]
+    }
+  };
+  let { rerender } = render(<Component query="a" />);
+  await pause();
+
+  expect(queryProps().data).toEqual({
+    Books: [
+      { id: 1, title: "Book 1", author: "Adam" },
+      { id: 2, title: "Book 2", author: "Eve" }
+    ]
+  }); //loads updated data
+
+  client1.nextMutationResult = { deleteBook: { success: true } };
+  await mutationProps().runMutation({ id: 1 });
+
+  expect(queryProps().data).toEqual({
+    Books: [{ id: 2, title: "Book 2", author: "Eve" }]
+  }); //loads updated data
+});
+
 test("Mutation listener updates cache with mutation args - regex", async () => {
   let [queryProps, mutationProps, Component] = getQueryAndMutationComponent({
     onMutation: {

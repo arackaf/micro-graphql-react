@@ -45,12 +45,11 @@ export default class QueryManager {
     const doUpdate = force || Object.keys(newState).some(k => newState[k] !== existingState[k]);
     if (!doUpdate) return;
 
-    this.suspendedPromise = null;
     const newStateToUse = Object.assign({}, this.getState(), newState);
     this.setState && this.setState(newStateToUse);
   };
   refresh = () => {
-    this.update(true);
+    this.refreshCurrent();
   };
   softReset = newResults => {
     this.cache.clearCache();
@@ -64,7 +63,7 @@ export default class QueryManager {
     let uri = this.getState().currentQuery;
     if (uri) {
       this.cache.clearCache();
-      this.update();
+      this.refreshCurrent();
     }
   };
   reload = () => {
@@ -92,21 +91,14 @@ export default class QueryManager {
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
-        if (promise !== this.currentPromise) {
-          this.currentPromise = promise;
-          this.currentPromise
-            .then(() => {
-              this.update();
-            })
-            .catch(() => {
-              this.update();
-            });
-          this.promisePending(promise);
-        }
+        this.promisePending(promise);
       },
       cachedEntry => {
         this.currentPromise = null;
-        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery }, force);
+        this.updateState(
+          { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery },
+          force
+        );
       },
       () => {
         if (!(this.suspense && this.preloadOnly)) {
@@ -119,10 +111,19 @@ export default class QueryManager {
   }
   promisePending(promise) {
     if (this.suspense) {
-      this.suspendedPromise = promise;
       throw promise;
     } else {
       this.updateState({ loading: true });
+      if (!this.suspense && promise !== this.currentPromise) {
+        this.currentPromise = promise;
+        this.currentPromise
+          .then(() => {
+            this.refreshCurrent();
+          })
+          .catch(() => {
+            this.refreshCurrent();
+          });
+      }
     }
   }
   execute(graphqlQuery) {
@@ -135,12 +136,12 @@ export default class QueryManager {
       .then(resp => {
         this.currentPromise = null;
         this.cache.setResults(promise, cacheKey, resp);
-        this.update();
+        this.refreshCurrent();
       })
       .catch(err => {
         this.currentPromise = null;
         this.cache.setResults(promise, cacheKey, null, err);
-        this.update();
+        this.refreshCurrent();
       });
   };
   dispose() {
