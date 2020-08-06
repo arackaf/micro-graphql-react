@@ -22,31 +22,11 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
   let isActive = !("active" in options && !options.active);
 
-  let [[cache, queryManager], setEverything] = useState(() => {
+  let [cache, setCache] = useState(() => {
     let client = clientRef.current;
-    let cache = options.cache || client.getCache(query) || client.newCacheForQuery(query);
-
-    let queryManager = new QueryManager({
-      ...options,
-      client,
-      cache,
-      refreshCurrent,
-      query,
-      variables,
-      options,
-      isActive,
-      suspense,
-      preloadOnly: options.preloadOnly
-    });
-
-    return [cache, queryManager];
+    return options.cache || client.getCache(query) || client.newCacheForQuery(query);
   });
-
-  useLayoutEffect(() => {
-    queryManager.init();
-    return () => queryManager.dispose();
-  }, []);
-
+  
   let [queryState, setQueryState] = useState(() => {
     let existingState = {};
     if (isActive) {
@@ -65,7 +45,30 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     return { ...initialState, ...existingState };
   });
 
-  queryManager.setState = setQueryState;
+  let [queryManager, setQueryManager] = useState(() => {
+    let client = clientRef.current;
+    let queryManager = new QueryManager({
+      ...options,
+      client,
+      cache,
+      setState: setQueryState,
+      refreshCurrent,
+      query,
+      variables,
+      options,
+      isActive,
+      suspense,
+      preloadOnly: options.preloadOnly
+    });
+
+    return queryManager;
+  });
+
+  useLayoutEffect(() => {
+    queryManager.init();
+    return () => queryManager.dispose();
+  }, []);
+
   queryManager.getState = () => queryState;
 
   queryManager.sync({ query, variables, isActive });
