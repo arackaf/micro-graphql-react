@@ -26,7 +26,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     let client = clientRef.current;
     return options.cache || client.getCache(query) || client.newCacheForQuery(query);
   });
-  
+
   let [queryState, setQueryState] = useState(() => {
     let existingState = {};
     if (isActive) {
@@ -42,7 +42,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       );
     }
 
-    return { ...initialState, ...existingState };
+    return { ...initialState, isActive, ...existingState };
   });
 
   let [queryManager, setQueryManager] = useState(() => {
@@ -68,7 +68,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
   queryManager.getState = () => queryState;
 
-  queryManager.sync({ query, variables, isActive });
+  queryManager.sync({ query, variables, isActive, queryState });
 
   return useMemo(() => {
     return {

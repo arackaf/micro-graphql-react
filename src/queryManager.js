@@ -37,13 +37,17 @@ export default class QueryManager {
       });
     }
   }
-  updateState = newState => {
-    const existingState = this.getState();
-    const doUpdate = Object.keys(newState).some(k => newState[k] !== existingState[k]);
-    if (!doUpdate) return;
+  updateState = (newState, existingState) => {
+    if (!this.setState) {
+      return;
+    }
 
-    const newStateToUse = Object.assign({}, this.getState(), newState);
-    this.setState && this.setState(newStateToUse);
+    if (existingState) {
+      const doUpdate = Object.keys(newState).some(k => newState[k] !== existingState[k]);
+      if (!doUpdate) return;
+    }
+
+    this.setState(state => Object.assign({}, state, newState));
   };
   refresh = () => {
     this.refreshCurrent();
@@ -70,41 +74,44 @@ export default class QueryManager {
       this.refreshCurrent();
     }
   };
-  sync({ query, variables, isActive }) {
+  sync({ query, variables, isActive, queryState }) {
     let wasInactive = !this.active;
-    this.updateState({ isActive });
+    this.updateState({ isActive }, queryState);
 
     if (!isActive) {
       return;
     }
 
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-    this.read(graphqlQuery);
+    this.read(graphqlQuery, queryState);
   }
-  read(graphqlQuery) {
+  read(graphqlQuery, queryState) {
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
-        this.promisePending(promise);
+        this.promisePending(promise, queryState);
       },
       cachedEntry => {
         this.currentPromise = null;
-        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
+        this.updateState(
+          { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery },
+          queryState
+        );
       },
       () => {
         if (!(this.suspense && this.preloadOnly)) {
           let promise = this.execute(graphqlQuery);
           this.currentPromise = promise;
-          this.promisePending(promise);
+          this.promisePending(promise, queryState);
         }
       }
     );
   }
-  promisePending(promise) {
+  promisePending(promise, queryState) {
     if (this.suspense) {
       throw promise;
     } else {
-      this.updateState({ loading: true });
+      this.updateState({ loading: true }, queryState);
       if (!this.suspense && promise !== this.currentPromise) {
         this.currentPromise = promise;
         this.currentPromise
