@@ -19,28 +19,6 @@ export default class QueryManager {
     this.refreshCurrent = refreshCurrent;
     this.suspense = suspense;
     this.preloadOnly = preloadOnly;
-
-    let existingState = {};
-    if (isActive) {
-      let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-
-      this.cache.getFromCache(
-        graphqlQuery,
-        promise => {},
-        cachedEntry => {
-          existingState = { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery };
-        },
-        () => {}
-      );
-    }
-
-    Object.assign(this.currentState, {
-      reload: this.reload,
-      clearCache: () => this.cache.clearCache(),
-      clearCacheAndReload: this.clearCacheAndReload,
-      isActive,
-      ...existingState
-    });
   }
   init() {
     let options = this.options;
