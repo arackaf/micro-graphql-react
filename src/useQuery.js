@@ -21,18 +21,16 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   let customCache = useRef(!!options.cache);
 
   let isActive = !("active" in options && !options.active);
+  let isActiveRef = useRef(isActive);
 
-  let [cache, setCache] = useState(() => {
-    let client = clientRef.current;
-    return options.cache || client.getCache(query) || client.newCacheForQuery(query);
-  });
+  let cacheRef = useRef(options.cache || clientRef.current.getCache(query) || clientRef.current.newCacheForQuery(query));
 
   let [queryState, setQueryState] = useState(() => {
     let existingState = {};
-    if (isActive) {
+    if (isActiveRef.current) {
       let graphqlQuery = clientRef.current.getGraphqlQuery({ query, variables });
 
-      cache.getFromCache(
+      cacheRef.current.getFromCache(
         graphqlQuery,
         promise => {},
         cachedEntry => {
@@ -42,14 +40,15 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       );
     }
 
-    return { ...initialState, isActive, ...existingState };
+    return { ...initialState, ...existingState };
   });
 
   let [queryManager, setQueryManager] = useState(() => {
     let client = clientRef.current;
     let queryManager = new QueryManager({
       client,
-      cache,
+      cache: cacheRef.current,
+      isActiveRef,
       setState: setQueryState,
       refreshCurrent,
       query,
@@ -61,23 +60,28 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     return queryManager;
   });
 
+  queryManager.getState = () => queryState;
+
+  if (isActive) {
+    queryManager.sync({ query, variables, queryState });
+  }
   useLayoutEffect(() => {
     queryManager.init();
     return () => queryManager.dispose();
   }, []);
 
-  queryManager.getState = () => queryState;
-
-  queryManager.sync({ query, variables, isActive, queryState });
+  useLayoutEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
 
   return useMemo(() => {
     return {
       ...queryState,
       reload: queryManager.reload,
-      clearCache: () => cache.clearCache(),
+      clearCache: () => cacheRef.current.clearCache(),
       clearCacheAndReload: queryManager.clearCacheAndReload
     };
-  }, [queryState, queryManager, cache]);
+  }, [queryState, queryManager, cacheRef.current]);
 }
 
 export const useSuspenseQuery = (query, variables, options = {}) => useQuery(query, variables, options, { suspense: true });

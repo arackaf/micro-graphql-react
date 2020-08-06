@@ -10,7 +10,7 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, refreshCurrent, cache, setState, query, options, suspense, preloadOnly }) {
+  constructor({ client, refreshCurrent, isActiveRef, cache, setState, query, options, suspense, preloadOnly }) {
     this.client = client;
     this.cache = cache;
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
@@ -20,6 +20,7 @@ export default class QueryManager {
     this.suspense = suspense;
     this.preloadOnly = preloadOnly;
     this.setState = setState;
+    this.isActiveRef = isActiveRef;
   }
   init() {
     let options = this.options;
@@ -33,7 +34,7 @@ export default class QueryManager {
         hardReset: this.hardReset,
         refresh: this.refresh,
         currentResults: () => this.getState().data,
-        isActive: () => this.getState().isActive
+        isActive: () => this.isActiveRef.current
       });
     }
   }
@@ -74,14 +75,7 @@ export default class QueryManager {
       this.refreshCurrent();
     }
   };
-  sync({ query, variables, isActive, queryState }) {
-    let wasInactive = !this.active;
-    this.updateState({ isActive }, queryState);
-
-    if (!isActive) {
-      return;
-    }
-
+  sync({ query, variables, queryState }) {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     this.read(graphqlQuery, queryState);
   }
