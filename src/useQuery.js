@@ -48,15 +48,12 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   let [queryManager, setQueryManager] = useState(() => {
     let client = clientRef.current;
     let queryManager = new QueryManager({
-      ...options,
       client,
       cache,
       setState: setQueryState,
       refreshCurrent,
       query,
-      variables,
       options,
-      isActive,
       suspense,
       preloadOnly: options.preloadOnly
     });

@@ -10,9 +10,9 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, refreshCurrent, cache, setState, query, variables, options, isActive, suspense, preloadOnly }) {
-    this.client = client || defaultClientManager.getDefaultClient();
-    this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
+  constructor({ client, refreshCurrent, cache, setState, query, options, suspense, preloadOnly }) {
+    this.client = client;
+    this.cache = cache;
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
     this.options = options;
     this.active = false;
