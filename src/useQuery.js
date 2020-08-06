@@ -48,7 +48,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     let queryManager = new QueryManager({
       client,
       cache: cacheRef.current,
-      isActiveRef,
+      hookRefs: { isActiveRef },
       setState: setQueryState,
       refreshCurrent,
       query,
