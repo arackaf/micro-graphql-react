@@ -19,11 +19,12 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
   let clientRef = useRef(options.client || defaultClientManager.getDefaultClient());
   let customCache = useRef(!!options.cache);
+  let cacheRef = useRef(options.cache || clientRef.current.getCache(query) || clientRef.current.newCacheForQuery(query));
 
   let isActive = !("active" in options && !options.active);
   let isActiveRef = useRef(isActive);
 
-  let cacheRef = useRef(options.cache || clientRef.current.getCache(query) || clientRef.current.newCacheForQuery(query));
+  let softResetQuery = useRef(null);
 
   let [queryState, setQueryState] = useState(() => {
     let existingState = {};
@@ -48,13 +49,12 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     let queryManager = new QueryManager({
       client,
       cache: cacheRef.current,
-      hookRefs: { isActiveRef },
+      hookRefs: { isActiveRef, softResetQuery },
       setState: setQueryState,
       refreshCurrent,
       query,
       options,
-      suspense,
-      preloadOnly: options.preloadOnly
+      suspense
     });
 
     return queryManager;

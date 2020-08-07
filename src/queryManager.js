@@ -10,9 +10,9 @@ export default class QueryManager {
   };
   currentState = { ...QueryManager.initialState };
 
-  constructor({ client, refreshCurrent, hookRefs, cache, setState, query, options, suspense, preloadOnly }) {
-    const { isActiveRef } = hookRefs;
-    Object.assign(this, { client, cache, options, isActiveRef, refreshCurrent, suspense, setState, preloadOnly });
+  constructor({ client, refreshCurrent, hookRefs, cache, setState, query, options, suspense }) {
+    const { isActiveRef, softResetQuery } = hookRefs;
+    Object.assign(this, { client, cache, options, isActiveRef, softResetQuery, refreshCurrent, suspense, setState });
 
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
   }
@@ -49,6 +49,7 @@ export default class QueryManager {
   };
   softReset = newResults => {
     this.cache.clearCache();
+    this.softResetQuery.current = this.getState().currentQuery;
     this.updateState({ data: newResults });
   };
   hardReset = () => {
@@ -56,6 +57,7 @@ export default class QueryManager {
     this.reload();
   };
   clearCacheAndReload = () => {
+    this.softResetQuery.current = null;
     let uri = this.getState().currentQuery;
     if (uri) {
       this.cache.clearCache();
@@ -63,6 +65,7 @@ export default class QueryManager {
     }
   };
   reload = () => {
+    this.softResetQuery.current = null;
     let uri = this.getState().currentQuery;
     if (uri) {
       this.cache.removeItem(uri);
@@ -71,7 +74,9 @@ export default class QueryManager {
   };
   sync({ query, variables, queryState }) {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-    this.read(graphqlQuery, queryState);
+    if (this.softResetQuery.current !== graphqlQuery) {
+      this.read(graphqlQuery, queryState);
+    }
   }
   read(graphqlQuery, queryState) {
     this.cache.getFromCache(
@@ -87,11 +92,9 @@ export default class QueryManager {
         );
       },
       () => {
-        if (!(this.suspense && this.preloadOnly)) {
-          let promise = this.execute(graphqlQuery);
-          this.currentPromise = promise;
-          this.promisePending(promise, queryState);
-        }
+        let promise = this.execute(graphqlQuery);
+        this.currentPromise = promise;
+        this.promisePending(promise, queryState);
       }
     );
   }

@@ -1,5 +1,5 @@
 import { React, render, Component, ClientMock, setDefaultClient } from "../testSuiteInitialize";
-import { pause, hookComponentFactory } from "../testUtils";
+import { pause, hookComponentFactory, deferred, resolveDeferred } from "../testUtils";
 
 let client1;
 
@@ -251,8 +251,62 @@ test("Mutation listener - soft reset - props right, cache cleared", async () => 
   client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
   await mutationProps().runMutation();
 
-  //TODO:
-  //expect(componentsCache.entries.length).toBe(0); //cache is cleared!
+  expect(componentsCache.entries.length).toBe(0); //cache is cleared!
+  expect(queryProps().data).toEqual({
+    Books: [
+      { id: 1, title: "Book 1", author: "Adam" },
+      { id: 2, title: "Book 2", author: "Eve" }
+    ]
+  }); //updated data is now there
+});
+
+test("Mutation listener - soft reset - re-render does not re-fetch", async () => {
+  let componentsCache;
+  let [queryProps, mutationProps, Component] = getQueryAndMutationComponent({
+    onMutation: {
+      when: "updateBook",
+      run: ({ cache, softReset, currentResults }, { updateBook: { Book } }) => {
+        componentsCache = cache;
+        let CachedBook = currentResults.Books.find(b => b.id == Book.id);
+        CachedBook && Object.assign(CachedBook, Book);
+        softReset(currentResults);
+      }
+    }
+  });
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "__WRONG__Eve" }
+      ]
+    }
+  };
+  let { rerender } = render(<Component query="a" />);
+  await pause();
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "__WRONG__Eve" }
+      ]
+    }
+  };
+
+  client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
+  await mutationProps().runMutation();
+
+  expect(queryProps().data).toEqual({
+    Books: [
+      { id: 1, title: "Book 1", author: "Adam" },
+      { id: 2, title: "Book 2", author: "Eve" }
+    ]
+  }); //updated data is now there
+
+  rerender(<Component query="a" />);
+  await pause();
+
   expect(queryProps().data).toEqual({
     Books: [
       { id: 1, title: "Book 1", author: "Adam" },
