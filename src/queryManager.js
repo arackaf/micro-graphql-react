@@ -79,6 +79,8 @@ export default class QueryManager {
     }
   }
   read(graphqlQuery, queryState) {
+    this.softResetQuery.current = null;
+
     this.cache.getFromCache(
       graphqlQuery,
       promise => {

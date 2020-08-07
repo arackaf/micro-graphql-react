@@ -315,6 +315,90 @@ test("Mutation listener - soft reset - re-render does not re-fetch", async () =>
   }); //updated data is now there
 });
 
+test("Mutation listener - soft reset - re-render when you come back", async () => {
+  let componentsCache;
+  let [queryProps, mutationProps, Component] = getQueryAndMutationComponent({
+    onMutation: {
+      when: "updateBook",
+      run: ({ cache, softReset, currentResults }, { updateBook: { Book } }) => {
+        componentsCache = cache;
+        let CachedBook = currentResults.Books.find(b => b.id == Book.id);
+        CachedBook && Object.assign(CachedBook, Book);
+        softReset(currentResults);
+      }
+    }
+  });
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "__WRONG__Eve" }
+      ]
+    }
+  };
+  let { rerender } = render(<Component query="a" />);
+  await pause();
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "XXXXXX" }
+      ]
+    }
+  };
+
+  client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve New" } } };
+  await mutationProps().runMutation();
+  await pause();
+
+  expect(queryProps().data).toEqual({
+    Books: [
+      { id: 1, title: "Book 1", author: "Adam" },
+      { id: 2, title: "Book 2", author: "Eve New" }
+    ]
+  }); //updated data is now there
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "Eve 2" }
+      ]
+    }
+  };
+
+  rerender(<Component query="b" />);
+  await pause();
+
+  expect(queryProps().data).toEqual({
+    Books: [
+      { id: 1, title: "Book 1", author: "Adam" },
+      { id: 2, title: "Book 2", author: "Eve 2" }
+    ]
+  });
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "Eve 3" }
+      ]
+    }
+  };
+
+  rerender(<Component query="a" />);
+  await pause();
+
+  expect(queryProps().data).toEqual({
+    Books: [
+      { id: 1, title: "Book 1", author: "Adam" },
+      { id: 2, title: "Book 2", author: "Eve 3" }
+    ]
+  });
+});
+
 test("Mutation listener - hard reset - props right, cache cleared, client qeried", async () => {
   let componentsCache;
   let [queryProps, mutationProps, Component] = getQueryAndMutationComponent({
