@@ -1,6 +1,7 @@
 export default class Cache {
   constructor(cacheSize = DEFAULT_CACHE_SIZE) {
     this.cacheSize = cacheSize;
+    this.softResetCache = null;
   }
   _cache = new Map([]);
 
@@ -60,6 +61,13 @@ export default class Cache {
   getFromCache(key, ifPending, ifResults, ifNotFound = () => {}) {
     let cache = this._cache;
     let cachedEntry = cache.get(key);
+    if (this.softResetCache) {
+      if (this.softResetCache[key]) {
+        return ifResults(this.softResetCache[key]);
+      } else {
+        this.softResetCache = null;
+      }
+    }
 
     if (cachedEntry) {
       if (typeof cachedEntry.then === "function") {

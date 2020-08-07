@@ -24,8 +24,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   let isActive = !("active" in options && !options.active);
   let isActiveRef = useRef(isActive);
 
-  let softResetQuery = useRef(null);
-
   let [queryState, setQueryState] = useState(() => {
     let existingState = {};
     if (isActiveRef.current) {
@@ -49,7 +47,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     let queryManager = new QueryManager({
       client,
       cache: cacheRef.current,
-      hookRefs: { isActiveRef, softResetQuery },
+      hookRefs: { isActiveRef },
       setState: setQueryState,
       refreshCurrent,
       query,
