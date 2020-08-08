@@ -94,6 +94,8 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       });
     }
     return () => {
+      queryManager.setState = () => {};
+      queryManager.refreshCurrent = () => {};
       mutationSubscription && mutationSubscription();
       queryManager.dispose();
     };
