@@ -13,8 +13,6 @@ export default class QueryManager {
   constructor({ client, refreshCurrent, hookRefs, cache, setState, query, suspense }) {
     const { isActiveRef, queryStateRef } = hookRefs;
     Object.assign(this, { client, cache, isActiveRef, queryStateRef, refreshCurrent, suspense, setState });
-
-    this.unregisterQuery = this.client.registerQuery(query, this.refreshCurrent);
   }
   updateState = (newState, existingState) => {
     if (!this.setState) {
@@ -88,7 +86,4 @@ export default class QueryManager {
         this.refreshCurrent();
       });
   };
-  dispose() {
-    this.unregisterQuery();
-  }
 }

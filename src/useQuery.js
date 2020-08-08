@@ -78,6 +78,8 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   }, [isActive, queryState]);
 
   useLayoutEffect(() => {
+    let unregisterQuery = clientRef.current.registerQuery(query, refresh);
+
     let mutationSubscription;
     if (typeof options.onMutation === "object") {
       let onMutation = !Array.isArray(options.onMutation) ? [options.onMutation] : options.onMutation;
@@ -95,7 +97,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       queryManager.setState = () => {};
       queryManager.refreshCurrent = () => {};
       mutationSubscription && mutationSubscription();
-      queryManager.dispose();
+      unregisterQuery();
     };
   }, [queryManager]);
   // ------------------------------- effects -------------------------------
