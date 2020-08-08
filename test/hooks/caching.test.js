@@ -118,23 +118,6 @@ test("Second component shares the same cache", async () => {
   expect(client1.queriesRun).toBe(10);
 });
 
-test("Override cache size via custom cache object", async () => {
-  let cacheOverride = new Cache(2);
-  let [getProps, Component] = getComponent({ cache: cacheOverride });
-  let { rerender } = render(<Component page={1} unused={10} />);
-
-  //3 is a cache ejection, cache is now 2,3
-  Array.from({ length: 2 }).forEach((x, i) => rerender(<Component page={i + 2} unused={10} />));
-  expect(client1.queriesRun).toBe(3);
-
-  //call 2, cache hit, cache is now 2,3
-  //call 1, cache miss
-  Array.from({ length: 2 }).forEach((x, i) => rerender(<Component page={3 - i - 1} unused={10} />));
-  expect(client1.queriesRun).toBe(4);
-
-  expect(cacheOverride.entries.length).toBe(2);
-});
-
 test("Default cache size with overridden client", async () => {
   let [getProps, Component] = getComponent({ client: client2 });
   let { rerender } = render(<Component page={1} unused={10} />);
@@ -144,20 +127,4 @@ test("Default cache size with overridden client", async () => {
 
   Array.from({ length: 9 }).forEach((x, i) => render(<Component page={10 - i - 1} unused={10} />));
   expect(client2.queriesRun).toBe(10);
-});
-
-test("Override cache size with overridden cache, and client objects", async () => {
-  let cacheOverride = new Cache(2);
-  let [getProps, Component] = getComponent({ cache: cacheOverride, client: client2 });
-  let { rerender } = render(<Component page={1} unused={10} />);
-
-  //3 is a cache ejection, cache is now 2,3
-  Array.from({ length: 2 }).forEach((x, i) => rerender(<Component page={i + 2} unused={10} />));
-  expect(client2.queriesRun).toBe(3);
-
-  //call 2, cache hit, cache is now 2,3
-  //call 1, cache miss
-  Array.from({ length: 2 }).forEach((x, i) => rerender(<Component page={3 - i - 1} unused={10} />));
-  expect(client2.queriesRun).toBe(4);
-  expect(cacheOverride.entries.length).toBe(2);
 });

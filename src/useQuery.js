@@ -18,8 +18,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   };
 
   let clientRef = useRef(options.client || defaultClientManager.getDefaultClient());
-  let customCache = useRef(!!options.cache);
-  let cacheRef = useRef(options.cache || clientRef.current.getCache(query) || clientRef.current.newCacheForQuery(query));
+  let cacheRef = useRef(clientRef.current.getCache(query) || clientRef.current.newCacheForQuery(query));
 
   let isActive = !("active" in options && !options.active);
   let isActiveRef = useRef(isActive);

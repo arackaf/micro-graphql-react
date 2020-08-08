@@ -96,7 +96,6 @@ The first argument is the query text itself. The second argument is the query's 
 | -------| ----------- |
 | `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
 | `client`  | Manually pass in a client to be used for this query, which will override the default client|
-| `cache`  | Manually pass in a cache object to be used for this query|
 | `active`  | If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
 Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
@@ -173,7 +172,7 @@ The cache object has the following properties and methods
 
 The onMutation option that query options take is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
-`when` is a string or regular expression that's tested against each result of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: an object with these propertes, described below, `{ softReset, currentResults, hardReset, cache, refresh }`; the entire mutation result; and the mutation's variables object.
+`when` is a string or regular expression that's tested against each result of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: an object with these properties, described below, `{ softReset, currentResults, hardReset, cache, refresh }`; the entire mutation result; and the mutation's variables object.
 
 <!-- prettier-ignore -->
 | Arg  | Description  |
