@@ -87,22 +87,3 @@ test("Mutation listener misses without match", async () => {
 
   expect(runCount).toBe(0);
 });
-
-test("Mutation listener destroys at unmount", async () => {
-  let runCount = 0;
-  let [queryProps, mutationProps, Component] = getQueryAndMutationComponent({ onMutation: { when: "updateBook", run: () => runCount++ } });
-  let { unmount } = render(<Component page={1} />);
-
-  client1.nextMutationResult = { updateBook: { Book: { title: "New Title" } } };
-  await mutationProps().runMutation();
-
-  expect(runCount).toBe(1);
-
-  unmount();
-
-  await client1.processMutation();
-  await client1.processMutation();
-  await client1.processMutation();
-
-  expect(runCount).toBe(1);
-});
