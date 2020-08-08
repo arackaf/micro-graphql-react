@@ -41,13 +41,17 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
     return { ...initialState, ...existingState };
   });
+  const queryStateRef = useRef(queryState);
+  useLayoutEffect(() => {
+    queryStateRef.current = queryState;
+  }, [queryState]);
 
   let [queryManager, setQueryManager] = useState(() => {
     let client = clientRef.current;
     let queryManager = new QueryManager({
       client,
       cache: cacheRef.current,
-      hookRefs: { isActiveRef },
+      hookRefs: { isActiveRef, queryStateRef },
       setState: setQueryState,
       refreshCurrent,
       query,
@@ -57,8 +61,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
     return queryManager;
   });
-
-  queryManager.getState = () => queryState;
 
   if (isActive) {
     queryManager.sync({ query, variables, queryState });

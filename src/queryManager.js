@@ -11,8 +11,8 @@ export default class QueryManager {
   currentState = { ...QueryManager.initialState };
 
   constructor({ client, refreshCurrent, hookRefs, cache, setState, query, options, suspense }) {
-    const { isActiveRef } = hookRefs;
-    Object.assign(this, { client, cache, options, isActiveRef, refreshCurrent, suspense, setState });
+    const { isActiveRef, queryStateRef } = hookRefs;
+    Object.assign(this, { client, cache, options, isActiveRef, queryStateRef, refreshCurrent, suspense, setState });
 
     this.unregisterQuery = this.client.registerQuery(query, this.refresh);
   }
@@ -27,7 +27,7 @@ export default class QueryManager {
         softReset: this.softReset,
         hardReset: this.hardReset,
         refresh: this.refresh,
-        currentResults: () => this.getState().data,
+        currentResults: () => this.queryStateRef.current.data,
         isActive: () => this.isActiveRef.current
       });
     }
@@ -49,7 +49,7 @@ export default class QueryManager {
   };
   softReset = newResults => {
     this.cache.clearCache();
-    this.cache.softResetCache = { [this.getState().currentQuery]: { data: newResults } };
+    this.cache.softResetCache = { [this.queryStateRef.current.currentQuery]: { data: newResults } };
     this.updateState({ data: newResults });
   };
   hardReset = () => {
@@ -57,14 +57,14 @@ export default class QueryManager {
     this.reload();
   };
   clearCacheAndReload = () => {
-    let uri = this.getState().currentQuery;
+    let uri = this.queryStateRef.current.currentQuery;
     if (uri) {
       this.cache.clearCache();
       this.refreshCurrent();
     }
   };
   reload = () => {
-    let uri = this.getState().currentQuery;
+    let uri = this.queryStateRef.current.currentQuery;
     if (uri) {
       this.cache.removeItem(uri);
       this.refreshCurrent();
