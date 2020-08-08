@@ -42,39 +42,29 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   });
   let queryStateRef = useRef(queryState);
 
-  let [queryManager, setQueryManager] = useState(
-    () =>
-      new QueryManager({
-        client: clientRef.current,
-        cache: cacheRef.current,
-        hookRefs: { isActiveRef, queryStateRef },
-        setState: setQueryState,
-        refreshCurrent: refresh,
-        query,
-        suspense
-      })
-  );
+  const getQueryManager = cache =>
+    new QueryManager({
+      client: clientRef.current,
+      cache,
+      hookRefs: { isActiveRef, queryStateRef },
+      setState: setQueryState,
+      refreshCurrent: refresh,
+      query,
+      suspense
+    });
 
-  if (isActive) {
-    queryManager.sync({ query, variables, queryState });
-  }
+  let [queryManager, setQueryManager] = useState(() => getQueryManager(cacheRef.current));
 
-  let reload = () => {
-    let newCache = cacheRef.current.clone(([k]) => k != queryStateRef.current.currentQuery);
+  let resetQueryManager = cacheFilter => {
+    let newCache = cacheRef.current.clone(cacheFilter);
     clientRef.current.setCache(query, newCache);
 
-    setQueryManager(
-      new QueryManager({
-        client: clientRef.current,
-        cache: newCache,
-        hookRefs: { isActiveRef, queryStateRef },
-        setState: setQueryState,
-        refreshCurrent: refresh,
-        query,
-        suspense
-      })
-    );
+    setQueryManager(getQueryManager(newCache));
   };
+
+  let reload = () => resetQueryManager(([k]) => k != queryStateRef.current.currentQuery);
+
+  let hardReset = () => resetQueryManager(() => false);
 
   // ------------------------------- effects -------------------------------
 
@@ -88,10 +78,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       cacheRef.current.clearCache();
       cacheRef.current.softResetCache = { [queryStateRef.current.currentQuery]: { data: newResults } };
       setQueryState({ data: newResults });
-    };
-    const hardReset = () => {
-      cacheRef.current.clearCache();
-      refresh();
     };
 
     let mutationSubscription;
@@ -115,6 +101,10 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     };
   }, [queryManager]);
   // ------------------------------- effects -------------------------------
+
+  if (isActive) {
+    queryManager.sync({ query, variables, queryState });
+  }
 
   return useMemo(() => {
     return {
