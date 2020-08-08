@@ -42,24 +42,39 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   });
   let queryStateRef = useRef(queryState);
 
-  let [queryManager, setQueryManager] = useState(() => {
-    let client = clientRef.current;
-    let queryManager = new QueryManager({
-      client,
-      cache: cacheRef.current,
-      hookRefs: { isActiveRef, queryStateRef },
-      setState: setQueryState,
-      refreshCurrent: refresh,
-      query,
-      suspense
-    });
-
-    return queryManager;
-  });
+  let [queryManager, setQueryManager] = useState(
+    () =>
+      new QueryManager({
+        client: clientRef.current,
+        cache: cacheRef.current,
+        hookRefs: { isActiveRef, queryStateRef },
+        setState: setQueryState,
+        refreshCurrent: refresh,
+        query,
+        suspense
+      })
+  );
 
   if (isActive) {
     queryManager.sync({ query, variables, queryState });
   }
+
+  let reload = () => {
+    let newCache = cacheRef.current.clone(([k]) => k != queryStateRef.current.currentQuery);
+    clientRef.current.setCache(query, newCache);
+
+    setQueryManager(
+      new QueryManager({
+        client: clientRef.current,
+        cache: newCache,
+        hookRefs: { isActiveRef, queryStateRef },
+        setState: setQueryState,
+        refreshCurrent: refresh,
+        query,
+        suspense
+      })
+    );
+  };
 
   // ------------------------------- effects -------------------------------
 
@@ -76,7 +91,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     };
     const hardReset = () => {
       cacheRef.current.clearCache();
-      queryManager.reload();
+      refresh();
     };
 
     let mutationSubscription;
@@ -104,7 +119,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   return useMemo(() => {
     return {
       ...queryState,
-      reload: queryManager.reload,
+      reload,
       clearCache: () => cacheRef.current.clearCache(),
       clearCacheAndReload: queryManager.clearCacheAndReload
     };
