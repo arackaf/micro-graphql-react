@@ -41,10 +41,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
     return { ...initialState, ...existingState };
   });
-  const queryStateRef = useRef(queryState);
-  useLayoutEffect(() => {
-    queryStateRef.current = queryState;
-  }, [queryState]);
+  let queryStateRef = useRef(queryState);
 
   let [queryManager, setQueryManager] = useState(() => {
     let client = clientRef.current;
@@ -70,7 +67,8 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
   useLayoutEffect(() => {
     isActiveRef.current = isActive;
-  }, [isActive]);
+    queryStateRef.current = queryState;
+  }, [isActive, queryState]);
 
   useLayoutEffect(() => {
     const softReset = newResults => {
