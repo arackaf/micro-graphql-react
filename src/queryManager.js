@@ -14,23 +14,7 @@ export default class QueryManager {
     const { isActiveRef, queryStateRef } = hookRefs;
     Object.assign(this, { client, cache, options, isActiveRef, queryStateRef, refreshCurrent, suspense, setState });
 
-    this.unregisterQuery = this.client.registerQuery(query, this.refresh);
-  }
-  init() {
-    let options = this.options;
-    if (typeof options.onMutation === "object") {
-      if (!Array.isArray(options.onMutation)) {
-        options.onMutation = [options.onMutation];
-      }
-      this.mutationSubscription = this.client.subscribeMutation(options.onMutation, {
-        cache: this.cache,
-        softReset: this.softReset,
-        hardReset: this.hardReset,
-        refresh: this.refresh,
-        currentResults: () => this.queryStateRef.current.data,
-        isActive: () => this.isActiveRef.current
-      });
-    }
+    this.unregisterQuery = this.client.registerQuery(query, this.refreshCurrent);
   }
   updateState = (newState, existingState) => {
     if (!this.setState) {
@@ -44,18 +28,7 @@ export default class QueryManager {
 
     this.setState(state => Object.assign({}, state, newState));
   };
-  refresh = () => {
-    this.refreshCurrent();
-  };
-  softReset = newResults => {
-    this.cache.clearCache();
-    this.cache.softResetCache = { [this.queryStateRef.current.currentQuery]: { data: newResults } };
-    this.updateState({ data: newResults });
-  };
-  hardReset = () => {
-    this.cache.clearCache();
-    this.reload();
-  };
+
   clearCacheAndReload = () => {
     let uri = this.queryStateRef.current.currentQuery;
     if (uri) {
@@ -130,7 +103,6 @@ export default class QueryManager {
       });
   };
   dispose() {
-    this.mutationSubscription && this.mutationSubscription();
     this.unregisterQuery();
   }
 }

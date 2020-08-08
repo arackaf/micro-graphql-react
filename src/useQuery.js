@@ -13,7 +13,7 @@ const initialState = {
 
 export default function useQuery(query, variables, options = {}, { suspense } = {}) {
   let [deactivateQueryToken, setDeactivateQueryToken] = useState(0);
-  let refreshCurrent = () => {
+  let refresh = () => {
     setDeactivateQueryToken(x => x + 1);
   };
 
@@ -53,7 +53,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       cache: cacheRef.current,
       hookRefs: { isActiveRef, queryStateRef },
       setState: setQueryState,
-      refreshCurrent,
+      refreshCurrent: refresh,
       query,
       options,
       suspense
@@ -65,14 +65,43 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   if (isActive) {
     queryManager.sync({ query, variables, queryState });
   }
-  useLayoutEffect(() => {
-    queryManager.init();
-    return () => queryManager.dispose();
-  }, []);
+
+  // ------------------------------- effects -------------------------------
 
   useLayoutEffect(() => {
     isActiveRef.current = isActive;
   }, [isActive]);
+
+  useLayoutEffect(() => {
+    const softReset = newResults => {
+      cacheRef.current.clearCache();
+      cacheRef.current.softResetCache = { [queryStateRef.current.currentQuery]: { data: newResults } };
+      setQueryState({ data: newResults });
+    };
+    const hardReset = () => {
+      cacheRef.current.clearCache();
+      queryManager.reload();
+    };
+
+    let mutationSubscription;
+    if (typeof options.onMutation === "object") {
+      let onMutation = !Array.isArray(options.onMutation) ? [options.onMutation] : options.onMutation;
+
+      mutationSubscription = clientRef.current.subscribeMutation(onMutation, {
+        cache: cacheRef.current,
+        softReset,
+        hardReset,
+        refresh,
+        currentResults: () => queryStateRef.current.data,
+        isActive: () => isActiveRef.current
+      });
+    }
+    return () => {
+      mutationSubscription && mutationSubscription();
+      queryManager.dispose();
+    };
+  }, [queryManager]);
+  // ------------------------------- effects -------------------------------
 
   return useMemo(() => {
     return {
