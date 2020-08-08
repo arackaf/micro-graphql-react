@@ -150,3 +150,16 @@ test("Promise in flight picked up - rejected - and handled", async () => {
   expect(getProps1()).toMatchObject(errorPacket({ message: "Hello" }));
   expect(getProps2()).toMatchObject(errorPacket({ message: "Hello" }));
 });
+
+test("Reload query - see new data", async () => {
+  let pFirst = (client1.nextResult = deferred());
+  let { rerender } = render(<ComponentToUse a={1} unused={0} />);
+
+  await resolveDeferred(pFirst, { data: { tasks: [{ id: 1 }] } });
+  expect(getProps()).toMatchObject(dataPacket({ tasks: [{ id: 1 }] }));
+
+  let pSecond = (client1.nextResult = deferred());
+  getProps().reload();
+  await resolveDeferred(pSecond, { data: { tasks: [{ id: 2 }] } });
+  expect(getProps()).toMatchObject(dataPacket({ tasks: [{ id: 2 }] }));
+});
