@@ -52,7 +52,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       setState: setQueryState,
       refreshCurrent: refresh,
       query,
-      options,
       suspense
     });
 
