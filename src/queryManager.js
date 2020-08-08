@@ -1,15 +1,6 @@
 import { defaultClientManager } from "./client";
 
 export default class QueryManager {
-  mutationSubscription = null;
-  static initialState = {
-    loading: false,
-    loaded: false,
-    data: null,
-    error: null
-  };
-  currentState = { ...QueryManager.initialState };
-
   constructor({ client, refreshCurrent, hookRefs, cache, setState, query, suspense }) {
     const { isActiveRef, queryStateRef } = hookRefs;
     Object.assign(this, { client, cache, isActiveRef, queryStateRef, refreshCurrent, suspense, setState });
