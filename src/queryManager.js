@@ -29,14 +29,6 @@ export default class QueryManager {
     this.setState(state => Object.assign({}, state, newState));
   };
 
-  clearCacheAndReload = () => {
-    let uri = this.queryStateRef.current.currentQuery;
-    if (uri) {
-      this.cache.clearCache();
-      this.refreshCurrent();
-    }
-  };
-
   sync({ query, variables, queryState }) {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     this.read(graphqlQuery, queryState);

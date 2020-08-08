@@ -63,8 +63,12 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   };
 
   let reload = () => resetQueryManager(([k]) => k != queryStateRef.current.currentQuery);
-
   let hardReset = () => resetQueryManager(() => false);
+  let softReset = newResults => {
+    cacheRef.current.clearCache();
+    cacheRef.current.softResetCache = { [queryStateRef.current.currentQuery]: { data: newResults } };
+    setQueryState({ data: newResults });
+  };
 
   // ------------------------------- effects -------------------------------
 
@@ -74,12 +78,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   }, [isActive, queryState]);
 
   useLayoutEffect(() => {
-    const softReset = newResults => {
-      cacheRef.current.clearCache();
-      cacheRef.current.softResetCache = { [queryStateRef.current.currentQuery]: { data: newResults } };
-      setQueryState({ data: newResults });
-    };
-
     let mutationSubscription;
     if (typeof options.onMutation === "object") {
       let onMutation = !Array.isArray(options.onMutation) ? [options.onMutation] : options.onMutation;
@@ -111,7 +109,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       ...queryState,
       reload,
       clearCache: () => cacheRef.current.clearCache(),
-      clearCacheAndReload: queryManager.clearCacheAndReload
+      clearCacheAndReload: hardReset
     };
   }, [queryState, queryManager, cacheRef.current]);
 }
