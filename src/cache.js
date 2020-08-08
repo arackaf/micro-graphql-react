@@ -29,6 +29,12 @@ export default class Cache {
     this._cache.clear();
   }
 
+  clone(filter = x => true) {
+    const result = new Cache(this.cacheSize);
+    result._cache = new Map([...this._cache].filter(filter));
+    return result;
+  }
+
   setPendingResult(graphqlQuery, promise) {
     let cache = this._cache;
     //front of the line now, to support LRU ejection
