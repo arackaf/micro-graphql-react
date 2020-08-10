@@ -1,0 +1,19 @@
+
+.gridHoverFilter {
+  text-decoration: none;
+  display: none;
+  color: var(--neutral-light-text);
+}
+
+td:hover .gridHoverFilter {
+  display: unset;
+}
+
+.detailsRow {
+  padding-right: 10px;
+}
+.detailsRow > * > div {
+  padding-top: 10px;
+  max-height: 250px;
+  overflow: auto;
+}

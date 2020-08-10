@@ -1,0 +1,11 @@
+.colorChoice {
+  float: left;
+  border: 1px solid black;
+  height: 20px;
+  width: 20px;
+  margin: 3px;
+  cursor: pointer;
+}
+.colorChoice.colorChoiceCurrent {
+  border: 3px solid white;
+}

@@ -1,0 +1,31 @@
+:root {
+  --no-cover-small-width: 50px;
+  --no-cover-small-height: 65px;
+  --no-cover-small-padding-top: 10px;
+  --no-cover-small-font-size: 14px;
+
+  --no-cover-medium-width: 106px;
+  --no-cover-medium-height: 131px;
+  --no-cover-medium-padding-top: 20px;
+  --no-cover-medium-font-size: 18px;
+}
+
+.no-cover-small, .no-cover-medium {
+  background-color: var(--primary-4);
+  color: var(--primary-9);
+  text-align: center;
+} 
+
+.no-cover-small{
+  width: var(--no-cover-small-width);
+  height: var(--no-cover-small-height);
+  font-size: var(--no-cover-small-font-size);
+  padding-top: var(--no-cover-small-padding-top);
+}
+
+.no-cover-medium {
+  width: var(--no-cover-medium-width);
+  height: var(--no-cover-medium-height);
+  font-size: var(--no-cover-medium-font-size);
+  padding-top: var(--no-cover-medium-padding-top);
+} 

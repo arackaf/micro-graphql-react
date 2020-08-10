@@ -1,0 +1,51 @@
+html,
+body {
+  height: 100vh;
+  margin: 0;
+  --main-spacing: 10px 5px 10px 5px;
+  --header-footer-spacing: 10px 5px;  
+}
+
+#app {
+  height: 100vh;
+  max-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: 
+    'header'
+    'main'
+    'footer';
+
+  > header {
+    grid-area: header;
+  }
+
+  > main {
+    grid-area: main;
+    overflow: auto;
+
+    display: grid;
+    grid-template-rows: 1fr;
+
+    grid-template-columns: 1fr minmax(0, 1200px) 1fr;
+
+    > section {
+      &.flush-bottom {
+        padding-bottom: 0;
+      }
+      &.full {
+        grid-area: 1 / 1 / 1 / 4;
+        background-color: unset;
+      }
+
+      grid-area: 1 / 2 / 1 / 3;
+      background-color: var(--content-background);
+      padding: var(--main-spacing);
+    }
+  }
+
+  > footer {
+    grid-area: footer;
+  }
+}

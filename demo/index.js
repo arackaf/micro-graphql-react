@@ -1,14 +1,12 @@
 import React, { Component, Fragment, lazy, Suspense } from "react";
-import { render } from "react-dom";
+
+import ReactDOM from "react-dom";
+const { unstable_createRoot: createRoot } = ReactDOM;
+
 import { Client, setDefaultClient, useQuery } from "../src/index";
+import "./site-styles.scss";
 
-const Books = lazy(() => import("./view-data/books"));
-const Subjects = lazy(() => import("./view-data/subjects"));
-
-import { BooksEdit } from "./edit-data/books-edit";
-import { SubjectsEdit } from "./edit-data/subjects-edit";
-
-import { BOOKS_QUERY, SUBJECTS_QUERY } from "./savedQueries";
+import SuspenseDemo from "./suspense-demo/index"
 
 const client = new Client({
   endpoint: "https://mylibrary.io/graphql-public",
@@ -20,20 +18,9 @@ setDefaultClient(client);
 const Home = props => {
   return (
     <div>
-      <Suspense fallback={<span>Loading...</span>}>
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          <div>
-            <Books />
-            <Subjects />
-          </div>
-          <div style={{ marginLeft: "40px" }}>
-            <BooksEdit />
-            <SubjectsEdit />
-          </div>
-        </div>
-      </Suspense>
+      <SuspenseDemo />
     </div>
   );
 };
 
-render(<Home />, document.getElementById("home1"));
+createRoot(document.getElementById("home1")).render(<Home />);
