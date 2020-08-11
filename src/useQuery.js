@@ -48,7 +48,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       hookRefs: { isActiveRef, queryStateRef },
       setState: setQueryState,
       refreshCurrent: suspense ? null : refresh,
-      query,
       suspense
     });
 
@@ -78,9 +77,6 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
 
   useLayoutEffect(() => {
     const unregisterQuery = clientRef.current.registerQuery(query, refresh);
-    if (suspense) {
-      queryManager.refreshCurrent = refresh;
-    }
 
     let mutationSubscription;
     if (typeof options.onMutation === "object") {

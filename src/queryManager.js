@@ -1,11 +1,11 @@
 import { defaultClientManager } from "./client";
 
 export default class QueryManager {
-  constructor({ client, refreshCurrent, hookRefs, cache, setState, query, suspense }) {
+  constructor({ client, refreshCurrent, hookRefs, cache, setState, suspense }) {
     const { isActiveRef, queryStateRef } = hookRefs;
     Object.assign(this, { client, cache, isActiveRef, queryStateRef, refreshCurrent, suspense, setState });
   }
-  updateState = (newState, existingState) => {
+  updateState(newState, existingState) {
     if (!this.setState) {
       return;
     }
@@ -16,13 +16,10 @@ export default class QueryManager {
     }
 
     this.setState(state => Object.assign({}, state, newState));
-  };
+  }
 
   sync({ query, variables, queryState }) {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-    this.read(graphqlQuery, queryState);
-  }
-  read(graphqlQuery, queryState) {
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
@@ -42,19 +39,24 @@ export default class QueryManager {
       }
     );
   }
+
+  refresh() {
+    this.refreshCurrent && this.refreshCurrent();
+  }
+
   promisePending(promise, queryState) {
     if (this.suspense) {
       throw promise;
     } else {
       this.updateState({ loading: true }, queryState);
-      if (!this.suspense && promise !== this.currentPromise) {
+      if (promise !== this.currentPromise) {
         this.currentPromise = promise;
         this.currentPromise
           .then(() => {
-            this.refreshCurrent();
+            this.refresh();
           })
           .catch(() => {
-            this.refreshCurrent();
+            this.refresh();
           });
       }
     }
@@ -62,19 +64,16 @@ export default class QueryManager {
   execute(graphqlQuery) {
     let promise = this.client.runUri(graphqlQuery);
     this.cache.setPendingResult(graphqlQuery, promise);
-    return this.handleExecution(promise, graphqlQuery);
-  }
-  handleExecution = (promise, cacheKey) => {
     return Promise.resolve(promise)
       .then(resp => {
         this.currentPromise = null;
-        this.cache.setResults(promise, cacheKey, resp);
-        this.refreshCurrent();
+        this.cache.setResults(promise, graphqlQuery, resp);
+        this.refresh();
       })
       .catch(err => {
         this.currentPromise = null;
-        this.cache.setResults(promise, cacheKey, null, err);
-        this.refreshCurrent();
+        this.cache.setResults(promise, graphqlQuery, null, err);
+        this.refresh();
       });
-  };
+  }
 }
