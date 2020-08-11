@@ -1,7 +1,7 @@
 export const BOOKS_QUERY = `
 query ALL_BOOKS($page: Int) {
   allBooks(SORT: { title: 1 }, PAGE: $page, PAGE_SIZE: 10) {
-    Books { _id title pages, subjects, authors, publisher, publicationDate, isbn, dateAdded }
+    Books { _id title pages, subjects, authors, publisher, publicationDate, isbn, dateAdded, smallImage }
   }
 }`;
 

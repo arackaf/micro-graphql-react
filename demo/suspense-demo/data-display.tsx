@@ -16,7 +16,7 @@ const { gridHoverFilter, detailsRow } = gridStyles;
 export const TableHeader = () => (
   <thead>
     <tr>
-      <th />
+      <th style={{ width: "100px" }} />
       <th style={{ minWidth: "200px" }}>Title</th>
       <th>Subjects</th>
       <th />
