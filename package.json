@@ -40,6 +40,7 @@
     "del": "3.0.0",
     "esm": "3.2.25",
     "express": "4.16.2",
+    "file-loader": "^6.0.0",
     "graphql": "0.11.7",
     "graphql-tools": "2.7.2",
     "html-webpack-plugin": "^4.3.0",

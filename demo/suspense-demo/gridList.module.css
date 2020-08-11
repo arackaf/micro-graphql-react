@@ -17,3 +17,10 @@ td:hover .gridHoverFilter {
   max-height: 250px;
   overflow: auto;
 }
+
+h1.fallback { 
+  margin-left: 10px;
+  color: var(--neutral-5);
+  font-size: 2em;
+  margin-top: 5px;
+}

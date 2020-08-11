@@ -23,4 +23,4 @@ const Home = props => {
   );
 };
 
-createRoot(document.getElementById("home1")).render(<Home />);
+createRoot(document.getElementById("home")).render(<Home />);
