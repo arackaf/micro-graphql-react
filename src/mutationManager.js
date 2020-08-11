@@ -23,13 +23,12 @@ export default class MutationManager {
     ...MutationManager.initialState,
     runMutation: this.runMutation
   };
-  updateState = (newState = {}) => {
-    Object.assign(this.currentState, newState);
-    this.setState(this.currentState);
-  };
+
   constructor({ client, setState }, mutation, options) {
     this.client = client;
     this.setState = setState;
     this.mutation = mutation;
+
+    this.setState(this.currentState);
   }
 }
