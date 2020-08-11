@@ -4,6 +4,8 @@ export default class QueryManager {
   constructor({ client, refreshCurrent, hookRefs, cache, setState, suspense }) {
     const { isActiveRef, queryStateRef } = hookRefs;
     Object.assign(this, { client, cache, isActiveRef, queryStateRef, refreshCurrent, suspense, setState });
+
+    this.trackedPromises = new Set([]);
   }
   updateState(newState, existingState) {
     if (!this.setState) {
@@ -26,7 +28,6 @@ export default class QueryManager {
         this.promisePending(promise, queryState);
       },
       cachedEntry => {
-        this.currentPromise = null;
         this.updateState(
           { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery },
           queryState
@@ -34,7 +35,7 @@ export default class QueryManager {
       },
       () => {
         let promise = this.execute(graphqlQuery);
-        this.currentPromise = promise;
+        this.trackedPromises.add(promise);
         this.promisePending(promise, queryState);
       }
     );
@@ -49,15 +50,9 @@ export default class QueryManager {
       throw promise;
     } else {
       this.updateState({ loading: true }, queryState);
-      if (promise !== this.currentPromise) {
-        this.currentPromise = promise;
-        this.currentPromise
-          .then(() => {
-            this.refresh();
-          })
-          .catch(() => {
-            this.refresh();
-          });
+      if (!this.trackedPromises.has(promise)) {
+        this.trackedPromises.add(promise);
+        promise.then(() => this.refresh()).catch(() => this.refresh());
       }
     }
   }
@@ -66,12 +61,12 @@ export default class QueryManager {
     this.cache.setPendingResult(graphqlQuery, promise);
     return Promise.resolve(promise)
       .then(resp => {
-        this.currentPromise = null;
+        this.trackedPromises.delete(promise);
         this.cache.setResults(promise, graphqlQuery, resp);
         this.refresh();
       })
       .catch(err => {
-        this.currentPromise = null;
+        this.trackedPromises.delete(promise);
         this.cache.setResults(promise, graphqlQuery, null, err);
         this.refresh();
       });
