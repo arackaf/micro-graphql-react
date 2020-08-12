@@ -70,8 +70,6 @@ export default class Cache {
     if (this.softResetCache) {
       if (this.softResetCache[key]) {
         return ifResults(this.softResetCache[key]);
-      } else {
-        this.softResetCache = null;
       }
     }
 
@@ -83,6 +81,7 @@ export default class Cache {
         cache.delete(key);
         this.set(key, cachedEntry);
         ifResults(cachedEntry);
+        this.softResetCache = null;
       }
     } else {
       ifNotFound();

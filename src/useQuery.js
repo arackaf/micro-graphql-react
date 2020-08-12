@@ -63,6 +63,9 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   const reload = () => resetQueryManager(([k]) => k != queryStateRef.current.currentQuery);
   const hardReset = () => resetQueryManager(() => false);
   const softReset = newResults => {
+    if (!newResults) {
+      newResults = queryStateRef.current.data;
+    }
     cacheRef.current.clearCache();
     cacheRef.current.softResetCache = { [queryStateRef.current.currentQuery]: { data: newResults } };
     setQueryState({ data: newResults });
@@ -109,7 +112,8 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
       ...queryState,
       reload,
       clearCache: () => cacheRef.current.clearCache(),
-      clearCacheAndReload: hardReset
+      clearCacheAndReload: hardReset,
+      softReset
     };
   }, [queryState]);
 }
