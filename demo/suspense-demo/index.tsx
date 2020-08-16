@@ -32,9 +32,6 @@ const ShowDemo = props => {
   const { data: bookData } = useSuspenseQuery(BOOKS_QUERY, { title: "washington" });
   const { data: subjectData } = useSuspenseQuery(ALL_SUBJECTS_QUERY);
 
-  //if (bookData) {
-    //debugger;
- // }
   return (
     <table className="table">
       <TableHeader />

@@ -1,7 +1,7 @@
 import React, { Suspense, useMemo } from "react";
 
-import { CoverSmall } from "./ui-helpers";
-import { LabelDisplay } from "./LabelDisplay";
+import { CoverSmall } from "./ui/cover-utils";
+import { LabelDisplay } from "./ui/LabelDisplay";
 
 import FlexRow from "./layout/FlexRow";
 import Stack from "./layout/Stack";
