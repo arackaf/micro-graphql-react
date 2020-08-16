@@ -12,13 +12,13 @@ The current version is 0.4.0-betaXX, but the beta is only because of the React S
 
 A light (2.6K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
-Like any other GraphQL React client, there are simple hooks which query, and mutate data from your GraphQL endpoint.  Where this project differs is how it approaches cache invalidation. Rather than adding metadata to queries and forming a normalized, automatically-managed cache, it instead provides simple, low-level building blocks to handle cache management yourself. The reason for this (ostensibly poor!) tradeoff is because of my experience with other GraphQL clients which attempted to do this. I consistently had difficulty getting the cache to behave exactly as I wanted, and so decided to build a GraphQL client that gave me the low-level control I always wound up wanting. This project is the result.
+Like any other GraphQL React client, there are simple hooks which query, and mutate data from your GraphQL endpoint.  Where this project differs is how it approaches cache invalidation. Rather than adding metadata to queries and forming a normalized, automatically-managed cache, it instead provides simple, low-level building blocks to handle cache management yourself. The reason for this (ostensibly poor!) tradeoff is because of my experience with other GraphQL clients which attempted the normalized cache route. I consistently had difficulty getting the cache to behave exactly as I wanted, so decided to build a GraphQL client that gave me the low-level control I always wound up wanting. This project is the result.
 
 Full docs are [here](https://arackaf.github.io/micro-graphql-react/)
 
 A live demo of this library is [here](https://codesandbox.io/s/l2z74x2687)
 
-The rest of this README describes in more detail what kind of cache management problems this project attempts to avoid, by not attempting automatic cache management.
+The rest of this README describes in better detail the kind of cache management problems this project attempts to avoid.
 
 ## Common cache difficulties other GraphQL clients contend with
 
@@ -96,5 +96,7 @@ It's more or less impossible to know what the underlying type of the empty `Task
 ### Are these actual problems you're facing?
 
 These are actual problems I ran into when evaluating GraphQL clients, which left me wanting a low-level, configurable caching solution. That's the value proposition of this project. If you're not facing these problems, for whatever reasons, you'll likely be better off with a more automated solution like Urql or Apollo. 
+
+To be crystal clear, nothing in this readme should be misconstrued as claiming this project to be "better" than any other. The point is to articulate common problems with client-side GraphQL caching, and show how this project solves them. Keep these problems in mind when evaluating GraphQL clients, and pick the best solution for **your** app.
 
 
