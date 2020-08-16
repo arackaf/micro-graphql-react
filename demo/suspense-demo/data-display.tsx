@@ -26,6 +26,7 @@ export const TableHeader = () => (
       <th>
         <a className="no-underline">Added</a>
       </th>
+      <th>Edit</th>
     </tr>
   </thead>
 );
@@ -39,11 +40,15 @@ export const DisplayBooks = ({ bookData, subjectData }) => {
 
   const adjustedBooks = useMemo(
     () =>
-      books.map(b => ({
-        ...b,
-        subjects: b.subjects.map(s => subjectLookup[s._id]).filter(s => s)
-      })),
-    [books]
+      books.map(b => {
+        let d = new Date(+b.dateAdded);
+        return {
+          ...b,
+          subjects: b.subjects.map(s => subjectLookup[s]).filter(s => s),
+          dateAddedDisplay: `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`
+        };
+      }),
+    [books, subjectLookup]
   );
 
   return (
@@ -79,11 +84,6 @@ export const BookRow = ({ book }) => {
             </div>
           ))}
         </div>
-        <div style={{ marginTop: 5 }}>
-          <a className={`${gridHoverFilter}`}>
-            <i className="fal fa-pencil-alt"></i>
-          </a>
-        </div>
       </td>
       <td>
         {book.publisher ? <div>{book.publisher}</div> : null}
@@ -92,6 +92,9 @@ export const BookRow = ({ book }) => {
       </td>
       <td>{book.pages}</td>
       <td>{book.dateAddedDisplay}</td>
+      <td>
+        <button className="btn btn-xs btn-primary">Edit</button>
+      </td>
     </tr>
   );
 };
