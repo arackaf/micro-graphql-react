@@ -31,7 +31,7 @@ export const TableHeader = () => (
   </thead>
 );
 
-export const DisplayBooks = ({ bookData, subjectData }) => {
+export const DisplayBooks = ({ bookData, subjectData, setEditingBook }) => {
   const subjects = subjectData.allSubjects.Subjects;
   const books = bookData.allBooks.Books;
   const subjectLookup = useMemo(() => subjects.reduce((hash, s) => ((hash[s._id] = s), hash), {}), [
@@ -54,13 +54,13 @@ export const DisplayBooks = ({ bookData, subjectData }) => {
   return (
     <tbody>
       {adjustedBooks.map(b => (
-        <BookRow book={b} />
+        <BookRow book={b} editBook={setEditingBook} />
       ))}
     </tbody>
   );
 };
 
-export const BookRow = ({ book }) => {
+export const BookRow = ({ book, editBook }) => {
   return (
     <tr>
       <td>
@@ -93,7 +93,9 @@ export const BookRow = ({ book }) => {
       <td>{book.pages}</td>
       <td>{book.dateAddedDisplay}</td>
       <td>
-        <button className="btn btn-xs btn-primary">Edit</button>
+        <button onClick={() => editBook(book)} className="btn btn-xs btn-primary">
+          Edit
+        </button>
       </td>
     </tr>
   );
