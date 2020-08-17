@@ -53,7 +53,7 @@ export const RemovableLabelDisplay = props => {
 
   return (
     <span
-      style={{ backgroundColor: item.backgroundColor, color: item.textColor || "white", ...extraStyles }}
+      style={{ backgroundColor: item.backgroundColor || "var(--primary-5)", color: item.textColor || "white", ...extraStyles }}
       className={"label label-default noselect " + extraClasses}
     >
       <a onClick={props.doRemove} style={{ color: item.textColor || "white", cursor: "pointer" }}>
