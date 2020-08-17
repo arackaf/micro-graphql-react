@@ -4,6 +4,7 @@ import "../static/fontawesome/css/font-awesome-booklist-build.css";
 import { useSuspenseQuery } from "../../src/index";
 import { BOOKS_QUERY, ALL_SUBJECTS_QUERY } from "../savedQueries";
 import { TableHeader, DisplayBooks } from "./data-display";
+import SearchHeader from "./SearchHeader";
 
 import BookEditModal from "./BookEditModal";
 
@@ -37,6 +38,7 @@ const ShowDemo = props => {
 
   return (
     <div>
+      <SearchHeader bookData={bookData} />
       <table className="table">
         <TableHeader />
         <DisplayBooks {...{ bookData, subjectData, setEditingBook }} />
