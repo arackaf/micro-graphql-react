@@ -9,13 +9,30 @@ import SearchHeader, { SearchHeaderDisabled } from "./SearchHeader";
 import BookEditModal from "./BookEditModal";
 import { getSearchState, history } from "./util/history-utils";
 
-const SuspenseDemo = props => (
-  <div id="app" style={{ margin: "15px" }}>
-    <Suspense fallback={<DemoFallback />}>
-      <DemoContent />
-    </Suspense>
-  </div>
-);
+const SuspenseDemo = props => {
+  const [{ page, search }, setSearchState] = useState(() => getSearchState());
+
+  useEffect(() => {
+    return history.listen(() => setSearchState(getSearchState()));
+  }, []);
+
+  const client = getDefaultClient();
+  client.preload(BOOKS_QUERY, { title: search, page: +page });
+  client.preload(ALL_SUBJECTS_QUERY);
+
+  useEffect(() => {
+    client.preload(BOOKS_QUERY, { title: search, page: 5 });
+    client.preload(BOOKS_QUERY, { title: search, page: 7 });
+  }, []);
+
+  return (
+    <div id="app" style={{ margin: "15px" }}>
+      <Suspense fallback={<DemoFallback />}>
+        <DemoContent {...{ search, page }} />
+      </Suspense>
+    </div>
+  );
+};
 
 const DemoFallback = () => (
   <>
@@ -35,22 +52,7 @@ const DemoFallback = () => (
   </>
 );
 
-const DemoContent = props => {
-  const [{ page, search }, setSearchState] = useState(() => getSearchState());
-
-  useEffect(() => {
-    return history.listen(() => setSearchState(getSearchState()));
-  }, []);
-
-  const client = getDefaultClient();
-  client.preload(BOOKS_QUERY, { title: search, page });
-  client.preload(ALL_SUBJECTS_QUERY);
-
-  useEffect(() => {
-    client.preload(BOOKS_QUERY, { title: search, page: 5 });
-    client.preload(BOOKS_QUERY, { title: search, page: 7 });
-  }, []);
-
+const DemoContent = ({ search, page }) => {
   const { data: bookData } = useSuspenseQuery(BOOKS_QUERY, { title: search, page: +page });
   const { data: subjectData } = useSuspenseQuery(ALL_SUBJECTS_QUERY);
   const [editingBook, setEditingBook] = useState(null);

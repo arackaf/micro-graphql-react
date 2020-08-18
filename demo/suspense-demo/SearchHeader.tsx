@@ -70,7 +70,7 @@ const SearchHeader = ({ bookData }) => {
   return (
     <>
       <FlowItems tighter={true}>
-        <a onClick={() => setInfoOpen(true)} style={{ fontSize: "24px", alignSelf: "center" }}>
+        <a onClick={() => setInfoOpen(true)} style={{ fontSize: "24px", alignSelf: "center", color: "var(--primary-5)" }}>
           <i className="fa fa-question-circle"></i>
         </a>
         <div className="btn-group">
