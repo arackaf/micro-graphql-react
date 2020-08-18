@@ -46,7 +46,7 @@
     "history": "^4.6.1",
     "html-webpack-plugin": "^4.3.0",
     "jest": "^24.8.0",
-    "mini-css-extract-plugin": "^0.9.0",
+    "mini-css-extract-plugin": "^0.10.0",
     "node-sass": "^4.14.1",
     "query-string": "^6.13.1",
     "raf": "3.4.0",
@@ -75,6 +75,5 @@
     "start": "node ./demo/server.js"
   },
   "dependencies": {},
-  "sideEffects": false,
   "typings": "index.d.ts"
 }
