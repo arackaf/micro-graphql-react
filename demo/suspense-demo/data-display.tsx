@@ -3,9 +3,7 @@ import React, { Suspense, useMemo } from "react";
 import { CoverSmall } from "./ui/cover-utils";
 import { LabelDisplay } from "./ui/LabelDisplay";
 
-import FlexRow from "./layout/FlexRow";
 import Stack from "./layout/Stack";
-import FlowItems from "./layout/FlowItems";
 
 import uiStyles from "./uiStyles.module.css";
 import gridStyles from "./gridList.module.css";

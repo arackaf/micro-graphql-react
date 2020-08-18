@@ -1,17 +1,18 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import "../static/fontawesome/css/font-awesome-booklist-build.css";
 
-import { useSuspenseQuery } from "../../src/index";
+import { useSuspenseQuery, getDefaultClient } from "../../src/index";
 import { BOOKS_QUERY, ALL_SUBJECTS_QUERY } from "../savedQueries";
 import { TableHeader, DisplayBooks } from "./data-display";
 import SearchHeader, { SearchHeaderDisabled } from "./SearchHeader";
 
 import BookEditModal from "./BookEditModal";
+import { getSearchState, history } from "./util/history-utils";
 
 const SuspenseDemo = props => (
   <div id="app" style={{ margin: "15px" }}>
     <Suspense fallback={<DemoFallback />}>
-      <ShowDemo />
+      <DemoContent />
     </Suspense>
   </div>
 );
@@ -34,8 +35,23 @@ const DemoFallback = () => (
   </>
 );
 
-const ShowDemo = props => {
-  const { data: bookData } = useSuspenseQuery(BOOKS_QUERY, { title: "washington" });
+const DemoContent = props => {
+  const [{ page, search }, setSearchState] = useState(() => getSearchState());
+
+  useEffect(() => {
+    return history.listen(() => setSearchState(getSearchState()));
+  }, []);
+
+  const client = getDefaultClient();
+  client.preload(BOOKS_QUERY, { title: search, page });
+  client.preload(ALL_SUBJECTS_QUERY);
+
+  useEffect(() => {
+    client.preload(BOOKS_QUERY, { title: search, page: 5 });
+    client.preload(BOOKS_QUERY, { title: search, page: 7 });
+  }, []);
+
+  const { data: bookData } = useSuspenseQuery(BOOKS_QUERY, { title: search, page: +page });
   const { data: subjectData } = useSuspenseQuery(ALL_SUBJECTS_QUERY);
   const [editingBook, setEditingBook] = useState(null);
 

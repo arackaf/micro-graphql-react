@@ -11,12 +11,21 @@ export const SearchHeaderDisabled = () => {
 
   return (
     <FlowItems tighter={true}>
-      <a className="disabled" style={{ fontSize: "24px", alignSelf: "center", cursor: "not-allowed" }}>
+      <a
+        className="disabled"
+        style={{ fontSize: "24px", alignSelf: "center", cursor: "not-allowed" }}
+      >
         <i className="fa fa-question-circle"></i>
       </a>
-      <button disabled={true} className="btn btn-default">
-        <i className="fal fa-angle-left"></i>
-      </button>
+      <div className="btn-group">
+        <button disabled={true} className="btn btn-default">
+          <i className="fal fa-angle-double-left"></i>
+        </button>
+
+        <button disabled={true} className="btn btn-default">
+          <i className="fal fa-angle-left"></i>
+        </button>
+      </div>
       <span style={{ alignSelf: "center" }}>Page {page} of</span>
       <button disabled={true} className="btn btn-default">
         <i className="fal fa-angle-right"></i>
@@ -39,6 +48,8 @@ export const SearchHeaderDisabled = () => {
 };
 const SearchHeader = ({ bookData }) => {
   const [infoOpen, setInfoOpen] = useState(false);
+  // normally there'd be one search state that'd be passed down, but I'm duplicating it here to make it easier for users to quickly
+  // page results to help stress the suspense functionality (ie make sure only the most recent results ever show up on screen)
   const [{ page, search }, setSearchState] = useState(() => getSearchState());
 
   useEffect(() => {
@@ -62,9 +73,14 @@ const SearchHeader = ({ bookData }) => {
         <a onClick={() => setInfoOpen(true)} style={{ fontSize: "24px", alignSelf: "center" }}>
           <i className="fa fa-question-circle"></i>
         </a>
-        <button onClick={pageDown} className="btn btn-default">
-          <i className="fal fa-angle-left"></i>
-        </button>
+        <div className="btn-group">
+          <button disabled={page == 1} onClick={() => setSearchValues({ page: "" })} className="btn btn-default">
+            <i className="fal fa-angle-double-left"></i>
+          </button>
+          <button onClick={pageDown} className="btn btn-default">
+            <i className="fal fa-angle-left"></i>
+          </button>
+        </div>
         <span style={{ alignSelf: "center" }}>
           Page {page} of {totalPages}
         </span>
