@@ -67,14 +67,14 @@
   },
   "scripts": {
     "demo-client": "webpack -w --config ./demo/webpack.config.js",
-    "demo-server": "node runDemoServer",
-    "prepublishOnly": "npm run build",
-    "deploy": "npm run build && npm publish",
-    "build": "rollup -c",
+    "demo-server": "node ./demo/server.js",
+    "prepublishOnly": "rollup -c",
     "sizeCheck": "rm -f index.min.js.gz && npm run build && gzip index.min.js && stat index.min.js.gz",
     "test": "jest --runInBand --bail --detectOpenHandles && codecov",
     "test-local": "jest --runInBand",
-    "testw": "jest --runInBand --watchAll"
+    "testw": "jest --runInBand --watchAll",
+    "heroku-postbuild": "npm i --only=dev && webpack --config ./demo/webpack.config.js",
+    "start": "npm run demo-server"
   },
   "dependencies": {},
   "sideEffects": false,
