@@ -1,6 +1,6 @@
 {
   "name": "micro-graphql-react",
-  "version": "0.4.0-beta38",
+  "version": "0.4.0-beta39",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -68,7 +68,7 @@
     "demo-client": "webpack -w --config ./demo/webpack.config.js",
     "demo-server": "node ./demo/server.js",
     "prepublishOnly": "rollup -c",
-    "sizeCheck": "rm -f index.min.js.gz && npm run build && gzip index.min.js && stat index.min.js.gz",
+    "sizeCheck": "rollup -c && gzip index.min.js && stat index.min.js.gz && rm -f index.min.js.gz",
     "test": "jest --runInBand --bail --detectOpenHandles && codecov",
     "test-local": "jest --runInBand",
     "testw": "jest --runInBand --watchAll",
