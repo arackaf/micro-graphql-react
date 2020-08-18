@@ -6,6 +6,37 @@ import { RemovableLabelDisplay } from "./ui/LabelDisplay";
 
 const PAGE_SIZE = 10;
 
+export const SearchHeaderDisabled = () => {
+  const [{ page, search }, setSearchState] = useState(() => getSearchState());
+
+  return (
+    <FlowItems tighter={true}>
+      <a className="disabled" style={{ fontSize: "24px", alignSelf: "center", cursor: "not-allowed" }}>
+        <i className="fa fa-question-circle"></i>
+      </a>
+      <button disabled={true} className="btn btn-default">
+        <i className="fal fa-angle-left"></i>
+      </button>
+      <span style={{ alignSelf: "center" }}>Page {page} of</span>
+      <button disabled={true} className="btn btn-default">
+        <i className="fal fa-angle-right"></i>
+      </button>
+      <input
+        disabled={true}
+        style={{ width: "150px" }}
+        className="form-control"
+        defaultValue={search}
+      />
+      {search ? (
+        <RemovableLabelDisplay
+          style={{ alignSelf: "center" }}
+          item={{ name: search }}
+          doRemove={() => {}}
+        />
+      ) : null}
+    </FlowItems>
+  );
+};
 const SearchHeader = ({ bookData }) => {
   const [infoOpen, setInfoOpen] = useState(false);
   const [{ page, search }, setSearchState] = useState(() => getSearchState());

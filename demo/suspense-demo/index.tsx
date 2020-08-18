@@ -4,7 +4,7 @@ import "../static/fontawesome/css/font-awesome-booklist-build.css";
 import { useSuspenseQuery } from "../../src/index";
 import { BOOKS_QUERY, ALL_SUBJECTS_QUERY } from "../savedQueries";
 import { TableHeader, DisplayBooks } from "./data-display";
-import SearchHeader from "./SearchHeader";
+import SearchHeader, { SearchHeaderDisabled } from "./SearchHeader";
 
 import BookEditModal from "./BookEditModal";
 
@@ -17,18 +17,21 @@ const SuspenseDemo = props => (
 );
 
 const DemoFallback = () => (
-  <table className="table">
-    <TableHeader />
-    <tbody>
-      <tr>
-        <td colSpan={6}>
-          <h1 className="fallback">
-            LOADING <i className="fas fa-cog fa-spin"></i>
-          </h1>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <>
+    <SearchHeaderDisabled />
+    <table className="table">
+      <TableHeader />
+      <tbody>
+        <tr style={{ backgroundColor: "white" }}>
+          <td colSpan={6}>
+            <h1 className="fallback">
+              LOADING <i className="fas fa-cog fa-spin"></i>
+            </h1>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </>
 );
 
 const ShowDemo = props => {
