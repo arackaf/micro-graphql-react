@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import FlowItems from "./layout/FlowItems";
 import { getSearchState, setSearchValues, history } from "./util/history-utils";
 import Modal from "./ui/Modal";
@@ -52,6 +52,11 @@ const SearchHeader = ({ bookData }) => {
   // page results to help stress the suspense functionality (ie make sure only the most recent results ever show up on screen)
   const [{ page, search }, setSearchState] = useState(() => getSearchState());
 
+  const inputRef = useRef(null);
+  useEffect(() => {
+    inputRef.current.value = search || "";
+  }, [search]);
+
   useEffect(() => {
     return history.listen(() => setSearchState(getSearchState()));
   }, []);
@@ -70,11 +75,18 @@ const SearchHeader = ({ bookData }) => {
   return (
     <>
       <FlowItems tighter={true}>
-        <a onClick={() => setInfoOpen(true)} style={{ fontSize: "24px", alignSelf: "center", color: "var(--primary-5)" }}>
+        <a
+          onClick={() => setInfoOpen(true)}
+          style={{ fontSize: "24px", alignSelf: "center", color: "var(--primary-5)" }}
+        >
           <i className="fa fa-question-circle"></i>
         </a>
         <div className="btn-group">
-          <button disabled={page == 1} onClick={() => setSearchValues({ page: "" })} className="btn btn-default">
+          <button
+            disabled={page == 1}
+            onClick={() => setSearchValues({ page: "" })}
+            className="btn btn-default"
+          >
             <i className="fal fa-angle-double-left"></i>
           </button>
           <button onClick={pageDown} className="btn btn-default">
@@ -89,17 +101,18 @@ const SearchHeader = ({ bookData }) => {
         </button>
         <input
           onKeyDown={(evt: any) =>
-            evt.keyCode == 13 && setSearchValues({ search: evt.target.value })
+            evt.keyCode == 13 && setSearchValues({ page: "", search: evt.target.value })
           }
           style={{ width: "150px" }}
           className="form-control"
           defaultValue={search}
+          ref={inputRef}
         />
         {search ? (
           <RemovableLabelDisplay
             style={{ alignSelf: "center" }}
             item={{ name: search }}
-            doRemove={() => setSearchValues({ search: "" })}
+            doRemove={() => setSearchValues({ page: "", search: "" })}
           />
         ) : null}
       </FlowItems>

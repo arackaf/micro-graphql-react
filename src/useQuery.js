@@ -7,6 +7,7 @@ import QueryManager from "./queryManager";
 const initialState = {
   loading: false,
   loaded: false,
+  currentQuery: null,
   data: null,
   error: null
 };

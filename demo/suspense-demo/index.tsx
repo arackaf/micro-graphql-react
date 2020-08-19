@@ -7,6 +7,8 @@ import { TableHeader, DisplayBooks } from "./data-display";
 import SearchHeader, { SearchHeaderDisabled } from "./SearchHeader";
 
 import BookEditModal from "./BookEditModal";
+
+import queryString from "query-string";
 import { getSearchState, history } from "./util/history-utils";
 
 const SuspenseDemo = props => {
@@ -35,8 +37,9 @@ const SuspenseDemo = props => {
 };
 
 const DemoFallback = () => (
-  <>
+  <div>
     <SearchHeaderDisabled />
+    <hr style={{ margin: "30px 0" }} />
     <table className="table">
       <TableHeader />
       <tbody>
@@ -49,17 +52,28 @@ const DemoFallback = () => (
         </tr>
       </tbody>
     </table>
-  </>
+  </div>
 );
 
 const DemoContent = ({ search, page }) => {
-  const { data: bookData } = useSuspenseQuery(BOOKS_QUERY, { title: search, page: +page });
+  const { data: bookData, currentQuery } = useSuspenseQuery(BOOKS_QUERY, {
+    title: search,
+    page: +page
+  });
   const { data: subjectData } = useSuspenseQuery(ALL_SUBJECTS_QUERY);
   const [editingBook, setEditingBook] = useState(null);
+
+  const { query } = queryString.parseUrl(currentQuery);
+  const variables = eval(`(${query.variables})`);
 
   return (
     <div>
       <SearchHeader bookData={bookData} />
+      <hr style={{ margin: "30px 0" }} />
+
+      <div className="margin-bottom">
+        Data displayed: Page: {variables.page} Search: "{variables.title}"
+      </div>
       <table className="table">
         <TableHeader />
         <DisplayBooks {...{ bookData, subjectData, setEditingBook }} />

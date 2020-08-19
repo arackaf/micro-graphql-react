@@ -1,6 +1,6 @@
 export const BOOKS_QUERY = `
-query ALL_BOOKS($page: Int) {
-  allBooks(SORT: { title: 1 }, PAGE: $page, PAGE_SIZE: 10) {
+query ALL_BOOKS($page: Int, $title: String) {
+  allBooks(SORT: { title: 1 }, PAGE: $page, PAGE_SIZE: 10, title_contains: $title) {
     Books { _id title pages, subjects, authors, publisher, publicationDate, isbn, dateAdded, smallImage } 
     Meta { count }
   }
