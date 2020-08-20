@@ -52,7 +52,7 @@ export const DisplayBooks = ({ bookData, subjectData, setEditingBook }) => {
   return (
     <tbody>
       {adjustedBooks.map(b => (
-        <BookRow book={b} editBook={setEditingBook} />
+        <BookRow key={b._id} book={b} editBook={setEditingBook} />
       ))}
     </tbody>
   );

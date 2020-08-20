@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useEffect } from "react";
+const { unstable_useTransition: useTransition } = React as any;
 import "../static/fontawesome/css/font-awesome-booklist-build.css";
 
 import { useSuspenseQuery, getDefaultClient } from "../../src/index";
@@ -11,11 +12,14 @@ import BookEditModal from "./BookEditModal";
 import queryString from "query-string";
 import { getSearchState, history } from "./util/history-utils";
 
+import Loading from "./ui/Loading";
+
 const SuspenseDemo = props => {
+  const [startTransition, isPending] = useTransition({ timeoutMs: 2000 });
   const [{ page, search }, setSearchState] = useState(() => getSearchState());
 
   useEffect(() => {
-    return history.listen(() => setSearchState(getSearchState()));
+    return history.listen(() => startTransition(() => setSearchState(getSearchState())));
   }, []);
 
   const client = getDefaultClient();
@@ -30,6 +34,7 @@ const SuspenseDemo = props => {
   return (
     <div id="app" style={{ margin: "15px" }}>
       <Suspense fallback={<DemoFallback />}>
+        {isPending ? <Loading /> : null}
         <DemoContent {...{ search, page }} />
       </Suspense>
     </div>
