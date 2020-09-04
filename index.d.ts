@@ -22,6 +22,7 @@ export type QueryPayload<TResults = any> = {
   reload: () => void;
   clearCache: () => void;
   clearCacheAndReload: () => void;
+  softReset: (newResults?: any) => void;
 };
 
 export type MutationPayload<TResults = any> = {

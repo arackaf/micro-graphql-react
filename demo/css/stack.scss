@@ -1,0 +1,39 @@
+%stack-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin stack-layout($val){
+  @extend %stack-layout;
+  
+  & > * + * {
+    margin-top: $val;
+  }
+}
+
+.stack {
+  @include stack-layout(10px);
+}
+.stack.tighter {
+  @include stack-layout(5px);
+}
+.stack.tightest {
+  @include stack-layout(3px);
+}
+.stack.looser {
+  @include stack-layout(15px);
+}
+.stack.loosest {
+  @include stack-layout(20px);
+}
+
+.form-group {
+  @include stack-layout(5px);
+}
+.form-group.tighter {
+  @include stack-layout(3px);
+}
+.form-group.tightest {
+  @include stack-layout(2px);
+}
+

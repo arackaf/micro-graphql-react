@@ -89,14 +89,24 @@ const ComponentWithQueryAndMutation = props => {
 
 ### Building queries
 
-The first argument is the query text itself. The second argument is the query's variables. You can also pass a third options argument, which can contain any of the following properties:
+```js
+const { data } = useQuery(query, variables, options);
+```
+
+<!-- prettier-ignore -->
+| Arg | Description | 
+| -------| ----------- |
+| `query: string` | The query text |
+| `variables: object`  | The query's variables |
+| `options: object`  | The query's options (optional) |
+
+The options argument, if supplied, can contain these properties
 
 <!-- prettier-ignore -->
 | Option  | Description |
 | -------| ----------- |
 | `onMutation` | A map of mutations, along with handlers. This is how you update your cached results after mutations, and is explained more fully below |
 | `client`  | Manually pass in a client to be used for this query, which will override the default client|
-| `cache`  | Manually pass in a cache object to be used for this query|
 | `active`  | If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
 Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
@@ -121,18 +131,33 @@ For each query you specify, an object will be returned from the hook, or for ren
 
 ### Building mutations
 
-The first argument is the mutation text. The second, optional options argument can accept only a `client` property, which will override the client default, same as with queries.
+```js
+const { runMutation, running } = useMutation(mutation, options);
+```
+
+<!-- prettier-ignore -->
+| Arg         | Description  |
+| ------------- | --------- |
+| `mutation: string`     | Mutation text |
+| `options: object`    | Mutation options (optional) |
+
+The options argument, if supplied, can contain this property
+
+<!-- prettier-ignore -->
+| Option        | Description  |
+| ------------- | --------- |
+| `client`     | Override the client used |
 
 ### Props passed for each mutation
 
-For each mutation you specify, an object will be passed in the component's props by that same name, with the following properties.
+`useMutation` returns an object with the following properties.
 
 <!-- prettier-ignore -->
-| Props         | Description  |
+| Option        | Description  |
 | ------------- | --------- |
 | `running`     | Mutation is executing |
 | `finished`    | Mutation has finished executing|
-| `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
+| `runMutation` | A function you can call when you want to run your mutation. Pass it with your variables |
 
 ### React Suspense
 
@@ -173,7 +198,7 @@ The cache object has the following properties and methods
 
 The onMutation option that query options take is an object, or array of objects, of the form `{ when: string|regularExpression, run: function }`
 
-`when` is a string or regular expression that's tested against each result of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: an object with these propertes, described below, `{ softReset, currentResults, hardReset, cache, refresh }`; the entire mutation result; and the mutation's variables object.
+`when` is a string or regular expression that's tested against each result of any mutations that finish. If the mutation has any matches, then `run` will be called with three arguments: an object with these properties, described below, `{ softReset, currentResults, hardReset, cache, refresh }`; the entire mutation result; and the mutation's variables object.
 
 <!-- prettier-ignore -->
 | Arg  | Description  |

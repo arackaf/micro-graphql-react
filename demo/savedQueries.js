@@ -1,7 +1,8 @@
 export const BOOKS_QUERY = `
-query ALL_BOOKS($page: Int) {
-  allBooks(SORT: { title: 1 }, PAGE: $page, PAGE_SIZE: 10) {
-    Books { _id title pages }
+query ALL_BOOKS($page: Int, $title: String) {
+  allBooks(SORT: { title: 1 }, PAGE: $page, PAGE_SIZE: 10, title_contains: $title) {
+    Books { _id title pages, subjects, authors, publisher, publicationDate, isbn, dateAdded, smallImage } 
+    Meta { count }
   }
 }`;
 
@@ -37,6 +38,13 @@ export const BOOK_DELETE = `mutation deleteBook($_id: String) {
 
 export const BOOK_CREATE = `mutation createBook($Book: BookInput) {
   createBook(Book: $Book) { Book { _id title } }
+}`;
+
+export const ALL_SUBJECTS_QUERY = `
+query ALL_SUBJECTS {
+  allSubjects(SORT: { name: 1 }) {
+    Subjects { _id, name, textColor, backgroundColor  }
+  }
 }`;
 
 export const SUBJECTS_QUERY = `

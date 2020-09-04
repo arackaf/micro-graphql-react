@@ -1,0 +1,102 @@
+.label {
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  white-space: nowrap;
+  display: inline;
+
+  &.label-default {
+    background-color: var(--neutral-background);
+    color: white
+  }
+
+  &.label-editable-expandable {
+    a.toggle {
+      cursor: pointer;
+      margin-right: 5px;
+      padding-right: 5px;
+
+      &.expanded {
+        i {
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
+  
+  &.label-info {
+    background-color: var(--info-5);
+    color: var(--info-10)
+  }
+  
+  &.label-success {
+    background-color: var(--success-5);
+    color: var(--success-10);
+  }
+  
+  &.label-danger {
+    color: var(--danger-10);
+    background-color: var(--danger-5);
+  }
+}
+
+.card {
+  padding: 15px;
+  border-radius: 3px;
+}
+
+.alert{
+  padding: 15px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+
+  &.inline-flex {
+    display: inline-flex;
+  }
+}
+
+.alert, .card {
+
+  &.slidable {
+    padding: 0 !important;
+  
+    & > * {
+      padding: 15px;
+
+      &.card-slim, &.alert-slim {
+        padding: 10px;
+      }
+      &.card-slimmer, &.alert-slimmer {
+        padding: 5px;
+      }
+    }
+  }
+  &.alert-warning, &.card-warning { 
+    background-color: var(--warning-9);
+    border: 1px solid var(--warning-8);
+    color: var(--warning-1);
+  }
+  &.alert-info, &.card-info { 
+    background-color: var(--info-9);
+    border: 1px solid var(--info-8);
+    color: var(--info-1);  
+  }
+  &.alert-danger, &.card-danger { 
+    background-color: var(--danger-9);
+    border: 1px solid var(--danger-8);
+    color: var(--danger-1);
+  }
+  &.alert-success, &.card-success { 
+    background-color: var(--success-9);
+    border: 1px solid var(--success-8);
+    color: var(--success-1);
+  }
+  &.alert-slim, &.card-slim {
+    padding: 10px;
+  }
+  &.alert-slimmer, &.card-slimmer {
+    padding: 5px;
+  }
+}

@@ -9,13 +9,11 @@ export default function useMutation(mutation, options = {}) {
 
   let client = options.client || defaultClientManager.getDefaultClient();
 
-  let mutationManagerRef = useRef(null);
-  if (!mutationManagerRef.current) {
-    mutationManagerRef.current = new MutationManager({ client, setState: setMutationState }, mutation, options);
-    mutationManagerRef.current.updateState();
-  }
+  let [mutationManager] = useState(() => {
+    return new MutationManager({ client, setState: setMutationState }, mutation, options);
+  });
 
-  useLayoutEffect(() => () => (mutationManagerRef.current.setState = () => {}), []);
+  useLayoutEffect(() => () => (mutationManager.setState = () => {}), []);
 
-  return mutationState || mutationManagerRef.current.currentState;
+  return mutationState || mutationManager.currentState;
 }

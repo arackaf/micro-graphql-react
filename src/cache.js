@@ -1,6 +1,7 @@
 export default class Cache {
   constructor(cacheSize = DEFAULT_CACHE_SIZE) {
     this.cacheSize = cacheSize;
+    this.softResetCache = null;
   }
   _cache = new Map([]);
 
@@ -26,6 +27,12 @@ export default class Cache {
 
   clearCache() {
     this._cache.clear();
+  }
+
+  clone(filter = x => true) {
+    const result = new Cache(this.cacheSize);
+    result._cache = new Map([...this._cache].filter(filter));
+    return result;
   }
 
   setPendingResult(graphqlQuery, promise) {
@@ -60,6 +67,11 @@ export default class Cache {
   getFromCache(key, ifPending, ifResults, ifNotFound = () => {}) {
     let cache = this._cache;
     let cachedEntry = cache.get(key);
+    if (this.softResetCache) {
+      if (this.softResetCache[key]) {
+        return ifResults(this.softResetCache[key]);
+      }
+    }
 
     if (cachedEntry) {
       if (typeof cachedEntry.then === "function") {
@@ -69,6 +81,7 @@ export default class Cache {
         cache.delete(key);
         this.set(key, cachedEntry);
         ifResults(cachedEntry);
+        this.softResetCache = null;
       }
     } else {
       ifNotFound();

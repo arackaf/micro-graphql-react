@@ -1,137 +1,74 @@
 import { defaultClientManager } from "./client";
 
 export default class QueryManager {
-  mutationSubscription = null;
-  static initialState = {
-    loading: false,
-    loaded: false,
-    data: null,
-    error: null
-  };
-  currentState = { ...QueryManager.initialState };
+  constructor({ client, refreshCurrent, hookRefs, cache, setState, suspense }) {
+    const { isActiveRef, queryStateRef } = hookRefs;
+    Object.assign(this, { client, cache, isActiveRef, queryStateRef, refreshCurrent, suspense, setState });
 
-  constructor({ client, refreshCurrent, cache, query, variables, options, isActive, suspense, preloadOnly }) {
-    this.client = client || defaultClientManager.getDefaultClient();
-    this.cache = cache || this.client.getCache(query) || this.client.newCacheForQuery(query);
-    this.unregisterQuery = this.client.registerQuery(query, this.refresh);
-    this.options = options;
-    this.active = false;
-    this.refreshCurrent = refreshCurrent;
-    this.suspense = suspense;
-    this.preloadOnly = preloadOnly;
-
-    this.currentState.reload = this.reload;
-    this.currentState.clearCache = () => this.cache.clearCache();
-    this.currentState.clearCacheAndReload = this.clearCacheAndReload;
+    this.trackedPromises = new Set([]);
   }
-  init() {
-    let options = this.options;
-    if (typeof options.onMutation === "object") {
-      if (!Array.isArray(options.onMutation)) {
-        options.onMutation = [options.onMutation];
-      }
-      this.mutationSubscription = this.client.subscribeMutation(options.onMutation, {
-        cache: this.cache,
-        softReset: this.softReset,
-        hardReset: this.hardReset,
-        refresh: this.refresh,
-        currentResults: () => this.currentState.data,
-        isActive: () => this.active
-      });
-    }
-  }
-  updateState = newState => {
-    this.suspendedPromise = null;
-    Object.assign(this.currentState, newState);
-    this.setState && this.setState(Object.assign({}, this.currentState));
-  };
-  refresh = () => {
-    this.update();
-  };
-  softReset = newResults => {
-    this.cache.clearCache();
-    this.updateState({ data: newResults });
-  };
-  hardReset = () => {
-    this.cache.clearCache();
-    this.reload();
-  };
-  clearCacheAndReload = () => {
-    let uri = this.currentState.currentQuery;
-    if (uri) {
-      this.cache.clearCache();
-      this.update();
-    }
-  };
-  reload = () => {
-    let uri = this.currentState.currentQuery;
-    if (uri) {
-      this.cache.removeItem(uri);
-      this.refreshCurrent();
-    }
-  };
-  sync({ query, variables, isActive }) {
-    let wasInactive = !this.active;
-    this.active = isActive;
-
-    if (!this.active) {
+  updateState(newState, existingState) {
+    if (!this.setState) {
       return;
     }
 
-    let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
-    this.currentUri = graphqlQuery;
-    this.update();
+    if (existingState) {
+      const doUpdate = Object.keys(newState).some(k => newState[k] !== existingState[k]);
+      if (!doUpdate) return;
+    }
+
+    this.setState(state => Object.assign({}, state, newState));
   }
-  update() {
-    let suspense = this.suspense;
-    let graphqlQuery = this.currentUri;
+
+  sync({ query, variables, queryState }) {
+    let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     this.cache.getFromCache(
       graphqlQuery,
       promise => {
-        let updatingPromise = Promise.resolve(promise).then(() => {
-          //cache should now be updated, unless it was cleared. Either way, re-run this method
-          this.update();
-        });
-
-        this.promisePending(updatingPromise);
+        this.promisePending(promise, queryState);
       },
       cachedEntry => {
-        this.updateState({ data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery });
+        this.updateState(
+          { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery },
+          queryState
+        );
       },
       () => {
-        if (!(this.suspense && this.preloadOnly)) {
-          let promise = this.execute(graphqlQuery);
-          this.promisePending(promise);
-        }
+        let promise = this.execute(graphqlQuery);
+        this.trackedPromises.add(promise);
+        this.promisePending(promise, queryState);
       }
     );
   }
-  promisePending(promise) {
+
+  refresh() {
+    this.refreshCurrent && this.refreshCurrent();
+  }
+
+  promisePending(promise, queryState) {
     if (this.suspense) {
-      this.suspendedPromise = promise;
       throw promise;
     } else {
-      this.updateState({ loading: true });
+      this.updateState({ loading: true }, queryState);
+      if (!this.trackedPromises.has(promise)) {
+        this.trackedPromises.add(promise);
+        promise.then(() => this.refresh()).catch(() => this.refresh());
+      }
     }
   }
   execute(graphqlQuery) {
     let promise = this.client.runUri(graphqlQuery);
     this.cache.setPendingResult(graphqlQuery, promise);
-    return this.handleExecution(promise, graphqlQuery);
-  }
-  handleExecution = (promise, cacheKey) => {
     return Promise.resolve(promise)
       .then(resp => {
-        this.cache.setResults(promise, cacheKey, resp);
-        this.update();
+        this.trackedPromises.delete(promise);
+        this.cache.setResults(promise, graphqlQuery, resp);
+        this.refresh();
       })
       .catch(err => {
-        this.cache.setResults(promise, cacheKey, null, err);
-        this.update();
+        this.trackedPromises.delete(promise);
+        this.cache.setResults(promise, graphqlQuery, null, err);
+        this.refresh();
       });
-  };
-  dispose() {
-    this.mutationSubscription && this.mutationSubscription();
-    this.unregisterQuery();
   }
 }

@@ -1,0 +1,33 @@
+@media (max-width: 767px){
+  .hidden-xs {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px){
+  .visible-xs {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px){
+  .hidden-xs {
+    display: none !important;
+  }
+}
+
+.visible-tiny {
+  display: none;
+}
+
+@media (max-width: 500px) {
+  span.visible-tiny, input.visible-tiny {
+    display: inline !important;
+  }
+  div.visible-tiny {
+    display: block !important;
+  }
+  .hidden-tiny {
+    display: none !important;
+  }
+}

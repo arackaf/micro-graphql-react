@@ -18,6 +18,7 @@ beforeEach(() => {
 const getComponent = hookComponentFactory([queryA, props => ({ a: props.a })], [queryB, props => ({ b: props.b })]);
 
 test("loading props passed", async () => {
+  client1.nextResult = deferred();
   render(<ComponentToUse a={"a"} b={"b"} unused={0} />);
 
   expect(getProps1()).toMatchObject(loadingPacket);

@@ -1,52 +1,122 @@
-import React from "react";
+import React, { useMemo } from "react";
 const { useState, useRef, useLayoutEffect } = React;
 
 import { defaultClientManager } from "./client";
 import QueryManager from "./queryManager";
 
-export default function useQuery(query, variables, options = {}, { suspense } = {}) {
-  let currentActive = useRef(null);
-  let currentQuery = useRef(null);
+const initialState = {
+  loading: false,
+  loaded: false,
+  currentQuery: null,
+  data: null,
+  error: null
+};
 
-  let [deactivateQueryToken, setDeactivateQueryToken] = useState(0);
-  let refreshCurrent = () => {
-    currentQuery.current = "";
+export default function useQuery(query, variables, options = {}, { suspense } = {}) {
+  const [deactivateQueryToken, setDeactivateQueryToken] = useState(0);
+  const refresh = () => {
     setDeactivateQueryToken(x => x + 1);
   };
 
-  let isActive = !("active" in options && !options.active);
-  let [queryManager] = useState(
-    () =>
-      new QueryManager({
-        ...options,
-        refreshCurrent,
-        query,
-        variables,
-        options,
-        isActive,
-        suspense,
-        preloadOnly: options.preloadOnly
-      })
-  );
-  let nextQuery = queryManager.client.getGraphqlQuery({ query, variables });
+  const clientRef = useRef(options.client || defaultClientManager.getDefaultClient());
+  const cacheRef = useRef(clientRef.current.getCache(query) || clientRef.current.newCacheForQuery(query));
 
-  let [queryState, setQueryState] = useState(queryManager.currentState);
-  queryManager.setState = setQueryState;
+  const isActive = !("active" in options && !options.active);
+  const isActiveRef = useRef(isActive);
 
-  if (currentActive.current != isActive || currentQuery.current != nextQuery) {
-    currentActive.current = isActive;
-    currentQuery.current = nextQuery;
-    queryManager.sync({ query, variables, isActive });
-  } else if (queryManager.suspendedPromise) {
-    throw queryManager.suspendedPromise;
-  }
+  const [queryState, setQueryState] = useState(() => {
+    let existingState = {};
+    if (isActiveRef.current) {
+      const graphqlQuery = clientRef.current.getGraphqlQuery({ query, variables });
+
+      cacheRef.current.getFromCache(
+        graphqlQuery,
+        promise => {},
+        cachedEntry => {
+          existingState = { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery };
+        }
+      );
+    }
+
+    return { ...initialState, ...existingState };
+  });
+  const queryStateRef = useRef(queryState);
+
+  const getQueryManager = cache =>
+    new QueryManager({
+      client: clientRef.current,
+      cache,
+      hookRefs: { isActiveRef, queryStateRef },
+      setState: setQueryState,
+      refreshCurrent: suspense ? null : refresh,
+      suspense
+    });
+
+  const [queryManager, setQueryManager] = useState(() => getQueryManager(cacheRef.current));
+
+  const resetQueryManager = cacheFilter => {
+    const newCache = cacheRef.current.clone(cacheFilter);
+    clientRef.current.setCache(query, newCache);
+
+    setQueryManager(getQueryManager(newCache));
+  };
+
+  const reload = () => resetQueryManager(([k]) => k != queryStateRef.current.currentQuery);
+  const hardReset = () => resetQueryManager(() => false);
+  const softReset = newResults => {
+    if (!newResults) {
+      newResults = queryStateRef.current.data;
+    }
+    cacheRef.current.clearCache();
+    cacheRef.current.softResetCache = { [queryStateRef.current.currentQuery]: { data: newResults } };
+    setQueryState({ data: newResults });
+  };
+
+  // ------------------------------- effects -------------------------------
 
   useLayoutEffect(() => {
-    queryManager.init();
-    return () => queryManager.dispose();
-  }, []);
+    isActiveRef.current = isActive;
+    queryStateRef.current = queryState;
+  }, [isActive, queryState]);
 
-  return queryManager.currentState;
+  useLayoutEffect(() => {
+    const unregisterQuery = clientRef.current.registerQuery(query, refresh);
+
+    let mutationSubscription;
+    if (typeof options.onMutation === "object") {
+      const onMutation = !Array.isArray(options.onMutation) ? [options.onMutation] : options.onMutation;
+
+      mutationSubscription = clientRef.current.subscribeMutation(onMutation, {
+        cache: cacheRef.current,
+        softReset,
+        hardReset,
+        refresh,
+        currentResults: () => queryStateRef.current.data,
+        isActive: () => isActiveRef.current
+      });
+    }
+    return () => {
+      queryManager.setState = () => {};
+      queryManager.refreshCurrent = () => {};
+      mutationSubscription && mutationSubscription();
+      unregisterQuery();
+    };
+  }, [queryManager]);
+  // ------------------------------- effects -------------------------------
+
+  if (isActive) {
+    queryManager.sync({ query, variables, queryState });
+  }
+
+  return useMemo(() => {
+    return {
+      ...queryState,
+      reload,
+      clearCache: () => cacheRef.current.clearCache(),
+      clearCacheAndReload: hardReset,
+      softReset
+    };
+  }, [queryState]);
 }
 
 export const useSuspenseQuery = (query, variables, options = {}) => useQuery(query, variables, options, { suspense: true });
