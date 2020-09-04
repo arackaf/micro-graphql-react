@@ -1,13 +1,19 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 
 import Modal from "./ui/Modal";
 import FlexRow from "./layout/FlexRow";
+import { useMutation } from "../../src";
+import { MODIFY_BOOK_TITLE } from "../savedQueries";
 
 const BookEditModal = ({ book, onHide }) => {
   const [bookEditing, setBookEditing] = useState(null);
   useLayoutEffect(() => {
     book && setBookEditing(book);
   }, [book]);
+
+  const titleRef = useRef(null);
+  const { runMutation, running } = useMutation(MODIFY_BOOK_TITLE);
+
   return (
     <Modal headerCaption="Edit Book" isOpen={!!book} onHide={onHide}>
       {bookEditing ? (
@@ -17,6 +23,7 @@ const BookEditModal = ({ book, onHide }) => {
               <div className="form-group">
                 <label>Title</label>
                 <input
+                  ref={titleRef}
                   defaultValue={bookEditing.title}
                   placeholder="New title"
                   className="form-control"
@@ -24,6 +31,8 @@ const BookEditModal = ({ book, onHide }) => {
               </div>
             </div>
           </FlexRow>
+          <br />
+          <button disabled={running} className="btn btn-primary" onClick={() => runMutation({ _id: book._id, title: titleRef.current.value })}>Save</button>
         </div>
       ) : null}
     </Modal>

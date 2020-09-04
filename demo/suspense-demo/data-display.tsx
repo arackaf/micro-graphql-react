@@ -6,10 +6,8 @@ import { LabelDisplay } from "./ui/LabelDisplay";
 import Stack from "./layout/Stack";
 
 import uiStyles from "./uiStyles.module.css";
-import gridStyles from "./gridList.module.css";
 
 const { bookTitle, bookAuthor } = uiStyles;
-const { gridHoverFilter, detailsRow } = gridStyles;
 
 export const TableHeader = () => (
   <thead>
@@ -24,7 +22,6 @@ export const TableHeader = () => (
       <th>
         <a className="no-underline">Added</a>
       </th>
-      <th>Edit</th>
     </tr>
   </thead>
 );
@@ -71,6 +68,11 @@ export const BookRow = ({ book, editBook }) => {
           <Stack tightest={true}>
             <div className={bookTitle}>{book.title}</div>
             {book.authors ? <div className={bookAuthor}>{book.authors.join(", ")}</div> : null}
+            <div>
+              <a onClick={() => editBook(book)}>
+                <i className="fal fa-pencil-alt"></i>
+              </a>
+            </div>
           </Stack>
         </Stack>
       </td>
@@ -90,11 +92,6 @@ export const BookRow = ({ book, editBook }) => {
       </td>
       <td>{book.pages}</td>
       <td>{book.dateAddedDisplay}</td>
-      <td>
-        <button onClick={() => editBook(book)} className="btn btn-xs btn-primary">
-          Edit
-        </button>
-      </td>
     </tr>
   );
 };

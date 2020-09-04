@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect, useRef } from "react";
 const { unstable_useTransition: useTransition } = React as any;
 import "../static/fontawesome/css/font-awesome-booklist-build.css";
 
@@ -61,6 +61,7 @@ const DemoFallback = () => (
 );
 
 const DemoContent = ({ search, page }) => {
+  const mutationUpdate = useRef("cu");
   const { data: bookData, currentQuery } = useSuspenseQuery(BOOKS_QUERY, {
     title: search,
     page: +page

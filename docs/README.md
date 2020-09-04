@@ -89,7 +89,18 @@ const ComponentWithQueryAndMutation = props => {
 
 ### Building queries
 
-The first argument is the query text itself. The second argument is the query's variables. You can also pass a third options argument, which can contain any of the following properties:
+```js
+const { data } = useQuery(query, variables, options);
+```
+
+<!-- prettier-ignore -->
+| Arg | Description | 
+| -------| ----------- |
+| `query: string` | The query text |
+| `variables: object`  | The query's variables |
+| `options: object`  | The query's options (optional) |
+
+The options argument, if supplied, can contain these properties
 
 <!-- prettier-ignore -->
 | Option  | Description |
@@ -120,18 +131,33 @@ For each query you specify, an object will be returned from the hook, or for ren
 
 ### Building mutations
 
-The first argument is the mutation text. The second, optional options argument can accept only a `client` property, which will override the client default, same as with queries.
+```js
+const { runMutation, running } = useMutation(mutation, options);
+```
+
+<!-- prettier-ignore -->
+| Arg         | Description  |
+| ------------- | --------- |
+| `mutation: string`     | Mutation text |
+| `options: object`    | Mutation options (optional) |
+
+The options argument, if supplied, can contain this property
+
+<!-- prettier-ignore -->
+| Option        | Description  |
+| ------------- | --------- |
+| `client`     | Override the client used |
 
 ### Props passed for each mutation
 
-For each mutation you specify, an object will be passed in the component's props by that same name, with the following properties.
+`useMutation` returns an object with the following properties.
 
 <!-- prettier-ignore -->
-| Props         | Description  |
+| Option        | Description  |
 | ------------- | --------- |
 | `running`     | Mutation is executing |
 | `finished`    | Mutation has finished executing|
-| `runMutation` | A function you can call when you want to run your mutation. Pass it an object with your variables |
+| `runMutation` | A function you can call when you want to run your mutation. Pass it with your variables |
 
 ### React Suspense
 
