@@ -459,8 +459,6 @@ select.form-control {
   border-radius: var(--default-border-radius);
   height: 34px;
   background-color: white;
-  width: 100%;
-  // width: calc(100% - 24px);
 
   &.error {
     border-color: var(--danger-5);

@@ -32,7 +32,15 @@ const BookEditModal = ({ book, onHide }) => {
             </div>
           </FlexRow>
           <br />
-          <button disabled={running} className="btn btn-primary" onClick={() => runMutation({ _id: book._id, title: titleRef.current.value })}>Save</button>
+          <button
+            disabled={running}
+            className="btn btn-primary"
+            onClick={() =>
+              runMutation({ _id: book._id, title: titleRef.current.value }).then(onHide)
+            }
+          >
+            Save
+          </button>
         </div>
       ) : null}
     </Modal>

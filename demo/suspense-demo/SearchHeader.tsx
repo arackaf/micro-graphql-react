@@ -10,7 +10,7 @@ export const SearchHeaderDisabled = () => {
   const [{ page, search }, setSearchState] = useState(() => getSearchState());
 
   return (
-    <FlowItems tighter={true}>
+    <FlowItems containerStyle={{ alignItems: "center" }} tighter={true}>
       <a
         className="disabled"
         style={{ fontSize: "24px", alignSelf: "center", cursor: "not-allowed" }}
@@ -43,10 +43,20 @@ export const SearchHeaderDisabled = () => {
           doRemove={() => {}}
         />
       ) : null}
+      Cache Update
+      <select
+        disabled={true}
+        className="form-control"
+        style={{ display: "inline" }}
+      >
+        <option value="hard">Hard Reset</option>
+        <option value="soft">Soft Reset</option>
+        <option value="cache">Cache Update</option>
+      </select>
     </FlowItems>
   );
 };
-const SearchHeader = ({ bookData }) => {
+const SearchHeader = ({ bookData, loading, mutationUpdate }) => {
   const [infoOpen, setInfoOpen] = useState(false);
   // normally there'd be one search state that'd be passed down, but I'm duplicating it here to make it easier for users to quickly
   // page results to help stress the suspense functionality (ie make sure only the most recent results ever show up on screen)
@@ -74,7 +84,7 @@ const SearchHeader = ({ bookData }) => {
 
   return (
     <>
-      <FlowItems tighter={true}>
+      <FlowItems containerStyle={{ alignItems: "center" }} tighter={true}>
         <a
           onClick={() => setInfoOpen(true)}
           style={{ fontSize: "24px", alignSelf: "center", color: "var(--primary-5)" }}
@@ -115,6 +125,17 @@ const SearchHeader = ({ bookData }) => {
             doRemove={() => setSearchValues({ page: "", search: "" })}
           />
         ) : null}
+        Cache Update
+        <select
+          disabled={loading}
+          onChange={(evt: any) => (mutationUpdate.current = evt.target.value)}
+          className="form-control"
+          style={{ display: "inline" }}
+        >
+          <option value="hard">Hard Reset</option>
+          <option value="soft">Soft Reset</option>
+          <option value="cache">Cache Update</option>
+        </select>
       </FlowItems>
       <Modal isOpen={infoOpen} onHide={() => setInfoOpen(false)} headerCaption={"Suspense Demo"}>
         <div className="x-alert x-alert-info">

@@ -15,7 +15,7 @@ import { getSearchState, history } from "./util/history-utils";
 import Loading from "./ui/Loading";
 
 const SuspenseDemo = props => {
-  const [startTransition, isPending] = useTransition({ timeoutMs: 2000 });
+  const [startTransition, isPending] = useTransition({ timeoutMs: 9000 });
   const [{ page, search }, setSearchState] = useState(() => getSearchState());
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const SuspenseDemo = props => {
     <div id="app" style={{ margin: "15px" }}>
       <Suspense fallback={<DemoFallback />}>
         {isPending ? <Loading /> : null}
-        <DemoContent {...{ search, page }} />
+        <DemoContent {...{ search, page, isPending, startTransition }} />
       </Suspense>
     </div>
   );
@@ -60,12 +60,47 @@ const DemoFallback = () => (
   </div>
 );
 
-const DemoContent = ({ search, page }) => {
-  const mutationUpdate = useRef("cu");
-  const { data: bookData, currentQuery } = useSuspenseQuery(BOOKS_QUERY, {
-    title: search,
-    page: +page
-  });
+const DemoContent = ({ search, page, isPending, startTransition }) => {
+  const mutationUpdate = useRef("hard");
+  const { data: bookData, currentQuery } = useSuspenseQuery(
+    BOOKS_QUERY,
+    {
+      title: search,
+      page: +page
+    },
+    {
+      onMutation: [
+        {
+          when: /updateBook/,
+          run: ({ softReset, hardReset, currentResults, refresh, cache }, resp) => {
+            if (mutationUpdate.current == "hard") {
+              startTransition(() => {
+                hardReset();
+              });
+            } else if (mutationUpdate.current == "soft") {
+              const updatedBook = resp.updateBook.Book;
+              const cachedBook = currentResults.allBooks.Books.find(b => b._id == updatedBook._id);
+              cachedBook && Object.assign(cachedBook, updatedBook);
+
+              softReset(currentResults);
+            } else if (mutationUpdate.current == "cache") {
+              const newResults = [resp.updateBook.Book];
+              const newResultsLookup = new Map(newResults.map(item => [item._id, item]));
+
+              for (let [uri, { data }] of cache.entries) {
+                data["allBooks"]["Books"] = data["allBooks"]["Books"].map(item => {
+                  const updatedItem = newResultsLookup.get(item._id);
+                  return updatedItem ? Object.assign({}, item, updatedItem) : item;
+                });
+              }
+
+              refresh();
+            }
+          }
+        }
+      ]
+    }
+  );
   const { data: subjectData } = useSuspenseQuery(ALL_SUBJECTS_QUERY);
   const [editingBook, setEditingBook] = useState(null);
 
@@ -74,7 +109,7 @@ const DemoContent = ({ search, page }) => {
 
   return (
     <div>
-      <SearchHeader bookData={bookData} />
+      <SearchHeader mutationUpdate={mutationUpdate} bookData={bookData} loading={isPending} />
       <hr style={{ margin: "30px 0" }} />
 
       <div className="margin-bottom">
