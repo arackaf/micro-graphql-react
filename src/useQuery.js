@@ -69,7 +69,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
     }
     cacheRef.current.clearCache();
     cacheRef.current.softResetCache = { [queryStateRef.current.currentQuery]: { data: newResults } };
-    setQueryState({ data: newResults });
+    setQueryState(oldState => ({ ...oldState, data: newResults }));
   };
 
   // ------------------------------- effects -------------------------------
