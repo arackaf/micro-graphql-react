@@ -113,9 +113,9 @@ Be sure to use the `compress` tag to remove un-needed whitespace from your query
 
 An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your network requests altogether, but also from your bundled code.
 
-### Props passed for each query
+### Query results
 
-For each query you specify, an object will be returned from the hook, or for render props, passed in the callback's props by that same name, with the following properties.
+The `useQuery` hook returns an object with the following properties.
 
 <!-- prettier-ignore -->
 | Props | Description |
@@ -125,9 +125,10 @@ For each query you specify, an object will be returned from the hook, or for ren
 |`data`|If the last fetch finished successfully, this will contain the data returned, else null|
 |`currentQuery`|The query that was run, which produced the current results. This updates synchronously with updates to `data`, so you can use changes here as an easy way to subscribe to query result changes. This will not have a value until there are results passed to `data`. In other words, changes to `loading` do not affect this value|
 |`error`|If the last fetch did not finish successfully, this will contain the errors that were returned, else `null`|
-|`reload`|A function you can call to manually re-fetch the current query|
-|`clearCache`|Clear the cache for this query|
-|`clearCacheAndReload`|Calls `clearCache`, followed by `reload`|
+|`reload`|`function`: Manually re-fetches the current query|
+|`clearCache`|`function`: Clear the cache for this query|
+| `softReset` |`function`: Clears the cache, but does **not** re-issue any queries. It can optionally take an argument of new, updated results, which will replace the current `data` props |
+| `hardReset` |`function`: Clears the cache, and re-load the current query from the network|
 
 ### Building mutations
 
@@ -148,7 +149,7 @@ The options argument, if supplied, can contain this property
 | ------------- | --------- |
 | `client`     | Override the client used |
 
-### Props passed for each mutation
+### Mutation results
 
 `useMutation` returns an object with the following properties.
 
