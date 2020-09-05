@@ -112,8 +112,10 @@ const DemoContent = ({ search, page, isPending, startTransition }) => {
       <SearchHeader mutationUpdate={mutationUpdate} bookData={bookData} loading={isPending} />
       <hr style={{ margin: "30px 0" }} />
 
-      <div className="margin-bottom">
-        Data displayed: Page: {variables.page} Search: "{variables.title}"
+      <div className="alert alert-success margin-bottom" style={{ display: "inline-block" }}>
+        <div>
+          Data displayed: Page: {variables.page} Search: "{variables.title}"
+        </div>
       </div>
       <table className="table">
         <TableHeader />

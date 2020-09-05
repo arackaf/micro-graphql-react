@@ -140,16 +140,22 @@ const SearchHeader = ({ bookData, loading, mutationUpdate }) => {
       <Modal isOpen={infoOpen} onHide={() => setInfoOpen(false)} headerCaption={"Suspense Demo"}>
         <div className="x-alert x-alert-info">
           <p>
-            This is demo shows the Suspense integration of this library. Changing the search value
-            and page number will trigger a new search with the useTransition hook, and will set the
-            current search state immediately (without useTransition).
+            This is a demo of micro-graphql-react's Suspense integration. Changing the search value
+            and page number will trigger a new search with the useTransition hook; however, it will set the
+            current search state immediately (without useTransition) in the search header. When the data come in, 
+            the search state in the green box will update.
           </p>
 
           <p>
-            This would normally make for a bad ui, but in this case you'll be able to see each new
-            search state as they updste, but you'll only see actual results for the most recent
-            search, when the values come in. Be sure to slow the netork speed down in Chrome's dev
-            tools to really see this in action.
+            This would normally make for a bad ui, but in this case you'll be able to immediately see the most recent search, as well as what the 
+            currently displaying filters are.  You can slow the netork speed in Chrome's dev tools to quickly change search states, and confirm
+            that the right end state winds up displaying.
+          </p>
+
+          <p>
+            When this page starts up, pages 5 and 7 of the initial query will preload. So if you'd like to see pending searches immediately cancel, 
+            and be replaced with cached data, slow your network spead, then page up to 5, the loading state should immediately stop, and show page with, 
+            with no other updates. 
           </p>
         </div>
       </Modal>
