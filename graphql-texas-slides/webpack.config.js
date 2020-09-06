@@ -21,7 +21,7 @@ const babelLoader = {
 
 module.exports = {
   mode: 'development',
-  entry: './src/index.js', // Default for boilerplate generation.
+  entry: './src/slides.js', // Default for boilerplate generation.
   output: {
     path: path.resolve('dist'),
     filename: 'deck.js'
