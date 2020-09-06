@@ -1,0 +1,30 @@
+{
+  "name": "spectacle-presentation",
+  "version": "0.0.1",
+  "description": "Spectacle presentation",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "webpack",
+    "start": "webpack-dev-server --hot"
+  },
+  "dependencies": {
+    "prop-types": "^15.7.2",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "spectacle": "^6.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.7.7",
+    "@babel/preset-react": "^7.7.4",
+    "@mdx-js/react": "^1.5.2",
+    "babel-loader": "^8.0.6",
+    "file-loader": "^5.0.2",
+    "html-webpack-plugin": "^3.2.0",
+    "raw-loader": "^4.0.0",
+    "spectacle-mdx-loader": "^0.1.1",
+    "webpack": "^4.41.4",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1",
+    "rimraf": "^3.0.0"
+  }
+}
