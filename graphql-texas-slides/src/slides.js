@@ -182,6 +182,220 @@ const GraphQLTypeNames1TypesResults = indentNormalizer(`
 }
 `);
 
+//------------------------------------------------------------------------------------------------------------------------
+
+const normalizedQueryExample1_prelimQuery = indentNormalizer(`
+{
+  allBooks(PAGE: 1, PAGE_SIZE: 3, SORT: {title: 1}, title_contains: "Civil War") {
+    Books {
+      _id
+      title
+      authors
+    }
+  }
+}
+`);
+
+const normalizedQueryExample1_prelimResults = indentNormalizer(`
+{
+  "data": {
+    "allBooks": {
+      "Books": [
+        {
+          "_id": 1,
+          "title": "A Nation Without Borders: The United States and Its World in an Age of Civil Wars, 1830-1910",
+          "authors": ["Steven Hahn"]
+        },
+        {
+          "_id": 2,          
+          "title": "Atlanta 1864: Last Chnace for the Confederacy (Great Campaigns of the Civil War)",
+          "authors": ["Richard M. McMurry"]
+        },
+        {
+          "_id": 3,          
+          "title": "Charles Sumner and the Coming of the Civil War",
+          "authors": ["David Donald"]
+        }
+      ]
+    }
+  }
+}
+`);
+
+const normalizedQueryExample1_prelimCached = indentNormalizer(`
+const queryCache = {
+  ["x?variables:{page:1, /* ... */, title_contains: 'Civil War'}"]: [
+    {type: "Book", _id: 1},
+    {type: "Book", _id: 2},
+    {type: "Book", _id: 3}
+  ]
+}
+`);
+
+const normalizedQueryExample1_prelimCacheObject = indentNormalizer(`
+const objectCache = {
+  Book: {
+    1: {
+      "_id": 1,
+      "title": "A Nation Without Borders: The United States and Its World in an Age of Civil Wars, 1830-1910",
+      "authors": ["Steven Hahn"]
+    },
+    2: {
+      "_id": 2,          
+      "title": "Atlanta 1864: Last Chnace for the Confederacy (Great Campaigns of the Civil War)",
+      "authors": ["Richard M. McMurry"]
+    },
+    3: {
+      "_id": 3,          
+      "title": "Charles Sumner and the Coming of the Civil War",
+      "authors": ["David Donald"]
+    }
+  }
+}
+`);
+
+//------------------------------------------------------------------------------------------------------------------------
+
+const normalizedQueryExample1_nextQuery = indentNormalizer(`
+{
+  allBooks(PAGE: 1, PAGE_SIZE: 3, SORT: {title: 1}, title_contains: "Last") {
+    Books {
+      title
+      authors
+    }
+  }
+}
+`);
+
+const normalizedQueryExample1_nextResults = indentNormalizer(`
+{
+  "data": {
+    "allBooks": {
+      "Books": [
+        {
+          "_id": 2,          
+          "title": "Atlanta 1864: Last Chnace for the Confederacy (Great Campaigns of the Civil War)",
+          "authors": ["Richard M. McMurry"]
+        },
+        {
+          "_id": 4,
+          "title": "Fermat's Last Theorem",
+          "authors": ["Simon Singh"]
+        },
+        {
+          "_id": 5,
+          "title": "Gettysburg: The Last Invasion",
+          "authors": ["Allen C. Guelzo"]
+        }
+      ]
+    }
+  }
+}
+`);
+
+const normalizedQueryExample1_nextCached = indentNormalizer(`
+const queryCache = {
+  ["x?variables:{page:1, /* ... */, title_contains: 'Last'}"]: [
+    {type: "Book", _id: 2},
+    {type: "Book", _id: 4},
+    {type: "Book", _id: 5}
+  ]
+}
+`);
+
+const normalizedQueryExample1_nextCacheObject = indentNormalizer(`
+const objectCache = {
+  Book: {
+    1: {
+      "_id": 1,
+      "title": "A Nation Without Borders: The United States and Its World in an Age of Civil Wars, 1830-1910",
+      "authors": ["Steven Hahn"]
+    },
+    2: {
+      "_id": 2,          
+      "title": "Atlanta 1864: Last Chnace for the Confederacy (Great Campaigns of the Civil War)",
+      "authors": ["Richard M. McMurry"]
+    },
+    3: {
+      "_id": 3,          
+      "title": "Charles Sumner and the Coming of the Civil War",
+      "authors": ["David Donald"]
+    },
+    4: {
+      "_id": 4,
+      "title": "Fermat's Last Theorem",
+      "authors": ["Simon Singh"]
+    },
+    5: {
+      "_id": 5,
+      "title": "Gettysburg: The Last Invasion",
+      "authors": ["Allen C. Guelzo"]
+    }
+  }
+}
+`);
+
+//------------------------------------------------------------------------------------------------------------------------
+
+const normalizedQueryExample1_fix = indentNormalizer(`
+mutation {
+  updateBook(_id: 2, Updates: {title: "Atlanta 1864: Last Chance for the ..."}) {
+    Book {
+      _id
+      title
+    }
+  }
+}
+`);
+
+const normalizedQueryExample1_fixResults = indentNormalizer(`
+{
+  "data": {
+    "updateBook": {
+      "Book": {
+        "_id": 2,
+        "title": "Atlanta 1864: Last Chance for the Confederacy (Great Campaigns of the Civil War)",
+        "__typename": "Book"
+      }
+    }
+  }
+}
+`);
+
+const normalizedQueryExample1_fixResultsObjectCache = indentNormalizer(`
+const objectCache = {
+  Book: {
+    1: {
+      "_id": 1,
+      "title": "A Nation Without Borders: The United States and Its World in an Age of Civil Wars, 1830-1910",
+      "authors": ["Steven Hahn"]
+    },
+    2: {
+      "_id": 2,          
+      "title": "Atlanta 1864: Last Chance for the Confederacy (Great Campaigns of the Civil War)",
+      "authors": ["Richard M. McMurry"]
+    },
+    3: {
+      "_id": 3,          
+      "title": "Charles Sumner and the Coming of the Civil War",
+      "authors": ["David Donald"]
+    },
+    4: {
+      "_id": 4,
+      "title": "Fermat's Last Theorem",
+      "authors": ["Simon Singh"]
+    },
+    5: {
+      "_id": 5,
+      "title": "Gettysburg: The Last Invasion",
+      "authors": ["Allen C. Guelzo"]
+    }
+  }
+}
+`);
+
+//------------------------------------------------------------------------------------------------------------------------
+
 const Presentation = () => (
   <Deck theme={theme} template={template} transitionEffect="fade">
     <Slide>
@@ -274,20 +488,124 @@ const Presentation = () => (
       </Box>
     </Slide>
     <Slide>
-      <Heading>Animated Elements</Heading>
+      <Heading>Approach #1: Normalized Cache</Heading>
       <OrderedList>
         <Appear elementNum={0}>
-          <ListItem>Elements can animate in!</ListItem>
-        </Appear>
-        <Appear elementNum={2}>
-          <ListItem>
-            Just identify the order with the prop <CodeSpan>elementNum</CodeSpan>!
-          </ListItem>
+          <ListItem>Each item from each result set stored by id and type</ListItem>
         </Appear>
         <Appear elementNum={1}>
-          <ListItem>Out of order</ListItem>
+          <ListItem>So each result set conceptually stores a list of id's for a given type</ListItem>
+        </Appear>
+        <Appear elementNum={2}>
+          <ListItem>After mutating an item, it's updated in cache, and all query result sets are immediately updated! 🥳 🎉 🍾</ListItem>
         </Appear>
       </OrderedList>
+    </Slide>
+    <Slide>
+      <Heading>Example</Heading>
+      <Stepper defaultValue={[]} values={[null, null, null, null]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane fontSize={18} language="graphql" autoFillHeight>
+                {normalizedQueryExample1_prelimQuery}
+              </CodePane>
+            ) : null}
+            {step === 1 ? (
+              <CodePane fontSize={16} language="json" autoFillHeight>
+                {normalizedQueryExample1_prelimResults}
+              </CodePane>
+            ) : null}
+            {step === 2 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryExample1_prelimCached}
+              </CodePane>
+            ) : null}
+            {step === 3 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryExample1_prelimCacheObject}
+              </CodePane>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
+    </Slide>
+    <Slide>
+      <Heading>Example cont.</Heading>
+      <Stepper defaultValue={[]} values={[null, null, null, null]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane fontSize={18} language="graphql" autoFillHeight>
+                {normalizedQueryExample1_nextQuery}
+              </CodePane>
+            ) : null}
+            {step === 1 ? (
+              <CodePane fontSize={16} language="json" autoFillHeight>
+                {normalizedQueryExample1_nextResults}
+              </CodePane>
+            ) : null}
+            {step === 2 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryExample1_nextCached}
+              </CodePane>
+            ) : null}
+            {step === 3 ? (
+              <CodePane fontSize={14} language="js" autoFillHeight>
+                {normalizedQueryExample1_nextCacheObject}
+              </CodePane>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
+    </Slide>
+    <Slide>
+      <Heading>Example cont.</Heading>
+      <Stepper values={[null, null, null, null]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane fontSize={18} language="graphql" autoFillHeight>
+                {normalizedQueryExample1_fix}
+              </CodePane>
+            ) : null}
+            {step === 1 ? (
+              <CodePane fontSize={18} language="json" autoFillHeight>
+                {normalizedQueryExample1_fixResults}
+              </CodePane>
+            ) : null}
+            {step === 2 ? (
+              <CodePane highlightStart={10} highlightEnd={10} fontSize={14} language="js" autoFillHeight>
+                {normalizedQueryExample1_fixResultsObjectCache}
+              </CodePane>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
+    </Slide>
+    <Slide>
+      <Heading>Example cont.</Heading>
+      <Stepper values={[null, null, null]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryExample1_prelimCached}
+              </CodePane>
+            ) : null}
+            {step === 1 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryExample1_nextCached}
+              </CodePane>
+            ) : null}
+            {step === 2 ? (
+              <CodePane fontSize={14} language="js" autoFillHeight>
+                {normalizedQueryExample1_fixResultsObjectCache}
+              </CodePane>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
     </Slide>
     <Slide>
       <FlexBox>
