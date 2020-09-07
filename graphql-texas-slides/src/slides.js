@@ -608,6 +608,14 @@ const Presentation = () => (
       </Stepper>
     </Slide>
     <Slide>
+      <Heading>Hooray!</Heading>
+      <Box position="relative">
+        <FlexBox alignItems="center">
+          <Image src="https://github.com/arackaf/micro-graphql-react/blob/master/graphql-texas-slides/src/img/magic.gif?raw=true" />
+        </FlexBox>
+      </Box>
+    </Slide>
+    <Slide>
       <FlexBox>
         <Text>These</Text>
         <Text>Text</Text>
