@@ -630,6 +630,24 @@ const Books = props => {
 }
 `);
 
+const microQuerySoft1 = indentNormalizer(`
+export const useSoftResetQuery = (type, query, variables, options = {}) =>
+  useQuery(query, variables, {
+    ...options,
+    onMutation: {
+      when: new RegExp(\`update\${type}s?\`),
+      run: ({ softReset, currentResults }, resp) => {
+        const updatedItems = resp[\`update\${type}s\`]?.[\`\${type}s\`] ?? [resp[\`update\${type}\`][type]];
+        updatedItems.forEach(updatedItem => {
+          let CachedItem = currentResults[\`all\${type}s\`][\`\${type}s\`].find(item => item._id == updatedItem._id);
+          CachedItem && Object.assign(CachedItem, updatedItem);
+        });
+        softReset(currentResults);
+      }
+    },
+  });
+`);
+
 const Presentation = () => (
   <Deck theme={theme} template={template} transitionEffect="fade">
     <Slide>
@@ -918,7 +936,7 @@ const Presentation = () => (
       <OrderedList>
         <Appear elementNum={0}>
           <FlexBox alignItems="center">
-            {/* <Image src="https://github.com/arackaf/micro-graphql-react/blob/master/graphql-texas-slides/src/img/magic.gif?raw=true" /> */}
+            <Image height="500" src="https://github.com/arackaf/micro-graphql-react/blob/master/graphql-texas-slides/src/img/ken_wheeler.jpeg?raw=true" />
           </FlexBox>
         </Appear>
       </OrderedList>
@@ -1066,7 +1084,7 @@ const Presentation = () => (
     </Slide>
 
     <Slide>
-      <Heading>micro-graphql-react cache updates</Heading>
+      <Heading>micro-graphql-react terminology</Heading>
       <UnorderedList>
         <ListItem>Hard Reset: Clear cache and reload the query</ListItem>
         <ListItem>Soft Reset: Clear cache, but update, and leave current results on screen</ListItem>
@@ -1087,32 +1105,68 @@ const Presentation = () => (
         {(value, step) => (
           <Box position="relative">
             {step === 0 ? (
-              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
                 {microQueryHard1}
               </CodePane>
             ) : null}
             {step === 1 ? (
-              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
                 {microQueryHard2}
               </CodePane>
             ) : null}
             {step === 2 ? (
-              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
                 {microQueryHard3}
               </CodePane>
             ) : null}
             {step === 3 ? (
-              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
                 {microQueryHard4}
               </CodePane>
             ) : null}
             {step === 4 ? (
-              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
                 {microQueryHard4a}
               </CodePane>
             ) : null}
             {step >= 5 ? (
-              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
                 {microQueryHard5}
               </CodePane>
             ) : null}
@@ -1130,74 +1184,73 @@ const Presentation = () => (
     </Slide>
 
     <Slide>
-      <FlexBox>
-        <Text>These</Text>
-        <Text>Text</Text>
-        <Text color="secondary">Items</Text>
-        <Text fontWeight="bold">Flex</Text>
-      </FlexBox>
-      <Grid gridTemplateColumns="1fr 2fr" gridColumnGap={15}>
-        <Box backgroundColor="primary">
-          <Text color="secondary">Single-size Grid Item</Text>
-        </Box>
-        <Box backgroundColor="secondary">
-          <Text>Double-size Grid Item</Text>
-        </Box>
-      </Grid>
-      <Grid gridTemplateColumns="1fr 1fr 1fr" gridTemplateRows="1fr 1fr 1fr" alignItems="center" justifyContent="center" gridRowGap={1}>
-        {Array(9)
-          .fill("")
-          .map((_, index) => (
-            <FlexBox paddingTop={0} key={`formidable-logo-${index}`} flex={1}>
-              <Image src={formidableLogo} width={100} />
-            </FlexBox>
-          ))}
-      </Grid>
+      <Heading>Perspective</Heading>
+      <UnorderedList>
+        <ListItem>We haven't done much yet</ListItem>
+        <ListItem>Just hard resetting isn't complicated</ListItem>
+        <ListItem>Urql does out of the box for free</ListItem>
+        <ListItem>Other use cased are more complicated</ListItem>
+      </UnorderedList>
     </Slide>
+
     <Slide>
-      <Markdown>
-        {`
-          # Layout Tables in Markdown
+      <Heading>Soft reset (real quick)</Heading>
 
-          | Browser         | Supported | Versions |
-          |-----------------|-----------|----------|
-          | Chrome          | Yes       | Last 2   |
-          | Firefox         | Yes       | Last 2   |
-          | Opera           | Yes       | Last 2   |
-          | Edge (EdgeHTML) | No        |          |
-          | IE 11           | No        |          |
-        `}
-      </Markdown>
+      <Stepper values={[null, null, [1, 1], [5, 5], [7, 7], [8, 11], [12, 12]]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step > 0 ? (
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
+                {microQuerySoft1}
+              </CodePane>
+            ) : null}
+            {step >= 2 ? (
+              <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  {step == 2 ? "Take in the type" : null}
+                  {step == 3 ? "Use type to subscribe to the right mutations—could be a single update mutation, or multi update mutation" : null}
+                  {step == 4 ? "Get the updated record(s)—again, could be a single update mutation, or multi update mutation" : null}
+                  {step == 5 ? "Update the cached records" : null}
+                  {step == 6
+                    ? "Keep updated results on screen, completely clear cache. All *future* queries (including this one) will read from network"
+                    : null}
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
     </Slide>
-    <Markdown containsSlides>
-      {`
-        ### Even write multiple slides in Markdown
-        > Wonderfully formatted quotes
 
-        1. Even create
-        2. Lists in Markdown
+    <Slide>
+      <Heading>Perspective</Heading>
+      <UnorderedList>
+        <ListItem>It's more work</ListItem>
+        <ListItem>Those are just updates</ListItem>
+        <ListItem>Should account for inserts and deletes (soft reset without changing current results?)</ListItem>
+        <ListItem>But it's doable, and you have the option. That's why I made this</ListItem>
+      </UnorderedList>
+    </Slide>
 
+    <Slide>
+      <Heading>Picking the right GraphQL client</Heading>
+      <UnorderedList>
+        <ListItem>Ask the right questions</ListItem>
+        <ListItem>The requirements for *your* app are all that matter</ListItem>
+        <ListItem>Do the problems with normalized caching even apply?</ListItem>
+        <ListItem>Is Urql's behavior good enough for your app?</ListItem>
+      </UnorderedList>
+    </Slide>
 
-        - Or Unordered Lists
-        - Too!!
-        Notes: These are notes
-        ---
-        ### This slide was also generated in Markdown!
-
-        \`\`\`jsx
-        const evenCooler = "is that you can do code in Markdown";
-        // You can even specify the syntax type!
-        \`\`\`
-
-        ### A slide can have multiple code blocks too.
-
-        \`\`\`c
-        char[] someString = "Popular languages like C too!";
-        \`\`\`
-
-        Notes: These are more notes
-      `}
-    </Markdown>
+    <Slide>
+      <Heading>Questions?</Heading>
+    </Slide>
   </Deck>
 );
 
