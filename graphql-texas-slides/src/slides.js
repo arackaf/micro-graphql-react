@@ -396,6 +396,172 @@ const objectCache = {
 
 //------------------------------------------------------------------------------------------------------------------------
 
+const normalizedQueryProblem1_query = indentNormalizer(`
+tasks(assignedTo: "Adam") {
+  Tasks {
+    id, description, assignedTo
+  }
+}
+`);
+
+const normalizedQueryProblem1_initialResults = indentNormalizer(`
+{
+  "data": {
+    "tasks": {
+      "Tasks": [
+        { id: 1, description: "Adam's Task 1", assignedTo: "Adam" },
+        { id: 2, description: "Adam's Task 2", assignedTo: "Adam" }
+      ];
+    }
+  }
+}
+`);
+
+const normalizedQueryProblem1_mutation = indentNormalizer(`
+mutation {
+  updateTask(id: 1, assignedTo: "Bob", description: "Bob's Task")
+}
+`);
+
+const normalizedQueryProblem1_objectCache = indentNormalizer(`
+const objectCache = {
+  Task: {
+    1: { id: 1, description: "Adam's Task 1", assignedTo: "Adam" },
+    2: { id: 2, description: "Bob's Task", assignedTo: "Bob" }
+  }
+}
+`);
+
+const normalizedQueryProblem1_queryCache = indentNormalizer(`
+const queryCache = {
+  ["x?variables:{assignedTo: 'Adam'}"]: [
+    {type: "Task", _id: 1},
+    {type: "Task", _id: 2}
+  ]
+}
+`);
+
+//------------------------------------------------------------------------------------------------------------------------
+
+const normalizedQueryUrql_query = indentNormalizer(`
+tasks(assignedTo: "Adam") {
+  Tasks {
+    id, description, assignedTo
+  }
+}
+`);
+
+const normalizedQueryUrql_initialResults = indentNormalizer(`
+{
+  "data": {
+    "tasks": {
+      "Tasks": [
+        { id: 1, description: "Adam's Task 1", assignedTo: "Adam" },
+        { id: 2, description: "Adam's Task 2", assignedTo: "Adam" }
+      ];
+    }
+  }
+}
+`);
+
+const normalizedQueryUrql_queryCache1 = indentNormalizer(`
+const queryCache = {
+  ["x?variables:{assignedTo: 'Adam'}"]: [
+    { id: 1, description: "Adam's Task 1", assignedTo: "Adam" },
+    { id: 2, description: "Bob's Task", assignedTo: "Bob" }
+  ]
+}
+`);
+
+const normalizedQueryUrql_mutation = indentNormalizer(`
+mutation {
+  updateTask(id: 1, assignedTo: "Bob", description: "Bob's Task")
+}
+`);
+
+const normalizedQueryUrql_queryCache2 = indentNormalizer(`
+const queryCache = {
+  // And it's gone
+}
+`);
+
+//------------------------------------------------------------------------------------------------------------------------
+
+const urqlEmpty_Query = indentNormalizer(`
+tasks(assignedTo: "Adam") {
+  Tasks {
+    id, description, assignedTo
+  }
+}
+`);
+
+const urqlEmpty_Results = indentNormalizer(`
+{
+  "data": {
+    "tasks": {
+      "__typename": "TaskQueryResults",
+      "Tasks": []
+    }
+  }
+}
+`);
+
+//------------------------------------------------------------------------------------------------------------------------
+
+const microQuery1 = indentNormalizer(`
+const Books = props => {
+  const { data, loading } = useQuery(
+    BOOKS_QUERY,
+    { /* search values */ },
+    { 
+      onMutation: { 
+        when: /(update|create|delete)Books?/, 
+        run: ({ hardReset, softReset, currentResults, refresh }) => { /* do whatever you want */ } 
+      } 
+    }
+  );
+
+  const books = data?.allBooks?.Books ?? [];
+  return (
+    <div>
+      {books.map(book => <div key={book._id}>{book.title}</div>)}
+      {loading ? <span>Loading ...</span> : null}
+    </div>
+  );
+};
+`);
+
+const microQueryHard1 = indentNormalizer(`
+const Books = props => {
+  const { data, loading } = useQuery(
+    BOOKS_QUERY,
+    { /* search values */ },
+    { 
+      onMutation: { 
+        when: /(update|create|delete)Books?/, 
+        run: ({ hardReset }) => hardReset(); 
+      } 
+    }
+  );
+
+  return null;
+};
+`);
+
+const microQueryHard2 = indentNormalizer(`
+const Subjects = props => {
+  const { data, loading } = useQuery(
+    SUBJECTS_QUERY,
+    { /* search values */ },
+    {
+      onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
+    }
+  );
+
+  return null;
+};
+`);
+
 const Presentation = () => (
   <Deck theme={theme} template={template} transitionEffect="fade">
     <Slide>
@@ -615,6 +781,238 @@ const Presentation = () => (
         </FlexBox>
       </Box>
     </Slide>
+    <Slide>
+      <Heading>What could go wrong?</Heading>
+      <Stepper values={[null, null, null, null, null, [4, 4]]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane fontSize={18} language="graphql" autoFillHeight>
+                {normalizedQueryProblem1_query}
+              </CodePane>
+            ) : null}
+            {step === 1 ? (
+              <CodePane fontSize={18} language="json" autoFillHeight>
+                {normalizedQueryProblem1_initialResults}
+              </CodePane>
+            ) : null}
+            {step === 2 ? (
+              <CodePane fontSize={18} language="graphql" autoFillHeight>
+                {normalizedQueryProblem1_mutation}
+              </CodePane>
+            ) : null}
+            {step === 3 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryProblem1_objectCache}
+              </CodePane>
+            ) : null}
+            {step >= 4 ? (
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="js"
+                autoFillHeight
+              >
+                {normalizedQueryProblem1_queryCache}
+              </CodePane>
+            ) : null}
+            {step === 5 ? (
+              <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  Task #2 was re-assigned to Bob. It should no longer be in the results for this query.
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
+    </Slide>
+
+    <Slide transitionEffect="slide">
+      <Heading>Does this mean normalized caching is bad?</Heading>
+
+      <OrderedList>
+        <Appear elementNum={0}>
+          <ListItem>Of course not</ListItem>
+        </Appear>
+        <Appear elementNum={1}>
+          <ListItem>Clients provide escape hatches to modify your cache for situations like this</ListItem>
+        </Appear>
+        <Appear elementNum={2}>
+          <ListItem>Just know what they are before you decide on a solution, and confirm they fit with your application's needs</ListItem>
+        </Appear>
+      </OrderedList>
+    </Slide>
+
+    <Slide>
+      <Heading>URQL</Heading>
+      <OrderedList>
+        <Appear elementNum={0}>
+          <FlexBox alignItems="center">
+            {/* <Image src="https://github.com/arackaf/micro-graphql-react/blob/master/graphql-texas-slides/src/img/magic.gif?raw=true" /> */}
+          </FlexBox>
+        </Appear>
+      </OrderedList>
+    </Slide>
+    <Slide>
+      <Heading>Approach #2: Urql</Heading>
+      <OrderedList>
+        <Appear elementNum={0}>
+          <ListItem>
+            Keep track of which <span style={{ fontWeight: "bold" }}>types</span> each query returns
+          </ListItem>
+        </Appear>
+        <Appear elementNum={1}>
+          <ListItem>
+            When any mutation modifies data of that type, invalidate the <span style={{ fontWeight: "bold" }}>entire result set</span>
+          </ListItem>
+        </Appear>
+      </OrderedList>
+    </Slide>
+    <Slide>
+      <Heading>Urql in practice</Heading>
+      <Stepper values={[null, null, null, null, null, null, null]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane fontSize={18} language="graphql" autoFillHeight>
+                {normalizedQueryUrql_query}
+              </CodePane>
+            ) : null}
+            {step === 1 ? (
+              <CodePane fontSize={18} language="json" autoFillHeight>
+                {normalizedQueryUrql_initialResults}
+              </CodePane>
+            ) : null}
+            {step === 2 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryUrql_queryCache1}
+              </CodePane>
+            ) : null}
+            {step === 3 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryUrql_mutation}
+              </CodePane>
+            ) : null}
+            {step >= 4 ? (
+              <CodePane fontSize={18} language="js" autoFillHeight>
+                {normalizedQueryUrql_queryCache2}
+              </CodePane>
+            ) : null}
+            {step >= 5 ? (
+              <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  Query cache is now empty
+                </Text>
+              </Box>
+            ) : null}
+            {step == 6 ? (
+              <Box position="absolute" bottom="-10rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  Existing results stay on screen, and are refreshed from the server in the background
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
+    </Slide>
+    <Slide>
+      <Heading>This is perfect right?</Heading>
+      <OrderedList>
+        <Appear elementNum={0}>
+          <ListItem>
+            Keep track of which <span style={{ fontWeight: "bold" }}>types</span> each query returns
+          </ListItem>
+        </Appear>
+        <Appear elementNum={1}>
+          <ListItem>
+            When any mutation modifies data of that type, invalidate the <span style={{ fontWeight: "bold" }}>entire result set</span>
+          </ListItem>
+        </Appear>
+      </OrderedList>
+    </Slide>
+
+    <Slide>
+      <Heading>Urql in practice</Heading>
+      <Stepper values={[null, null, [5, 5], [5, 5]]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane fontSize={18} language="graphql" autoFillHeight>
+                {urqlEmpty_Query}
+              </CodePane>
+            ) : null}
+            {step >= 1 ? (
+              <CodePane
+                highlightStart={value ? value[0] : void 0}
+                highlightEnd={value ? value[1] : void 0}
+                fontSize={18}
+                language="json"
+                autoFillHeight
+              >
+                {urqlEmpty_Results}
+              </CodePane>
+            ) : null}
+            {step >= 2 ? (
+              <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  We don't know what type this is; there's nothing to attach <CodeSpan fontSize="1.3rem">__typename</CodeSpan> to
+                </Text>
+              </Box>
+            ) : null}
+            {step >= 3 ? (
+              <Box position="absolute" bottom="-10rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  Unsurprisingly Urql allows you to just tell it which types a query deals with for this very reason
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
+    </Slide>
+
+    <Slide>
+      <Heading>Urql in practice</Heading>
+      <UnorderedList>
+        <ListItem>Urql is correct by default</ListItem>
+        <ListItem>It's a step beyond normalized caching (imo ymmv)</ListItem>
+        <ListItem>Some more flexible cache update mechanisms would be nice...</ListItem>
+      </UnorderedList>
+    </Slide>
+
+    <Slide>
+      <Heading>micro-graphql-react</Heading>
+      <UnorderedList>
+        <ListItem>Results are cached by query (like urql)</ListItem>
+        <ListItem>Cache updates are completely flexible</ListItem>
+        <Appear elementNum={0}>
+          <ListItem>...meaning you do everything yourself</ListItem>
+        </Appear>
+        <Appear elementNum={1}>
+          <ListItem>...it's not as bad as it seems</ListItem>
+        </Appear>
+      </UnorderedList>
+    </Slide>
+
+    <Slide>
+      <Heading>micro-graphql-react cache updates</Heading>
+      <UnorderedList>
+        <ListItem>Hard Reset: Clear cache and reload the query</ListItem>
+        <ListItem>Soft Reset: Clear cache, but update, and leave current results on screen</ListItem>
+        <ListItem>Just update the raw cache</ListItem>
+      </UnorderedList>
+    </Slide>
+
+    <Slide>
+      <Heading>Example</Heading>
+      <CodePane fontSize={18} language="js" autoFillHeight>
+        {microQuery1}
+      </CodePane>
+    </Slide>
+
     <Slide>
       <FlexBox>
         <Text>These</Text>
