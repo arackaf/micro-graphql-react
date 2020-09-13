@@ -1091,7 +1091,7 @@ const Presentation = () => (
       <UnorderedList>
         <ListItem>Hard Reset: Clear cache and reload the query</ListItem>
         <ListItem>Soft Reset: Clear cache, but update, and leave current results on screen</ListItem>
-        <ListItem>Just update the raw cache</ListItem>
+        <ListItem>Also allows you to just update the raw cache</ListItem>
       </UnorderedList>
     </Slide>
 
