@@ -539,12 +539,12 @@ const Books = props => {
     { 
       onMutation: { 
         when: /(update|create|delete)Books?/, 
-        run: ({ hardReset }) => hardReset(); 
+        run: ({ hardReset }) => hardReset()
       } 
     }
   );
 
-  return null;
+  return null; //elide component code for brevity
 };
 `);
 
@@ -554,12 +554,80 @@ const Subjects = props => {
     SUBJECTS_QUERY,
     { /* search values */ },
     {
-      onMutation: { when: /(update|create|delete)Subjects?/, run: ({ hardReset }) => hardReset() }
+      onMutation: { 
+        when: /(update|create|delete)Subjects?/, 
+        run: ({ hardReset }) => hardReset() 
+      }
     }
   );
 
-  return null;
+  return null; //elide component code for brevity
 };
+`);
+
+const microQueryHard3 = indentNormalizer(`
+const Subjects = props => {
+  const { data, loading } = useQuery(
+    SUBJECTS_QUERY,
+    { /* search values */ },
+    {
+      onMutation: { 
+        when: /(update|create|delete){type}s?/, 
+        // --------------------------^^^^^^
+        run: ({ hardReset }) => hardReset() }
+    } 
+  );
+
+  return null; //elide component code for brevity
+};
+`);
+
+const microQueryHard4 = indentNormalizer(`
+const useHardResetQuery = (type, query, variables, options = {}) =>
+  useQuery(query, variables, {
+    ...options,
+    onMutation: {
+      when: new RegExp(\`(update|create|delete)\${type}s?\`),
+      run: ({ hardReset }) => hardReset()
+    }
+  });
+
+const Books = props => {
+  const { data, loading } = useHardResetQuery("Book", BOOKS_QUERY, { /* search vals */ });
+
+  return null; //elide component code for brevity
+}
+`);
+
+const microQueryHard4a = indentNormalizer(`
+const useHardResetQuery = (type, query, variables, options = {}) =>
+  useQuery(query, variables, {
+    ...options,
+    onMutation: {
+      when: new RegExp(\`(update|create|delete)\${type}s?\`),
+      run: ({ hardReset }) => hardReset()
+    }
+  });
+
+const Books = props => {
+  const { data, loading } = useHardResetQuery("Book", BOOKS_QUERY, { /* search vals */ });
+  // -----------------------------------------^^^^^^
+
+  return null; //elide component code for brevity
+}
+`);
+
+const microQueryHard5 = indentNormalizer(`
+// queryHooks.js
+export const useBookHardResetQuery = (...args) => useHardResetQuery("Book", ...args);
+export const useSubjectHardResetQuery = (...args) => useHardResetQuery("Subject", ...args);
+
+//Books.js
+const Books = props => {
+  const { data, loading } = useBookHardResetQuery(BOOKS_QUERY, { /* search vals */ });
+
+  return null;
+}
 `);
 
 const Presentation = () => (
@@ -1011,6 +1079,54 @@ const Presentation = () => (
       <CodePane fontSize={18} language="js" autoFillHeight>
         {microQuery1}
       </CodePane>
+    </Slide>
+
+    <Slide>
+      <Heading>Managing that bloat with hooks</Heading>
+      <Stepper values={[null, null, [7, 8], null, [11, 12], null, [0, 3], [7, 7]]}>
+        {(value, step) => (
+          <Box position="relative">
+            {step === 0 ? (
+              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+                {microQueryHard1}
+              </CodePane>
+            ) : null}
+            {step === 1 ? (
+              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+                {microQueryHard2}
+              </CodePane>
+            ) : null}
+            {step === 2 ? (
+              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+                {microQueryHard3}
+              </CodePane>
+            ) : null}
+            {step === 3 ? (
+              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+                {microQueryHard4}
+              </CodePane>
+            ) : null}
+            {step === 4 ? (
+              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+                {microQueryHard4a}
+              </CodePane>
+            ) : null}
+            {step >= 5 ? (
+              <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+                {microQueryHard5}
+              </CodePane>
+            ) : null}
+
+            {step >= 5 ? (
+              <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  MOAR HOOKS
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
     </Slide>
 
     <Slide>
