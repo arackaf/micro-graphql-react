@@ -71,7 +71,7 @@
     "test": "jest --runInBand --bail --detectOpenHandles && codecov",
     "test-local": "jest --runInBand",
     "testw": "jest --runInBand --watchAll",
-    "heroku-postbuild": "webpack --config ./demo/webpack.config.js",
+    "heroku-postbuild": "webpack --config ./demo/webpack.config.js && cd graphql-texas-slides && npm i && npm run build",
     "start": "node ./demo/server.js"
   },
   "dependencies": {},
