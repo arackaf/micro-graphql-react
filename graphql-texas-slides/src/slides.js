@@ -932,11 +932,14 @@ const Presentation = () => (
     </Slide>
 
     <Slide>
-      <Heading>URQL</Heading>
-      <OrderedList>
+      <Heading style={{ marginBottom: 0 }}>URQL</Heading>
+      <OrderedList style={{ marginTop: 0 }}>
         <Appear elementNum={0}>
           <FlexBox alignItems="center">
-            <Image height="500" src="https://github.com/arackaf/micro-graphql-react/blob/master/graphql-texas-slides/src/img/ken_wheeler.jpeg?raw=true" />
+            <Image
+              height="500"
+              src="https://github.com/arackaf/micro-graphql-react/blob/master/graphql-texas-slides/src/img/ken_wheeler.jpeg?raw=true"
+            />
           </FlexBox>
         </Appear>
       </OrderedList>
