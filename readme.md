@@ -16,7 +16,9 @@ Like any other GraphQL React client, there are simple hooks which query, and mut
 
 Full docs are [here](https://arackaf.github.io/micro-graphql-react/)
 
-A live demo of this library is [here](https://codesandbox.io/s/l2z74x2687)
+A live Suspense-based demo of this library is [here](https://micro-graphql-react.herokuapp.com/demo)
+
+The slides for the GraphQL Texas talk I gave are [here](https://micro-graphql-react.herokuapp.com/slides?slide=0&slideElement=-1)
 
 The rest of this README describes in better detail the kind of cache management problems this project attempts to avoid.
 
