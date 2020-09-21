@@ -465,7 +465,7 @@ const normalizedQueryUrql_initialResults = indentNormalizer(`
 `);
 
 const normalizedQueryUrql_queryCache1 = indentNormalizer(`
-const queryCache = {
+const tasksQueryCache = {
   ["x?variables:{assignedTo: 'Adam'}"]: [
     { id: 1, description: "Adam's Task 1", assignedTo: "Adam" },
     { id: 2, description: "Bob's Task", assignedTo: "Bob" }
@@ -480,7 +480,7 @@ mutation {
 `);
 
 const normalizedQueryUrql_queryCache2 = indentNormalizer(`
-const queryCache = {
+const tasksQueryCache = {
   // And it's gone
 }
 `);
@@ -859,6 +859,16 @@ const Presentation = () => (
         )}
       </Stepper>
     </Slide>
+
+    <Slide transitionEffect="slide">
+      <Heading>It Just Works</Heading>
+
+      <OrderedList>
+        <ListItem>Book #2 is updated in cache</ListItem>
+        <ListItem>All queries with Book #2 in its results automatically see updated values</ListItem>
+      </OrderedList>
+    </Slide>
+
     <Slide>
       <Heading>Hooray!</Heading>
       <Box position="relative">
@@ -867,6 +877,7 @@ const Presentation = () => (
         </FlexBox>
       </Box>
     </Slide>
+
     <Slide>
       <Heading>What could go wrong?</Heading>
       <Stepper values={[null, null, null, null, null, [4, 4]]}>
@@ -913,6 +924,22 @@ const Presentation = () => (
           </Box>
         )}
       </Stepper>
+    </Slide>
+
+    <Slide transitionEffect="slide">
+      <Heading>What Should Have Happened</Heading>
+
+      <OrderedList>
+        <ListItem>
+          Task #2 should have been <b>ejected</b> from that result set
+        </ListItem>
+        <ListItem>GraphQL clients that use normalized caching of course have escape hatches for this</ListItem>
+        <ListItem>
+          They <b>tend</b> to be tricky to get right
+        </ListItem>
+        <ListItem>Please don't take my word for it - evaluate any tool you're considering using.</ListItem>
+        <ListItem>This talk is about identifying tradeoffs - not judging which client is better.</ListItem>
+      </OrderedList>
     </Slide>
 
     <Slide transitionEffect="slide">
@@ -1097,14 +1124,29 @@ const Presentation = () => (
 
     <Slide>
       <Heading>Example</Heading>
-      <CodePane fontSize={18} language="js" autoFillHeight>
-        {microQuery1}
-      </CodePane>
+
+      <Stepper values={[null, [6, 9]]}>
+        {(value, step) => (
+          <Box position="relative">
+            <CodePane highlightStart={value ? value[0] : void 0} highlightEnd={value ? value[1] : void 0} fontSize={18} language="js" autoFillHeight>
+              {microQuery1}
+            </CodePane>
+
+            {step == 1 ? (
+              <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
+                <Text fontSize="1.5rem" margin="0rem">
+                  This is how we specify the cache updates we want
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
+        )}
+      </Stepper>
     </Slide>
 
     <Slide>
       <Heading>Managing that bloat with hooks</Heading>
-      <Stepper values={[null, null, [7, 8], null, [11, 12], null, [0, 3], [7, 7]]}>
+      <Stepper values={[null, null, [7, 8], null, [1, 1], [2, 8], [5, 5], [11, 12], null, [0, 3], [7, 7]]}>
         {(value, step) => (
           <Box position="relative">
             {step === 0 ? (
@@ -1151,7 +1193,7 @@ const Presentation = () => (
                 {microQueryHard4}
               </CodePane>
             ) : null}
-            {step === 4 ? (
+            {step >= 4 && step <= 7 ? (
               <CodePane
                 highlightStart={value ? value[0] : void 0}
                 highlightEnd={value ? value[1] : void 0}
@@ -1162,7 +1204,7 @@ const Presentation = () => (
                 {microQueryHard4a}
               </CodePane>
             ) : null}
-            {step >= 5 ? (
+            {step >= 8 ? (
               <CodePane
                 highlightStart={value ? value[0] : void 0}
                 highlightEnd={value ? value[1] : void 0}
@@ -1174,7 +1216,7 @@ const Presentation = () => (
               </CodePane>
             ) : null}
 
-            {step >= 5 ? (
+            {step >= 8 ? (
               <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
                 <Text fontSize="1.5rem" margin="0rem">
                   MOAR HOOKS
@@ -1238,6 +1280,7 @@ const Presentation = () => (
         <ListItem>Those are just updates</ListItem>
         <ListItem>Should account for inserts and deletes (soft reset without changing current results?)</ListItem>
         <ListItem>But it's doable, and you have the option. That's why I made this</ListItem>
+        <ListItem>That SoftReset hook? You only have to write it once (assuming your Schema is consistent)</ListItem>
       </UnorderedList>
     </Slide>
 
@@ -1247,7 +1290,7 @@ const Presentation = () => (
         <ListItem>Ask the right questions</ListItem>
         <ListItem>The requirements for *your* app are all that matter</ListItem>
         <ListItem>Do the problems with normalized caching even apply?</ListItem>
-        <ListItem>Is Urql's behavior good enough for your app?</ListItem>
+        <ListItem>Is Urql's behavior good enough for your app? Use it if so.</ListItem>
       </UnorderedList>
     </Slide>
 
