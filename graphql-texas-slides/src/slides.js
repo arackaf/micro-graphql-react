@@ -1079,12 +1079,12 @@ const Presentation = () => (
       <UnorderedList>
         <Appear elementNum={0}>
           <ListItem>
-            Keep track of which <span style={{ fontWeight: "bold" }}>types</span> each query returns
+            We're keeping track of which <span style={{ fontWeight: "bold" }}>types</span> each query returns
           </ListItem>
         </Appear>
         <Appear elementNum={1}>
           <ListItem>
-            When any mutation modifies data of that type, invalidate the <span style={{ fontWeight: "bold" }}>entire result set</span>
+            That can fail
           </ListItem>
         </Appear>
       </UnorderedList>
@@ -1273,8 +1273,8 @@ const Presentation = () => (
       <UnorderedList>
         <ListItem>We haven't done much yet</ListItem>
         <ListItem>Just hard resetting isn't complicated</ListItem>
-        <ListItem>Urql does out of the box for free</ListItem>
-        <ListItem>Other use cased are more complicated</ListItem>
+        <ListItem>Urql does this out of the box for free</ListItem>
+        <ListItem>Other use cases are more complicated</ListItem>
       </UnorderedList>
     </Slide>
 
