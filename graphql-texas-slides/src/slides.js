@@ -295,6 +295,11 @@ const normalizedQueryExample1_nextResults = indentNormalizer(`
 
 const normalizedQueryExample1_nextCached = indentNormalizer(`
 const queryCache = {
+  ["x?variables:{page:1, /* ... */, title_contains: 'Civil War'}"]: [
+    {type: "Book", _id: 1},
+    {type: "Book", _id: 2},
+    {type: "Book", _id: 3}
+  ],
   ["x?variables:{page:1, /* ... */, title_contains: 'Last'}"]: [
     {type: "Book", _id: 2},
     {type: "Book", _id: 4},
@@ -419,7 +424,7 @@ const normalizedQueryProblem1_initialResults = indentNormalizer(`
 
 const normalizedQueryProblem1_mutation = indentNormalizer(`
 mutation {
-  updateTask(id: 1, assignedTo: "Bob", description: "Bob's Task")
+  updateTask(id: 2, assignedTo: "Bob", description: "Bob's Task")
 }
 `);
 
@@ -468,7 +473,7 @@ const normalizedQueryUrql_queryCache1 = indentNormalizer(`
 const tasksQueryCache = {
   ["x?variables:{assignedTo: 'Adam'}"]: [
     { id: 1, description: "Adam's Task 1", assignedTo: "Adam" },
-    { id: 2, description: "Bob's Task", assignedTo: "Bob" }
+    { id: 2, description: "Adam's Task 2", assignedTo: "Adam" }
   ]
 }
 `);
@@ -877,20 +882,15 @@ const Presentation = () => (
     </Slide>
     <Slide>
       <Heading>Example cont.</Heading>
-      <Stepper values={[null, null, null]}>
+      <Stepper values={[null, null]}>
         {(value, step) => (
           <Box position="relative">
             {step === 0 ? (
               <CodePane fontSize={18} language="js" autoFillHeight>
-                {normalizedQueryExample1_prelimCached}
-              </CodePane>
-            ) : null}
-            {step === 1 ? (
-              <CodePane fontSize={18} language="js" autoFillHeight>
                 {normalizedQueryExample1_nextCached}
               </CodePane>
             ) : null}
-            {step === 2 ? (
+            {step === 1 ? (
               <CodePane fontSize={14} language="js" autoFillHeight>
                 {normalizedQueryExample1_fixResultsObjectCache}
               </CodePane>
@@ -1281,10 +1281,10 @@ const Presentation = () => (
     <Slide>
       <Heading>Soft reset (real quick)</Heading>
 
-      <Stepper values={[null, null, [1, 1], [5, 5], [7, 7], [8, 11], [12, 12]]}>
+      <Stepper values={[null, [1, 1], [5, 5], [7, 7], [8, 11], [12, 12]]}>
         {(value, step) => (
           <Box position="relative">
-            {step > 0 ? (
+            {step >= 0 ? (
               <CodePane
                 highlightStart={value ? value[0] : void 0}
                 highlightEnd={value ? value[1] : void 0}
@@ -1295,14 +1295,14 @@ const Presentation = () => (
                 {microQuerySoft1}
               </CodePane>
             ) : null}
-            {step >= 2 ? (
+            {step >= 1 ? (
               <Box position="absolute" bottom="-4rem" left="0rem" right="0rem" bg="black">
                 <Text fontSize="1.5rem" margin="0rem">
-                  {step == 2 ? "Take in the type" : null}
-                  {step == 3 ? "Use type to subscribe to the right mutations—could be a single update mutation, or multi update mutation" : null}
-                  {step == 4 ? "Get the updated record(s)—again, could be a single update mutation, or multi update mutation" : null}
-                  {step == 5 ? "Update the cached records" : null}
-                  {step == 6
+                  {step == 1 ? "Take in the type" : null}
+                  {step == 2 ? "Use type to subscribe to the right mutations—could be a single update mutation, or multi update mutation" : null}
+                  {step == 3 ? "Get the updated record(s)—again, could be a single update mutation, or multi update mutation" : null}
+                  {step == 4 ? "Update the cached records" : null}
+                  {step == 5
                     ? "Keep updated results on screen, completely clear cache. All *future* queries (including this one) will read from network"
                     : null}
                 </Text>
