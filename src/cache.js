@@ -64,10 +64,10 @@ export default class Cache {
     }
   }
 
-  getFromCache(key, ifPending, ifResults, ifNotFound = () => {}) {
+  getFromCache(key, ifPending, ifResults, ifNotFound = () => {}, byPassSoftReset = false) {
     let cache = this._cache;
     let cachedEntry = cache.get(key);
-    if (this.softResetCache) {
+    if (!byPassSoftReset && this.softResetCache) {
       if (this.softResetCache[key]) {
         return ifResults(this.softResetCache[key]);
       }

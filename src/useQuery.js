@@ -34,7 +34,9 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
         promise => {},
         cachedEntry => {
           existingState = { data: cachedEntry.data, error: cachedEntry.error || null, loading: false, loaded: true, currentQuery: graphqlQuery };
-        }
+        },
+        void 0,
+        true
       );
     }
 
@@ -95,6 +97,7 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
         isActive: () => isActiveRef.current
       });
     }
+    cacheRef.current = queryManager.cache;
     return () => {
       queryManager.setState = () => {};
       queryManager.refreshCurrent = () => {};
@@ -104,8 +107,13 @@ export default function useQuery(query, variables, options = {}, { suspense } = 
   }, [queryManager]);
   // ------------------------------- effects -------------------------------
 
+  const firstRun = useRef(true);
+  useLayoutEffect(() => {
+    firstRun.current = false;
+  }, []);
+
   if (isActive) {
-    queryManager.sync({ query, variables, queryState });
+    queryManager.sync({ query, variables, queryState }, firstRun.current);
   }
 
   return useMemo(() => {

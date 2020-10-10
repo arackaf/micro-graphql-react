@@ -20,7 +20,7 @@ export default class QueryManager {
     this.setState(state => Object.assign({}, state, newState));
   }
 
-  sync({ query, variables, queryState }) {
+  sync({ query, variables, queryState }, firstRun = false) {
     let graphqlQuery = this.client.getGraphqlQuery({ query, variables });
     this.cache.getFromCache(
       graphqlQuery,
@@ -37,7 +37,8 @@ export default class QueryManager {
         let promise = this.execute(graphqlQuery);
         this.trackedPromises.add(promise);
         this.promisePending(promise, queryState);
-      }
+      },
+      firstRun
     );
   }
 
