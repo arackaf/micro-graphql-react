@@ -36,6 +36,24 @@ test("Reload query", async () => {
   expect(client1.queriesRun).toBe(2);
 });
 
+test("Default cache works with reloading", async () => {
+  expect(client1.queriesRun).toBe(0);
+  const { rerender } = render(<Component1 page={1} unused={10} />);
+  expect(client1.queriesRun).toBe(1);
+
+  getProps1().reload();
+  await pause();
+  
+  Array.from({ length: 9 }).forEach((x, i) => rerender(<Component1 unused={2} page={i + 2} />));
+  expect(client1.queriesRun).toBe(11);
+  
+  getProps1().reload();
+  await pause();
+
+  Array.from({ length: 9 }).forEach((x, i) => rerender(<Component1 unused={2} page={10 - i - 1} />));
+  expect(client1.queriesRun).toBe(12);
+});
+
 test("Clear cache", async () => {
   let { rerender } = render(<Component1 page={1} unused={10} />);
 
