@@ -443,3 +443,40 @@ test("Mutation listener - hard reset - props right, cache cleared, client qeried
   }); //updated data is now there
   expect(client1.queriesRun).toBe(2); //run from the hard reset
 });
+
+test("Mutation listener - new component, re-queries", async () => {
+  let componentsCache;
+  let [queryProps, mutationProps, Component] = getQueryAndMutationComponent({
+    onMutation: {
+      when: "updateBook",
+      run: ({ cache, softReset, currentResults }, { updateBook: { Book } }) => {
+        componentsCache = cache;
+        let CachedBook = currentResults.Books.find(b => b.id == Book.id);
+        CachedBook && Object.assign(CachedBook, Book);
+        softReset(currentResults);
+      }
+    }
+  });
+
+  client1.nextResult = {
+    data: {
+      Books: [
+        { id: 1, title: "Book 1", author: "Adam" },
+        { id: 2, title: "Book 2", author: "__WRONG__Eve" }
+      ]
+    }
+  };
+  let { rerender } = render(<Component query="a" />);
+  await pause();
+
+  client1.nextMutationResult = { updateBook: { Book: { id: 2, author: "Eve" } } };
+  await mutationProps().runMutation();
+
+  expect(componentsCache.entries.length).toBe(0); //cache is cleared!
+
+  expect(client1.queriesRun).toBe(1);
+
+  render(<Component query="a" />);
+  await pause();
+  expect(client1.queriesRun).toBe(2);
+});
