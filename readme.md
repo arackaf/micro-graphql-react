@@ -4,8 +4,6 @@
 
 ---
 
-**NOTE** These docs are still a work in progress. I'm only putting them on Master because the old ones were terribly out-dated and inaccurate, given how much the project has changed since it was originally released.
-
 The current version is 0.4.0-betaXX, but the beta is only because of the React Suspense stuff which itself is still in beta. The non-Suspense code in the latest version should be considered stable and safe.
 
 ---
