@@ -39,7 +39,7 @@ and get back
 ```javascript
 [
   { id: 1, description: "Adam's Task 1", assignedTo: "Adam" },
-  { id: 2, description: "Adam's Task 2", , assignedTo: "Adam" }
+  { id: 2, description: "Adam's Task 2", assignedTo: "Adam" }
 ];
 ```
 
