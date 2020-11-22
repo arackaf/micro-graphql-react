@@ -476,8 +476,6 @@ graphQLClient.subscribeMutation([
   }
 ]);
 
-syncQueryToCache(BOOKS_QUERY, "Book");
-
 export default props => {
   const [page, setPage] = useState(1);
   const { data, loading } = useQuery(BOOKS_QUERY, { page });
