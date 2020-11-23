@@ -4,13 +4,13 @@
 
 ---
 
-The current version is 0.4.0-betaXX, but the beta is only because of the React Suspense stuff which itself is still in beta. The non-Suspense code in the latest version should be considered stable and safe.
+The current version is 0.4.0-beta, but the beta is only because of the React Suspense stuff which itself is still in beta. The non-Suspense code in the latest version should be considered stable and safe.
 
 ---
 
 A light (2.6K min+gzip) and simple solution for painlessly connecting your React components to a GraphQL endpoint.
 
-Like any other GraphQL React client, there are simple hooks which query, and mutate data from your GraphQL endpoint.  Where this project differs is how it approaches cache invalidation. Rather than adding metadata to queries and forming a normalized, automatically-managed cache, it instead provides simple, low-level building blocks to handle cache management yourself. The reason for this (ostensibly poor!) tradeoff is because of my experience with other GraphQL clients which attempted the normalized cache route. I consistently had difficulty getting the cache to behave exactly as I wanted, so decided to build a GraphQL client that gave me the low-level control I always wound up wanting. This project is the result.
+Like any other GraphQL React client, there are simple hooks which query and mutate data from your GraphQL endpoint.  Where this project differs is how it approaches cache invalidation. Rather than adding metadata to queries and forming a normalized, automatically-managed cache, it instead provides simple, low-level building blocks to handle cache management yourself. The reason for this (ostensibly poor!) tradeoff is because of my experience with other GraphQL clients which attempted the normalized cache route. I consistently had difficulty getting the cache to behave exactly as I wanted, so decided to build a GraphQL client that gave me the low-level control I always wound up wanting. This project is the result.
 
 Full docs are [here](https://arackaf.github.io/micro-graphql-react/)
 
