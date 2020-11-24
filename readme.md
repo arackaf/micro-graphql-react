@@ -12,11 +12,11 @@ A light (2.6K min+gzip) and simple solution for painlessly connecting your React
 
 Like any other GraphQL React client, there are simple hooks which query and mutate data from your GraphQL endpoint.  Where this project differs is how it approaches cache invalidation. Rather than adding metadata to queries and forming a normalized, automatically-managed cache, it instead provides simple, low-level building blocks to handle cache management yourself. The reason for this (ostensibly poor!) tradeoff is because of my experience with other GraphQL clients which attempted the normalized cache route. I consistently had difficulty getting the cache to behave exactly as I wanted, so decided to build a GraphQL client that gave me the low-level control I always wound up wanting. This project is the result.
 
-Full docs are [here](https://arackaf.github.io/micro-graphql-react/)
+Full docs are [here](https://arackaf.github.io/micro-graphql-react/docs)
 
-A live Suspense-based demo of this library is [here](https://micro-graphql-react.herokuapp.com/demo)
+A live Suspense-based demo of this library is [here](https://arackaf.github.io/micro-graphql-react/demo)
 
-The slides for the GraphQL Texas talk I gave are [here](https://micro-graphql-react.herokuapp.com/slides?slide=0&slideElement=-1)
+The slides for the GraphQL Texas talk I gave are [here](https://arackaf.github.io/micro-graphql-react/slides)
 
 The rest of this README describes in better detail the kind of cache management problems this project attempts to avoid.
 
@@ -64,7 +64,7 @@ which may or may not be what you want, but worse, if you browse to some other fi
 
 ---
 
-This library solves this problem by allowing you to easily declare that a given mutation should clear all cache entries for a given query, and reload them from the network (hard reset), or just update the on-screen results, but otherwise clear the cache for a given query (soft reset).  See the [docs](https://arackaf.github.io/micro-graphql-react/) for more info.
+This library solves this problem by allowing you to easily declare that a given mutation should clear all cache entries for a given query, and reload them from the network (hard reset), or just update the on-screen results, but otherwise clear the cache for a given query (soft reset).  See the [docs](https://arackaf.github.io/micro-graphql-react/docs) for more info.
 
 ### Properly processing empty result sets
 

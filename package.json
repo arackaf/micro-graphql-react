@@ -36,6 +36,7 @@
     "babel-jest": "^24.1.0",
     "babel-loader": "^8.1.0",
     "classnames": "^2.2.6",
+    "codecov": "^3.8.1",
     "css-loader": "^4.2.1",
     "del": "3.0.0",
     "express": "4.16.2",
@@ -72,7 +73,9 @@
     "test-local": "jest --runInBand",
     "testw": "jest --runInBand --watchAll",
     "heroku-postbuild": "webpack --config ./demo/webpack.config.js && cd graphql-texas-slides && npm i && npm run build",
-    "start": "node ./demo/server.js"
+    "start": "node ./demo/server.js",
+    "bundle-demo": "rm -rf ./demo/dist && rm -rf ./docs/demo/* && NODE_ENV=production webpack --config ./demo/webpack.config.js && cp -R ./demo/dist/. ./docs/demo",
+    "bundle-slides": "rm -rf ./graphql-texas-slides/dist && rm -rf ./docs/slides/* && cd ./graphql-texas-slides && NODE_ENV=production webpack && cd .. && cp -R ./graphql-texas-slides/dist/. ./docs/slides"
   },
   "dependencies": {},
   "typings": "index.d.ts"
