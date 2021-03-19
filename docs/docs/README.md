@@ -33,7 +33,7 @@ Now that client will be used by default, everywhere, unless you manually pass in
 
 ### Accessing the client
 
-To access the default client anywhere in your codebase, you can use the `getDefaultClient` method.
+To access the default client, use the `getDefaultClient` method.
 
 ```javascript
 import { getDefaultClient } from "micro-graphql-react";
@@ -47,8 +47,8 @@ const client = getDefaultClient();
 | Option  | Description |
 | -------| ----------- |
 | `endpoint` | URL for your GraphQL endpoint |
-| `fetchOptions`  | Options to send along with all fetches|
-| `cacheSize`  | Default cache size to use for all caches created by this client, as needed, for all queries it processes|
+| `fetchOptions`  | Fetch options |
+| `cacheSize`  | Default cache size for all caches created by this client, for all queries it processes |
 
 ### Client api
 
@@ -109,7 +109,7 @@ The options argument, if supplied, can contain these properties
 | `client`  | Manually pass in a client to be used for this query, which will override the default client|
 | `active`  | If passed, and if false, disables any further query loading. If not specified, the hook will update automatically, as expected |
 
-Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET—for more information, see [here](./docs/readme-compress.md).
+Be sure to use the `compress` tag to remove un-needed whitespace from your query text, since it will be sent via HTTP GET. For more information, see [here](./docs/readme-compress.md).
 
 An even better option would be to use my [persisted queries helper](https://github.com/arackaf/generic-persistgraphql). This not only removes the entire query text from your network requests altogether, but also from your bundled code.
 
@@ -120,8 +120,8 @@ The `useQuery` hook returns an object with the following properties.
 <!-- prettier-ignore -->
 | Props | Description |
 | ----- | ----------- |
-|`loading`|Fetch is executing for your query|
-|`loaded`|Fetch has finished executing for your query|
+|`loading`|Fetch is executing your query|
+|`loaded`|Fetch has finished executing your query|
 |`data`|If the last fetch finished successfully, this will contain the data returned, else null|
 |`currentQuery`|The query that was run, which produced the current results. This updates synchronously with updates to `data`, so you can use changes here as an easy way to subscribe to query result changes. This will not have a value until there are results passed to `data`. In other words, changes to `loading` do not affect this value|
 |`error`|If the last fetch did not finish successfully, this will contain the errors that were returned, else `null`|
@@ -210,7 +210,7 @@ The onMutation option that query options take is an object, or array of objects,
 | `cache`  | The actual cache object. You can enumerate its entries, and update whatever you need.|
 | `refresh`   | Refreshes the current query, from cache if present. You'll likely want to call this after modifying the cache.  |
 
-Many use cases follow. They're based on an hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
+Many use cases follow. They're based on a hypothetical book tracking website since, if we're honest, the Todo example has been stretched to its limit—and also I built a book tracking website and so already have some data to work with :D
 
 The code below uses a publicly available GraphQL endpoint created by my [mongo-graphql-starter project](https://github.com/arackaf/mongo-graphql-starter). You can run these examples from the demo folder of this repository. Just run `npm i` then start the `demo-client` and `demo-server` scripts in separate terminals, and open `http://localhost:3000/`
 
@@ -245,7 +245,7 @@ export const Books = props => {
 };
 ```
 
-Here we specify a regex matching every kind of book mutation we have, and upon completion, we just clear the cache, and reload by calling `hardReset()`. It's hard not to be at least a littler dissatisfied with this solution; the boilerplate is non-trivial. Let's take a look at a similar (again contrived) component, but for the subjects we can apply to books
+Here we specify a regex matching every kind of book mutation we have, and upon completion, we clear the cache, and reload by calling `hardReset()`. It's hard not to be at least a littler dissatisfied with this solution; the boilerplate is non-trivial. Let's take a look at a similar (again contrived) component, but for the subjects we can apply to books
 
 ```javascript
 export const Subjects = props => {
@@ -326,7 +326,7 @@ export const Books = props => {
 
 #### Soft Reset: Update current results, but clear the cache
 
-Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone," but one of the current results was clearly written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
+Let's say that, upon successful mutation, you want to update your current results based on what was changed, clear all other cache entries, including the existing one, but **not** run any network requests. So if you're currently searching for an author of "Dumas Malone," but one of the current results was written by Shelby Foote, and you click the book's edit button and fix it, you want that book to now show the updated values, but stay in the current results, since re-loading the current query and having the book just vanish is bad UX in your opinion.
 
 Here's the same books component as above, but with our new cache strategy
 

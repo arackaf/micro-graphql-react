@@ -49,8 +49,7 @@ export default class Cache {
   setResults(promise, cacheKey, resp, err) {
     let cache = this._cache;
 
-    //cache may have been cleared while we were running. If so, we'll respect that, and not touch the cache, but
-    //we'll still use the results locally
+    //cache may have been cleared while we were running. If so, we'll respect that, and not touch the cache, but we'll still use the results locally
     if (cache.get(cacheKey) !== promise) return;
 
     if (err) {
