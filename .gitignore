@@ -10,3 +10,4 @@ index.min.js
 test/.DS_Store
 index-es5.js
 index.js
+.env
