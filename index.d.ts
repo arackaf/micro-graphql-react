@@ -52,6 +52,7 @@ export class Client {
   subscribeMutation(subscription: any, options?: any): () => void;
   forceUpdate(query: string): void;
   preload(query: string, variables: any): void;
+  read<TResults = unknown>(query: string, variables: any): { data: TResults; error: any };
 }
 
 type BuildQueryOptions = {
@@ -76,4 +77,3 @@ export function useQuery<TResults = any>(queryText: string, variables?: any, opt
 export function useSuspenseQuery<TResults = any>(queryText: string, variables?: any, options?: BuildQueryOptions): QueryPayload<TResults>;
 
 export function useMutation<TResults = any>(mutationText: string, options?: BuildQueryOptions): MutationPayload<TResults>;
-

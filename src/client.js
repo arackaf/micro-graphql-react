@@ -39,6 +39,41 @@ export default class Client {
     );
     return promiseResult;
   }
+  read(query, variables) {
+    let cache = this.getCache(query);
+    if (!cache) {
+      cache = this.newCacheForQuery(query);
+    }
+
+    let graphqlQuery = this.getGraphqlQuery({ query, variables });
+
+    let promiseResult;
+    let cachedResult;
+    cache.getFromCache(
+      graphqlQuery,
+      promise => {
+        promiseResult = promise;
+        /* already preloading - cool */
+      },
+      cachedEntry => {
+        /* already loaded - cool */
+        cachedResult = cachedEntry;
+      },
+      () => {
+        let promise = this.runUri(graphqlQuery);
+        cache.setPendingResult(graphqlQuery, promise);
+        promiseResult = promise;
+        promise.then(resp => {
+          cache.setResults(promise, graphqlQuery, resp);
+        });
+      }
+    );
+    if (promiseResult) {
+      throw promiseResult;
+    }
+    return cachedResult;
+  }
+
   getCache(query) {
     return this.caches.get(query);
   }

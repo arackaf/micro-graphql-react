@@ -164,6 +164,15 @@ The options argument, if supplied, can contain this property
 
 If you're using Suspense, just use the `useSuspenseQuery` hook. It has an identical api as `useQuery`, except it'll throw a promise whenever a data fetch is inflight, so your `useTransition()` calls and `Suspense` boundaries can respond accordingly.
 
+If you'd like the same behavior, but without the hook, you can use the `read` method on the client object.
+
+```js
+const client = getDefaultClient();
+const result = client.read(YourQuery, variables);
+```
+
+This will read cached data, or Suspend if the data are not ready, yet.
+
 ## Caching
 
 The client object maintains a cache of each query it comes across when processing your components. The cache is LRU with a default size of 10 and, again, stored at the level of each specific query, not the GraphQL type. As your instances mount and unmount, and update, the cache will be checked for existing results to matching queries.
@@ -387,15 +396,14 @@ export const useSoftResetQuery = (type, query, variables, options = {}) =>
         });
         softReset(currentResults);
       }
-    },
+    }
   });
 
 export const useBookSoftResetQuery = (...args) => useSoftResetQuery("Book", ...args);
 export const useSubjectSoftResetQuery = (...args) => useSoftResetQuery("Subject", ...args);
 ```
 
-which we can use to eliminate that boilerplate 
-
+which we can use to eliminate that boilerplate
 
 ```javascript
 export default props => {
@@ -418,7 +426,7 @@ export default props => {
 };
 ```
 
-or similarly for our subjects component 
+or similarly for our subjects component
 
 ```javascript
 export default props => {
@@ -529,6 +537,7 @@ export const syncQueryToCache = (query, type) => {
   ]);
 };
 ```
+
 which cuts the usage code to just this
 
 ```javascript
