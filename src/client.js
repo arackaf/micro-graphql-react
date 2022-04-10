@@ -27,6 +27,7 @@ export default class Client {
       },
       cachedEntry => {
         /* already loaded - cool */
+        promiseResult = Promise.resolve(cachedEntry);
       },
       () => {
         let promise = this.runUri(graphqlQuery);

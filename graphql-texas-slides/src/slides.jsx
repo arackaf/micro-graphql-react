@@ -1,8 +1,6 @@
 import React, { useContext } from "react";
 import ReactDOM from "react-dom";
 
-import { ThemeContext } from "styled-components";
-
 import {
   Appear,
   Box,
@@ -1083,9 +1081,7 @@ const Presentation = () => (
           </ListItem>
         </Appear>
         <Appear elementNum={1}>
-          <ListItem>
-            That can fail
-          </ListItem>
+          <ListItem>That can fail</ListItem>
         </Appear>
       </UnorderedList>
     </Slide>

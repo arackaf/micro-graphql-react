@@ -51,7 +51,7 @@ export class Client {
   setCache(query: string, cache: Cache): void;
   subscribeMutation(subscription: any, options?: any): () => void;
   forceUpdate(query: string): void;
-  preload(query: string, variables: any): void;
+  preload(query: string, variables: any): Promise<any>;
   read<TResults = unknown>(query: string, variables: any): { data: TResults; error: any };
 }
 
