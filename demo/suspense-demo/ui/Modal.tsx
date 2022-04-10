@@ -1,4 +1,4 @@
-import React, { SFC, useRef, useLayoutEffect, useState, useContext, useCallback, createContext, useMemo } from "react";
+import React, { SFC, useRef, createContext, useMemo } from "react";
 
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import { useTransition, animated, config, useSpring } from "react-spring";

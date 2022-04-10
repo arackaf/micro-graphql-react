@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect, useRef } from "react";
-const { unstable_useTransition: useTransition } = React as any;
+const { useTransition } = React as any;
 import "../static/fontawesome/css/font-awesome-booklist-build.css";
 
 import { useSuspenseQuery, getDefaultClient } from "../../src/index";
@@ -15,7 +15,7 @@ import { getSearchState, history } from "./util/history-utils";
 import Loading from "./ui/Loading";
 
 const SuspenseDemo = props => {
-  const [startTransition, isPending] = useTransition({ timeoutMs: 9000 });
+  const [isPending, startTransition] = useTransition({ timeoutMs: 9000 });
   const [{ page, search }, setSearchState] = useState(() => getSearchState());
 
   useEffect(() => {
