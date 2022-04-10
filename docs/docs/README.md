@@ -4,15 +4,7 @@
 npm i micro-graphql-react --save
 ```
 
-**Note** - this project ships standard, modern JavaScript (ES6, object spread, etc) that works in all evergreen browsers. If you need to support ES5 environments like IE11, just add an alias pointing to the ES5 build in your webpack config like so
-
-```javascript
-alias: {
-  "micro-graphql-react": "node_modules/micro-graphql-react/index-es5.js"
-},
-```
-
-(`alias` goes under the `resolve` section in webpack.config.js)
+**Note** - this project ships standard, modern JavaScript (ES6, object spread, etc) that works in all evergreen browsers. If you need to support ES5 environments like IE11, run this code through a transpiler, but were you probably already doing that for all of node_modules.
 
 ## Creating a client
 

@@ -1,8 +1,8 @@
 {
   "name": "micro-graphql-react",
-  "version": "0.4.0-rc.13",
+  "version": "0.4.0-rc.14",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/index.min.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/arackaf/micro-graphql-react.git"
@@ -28,6 +28,7 @@
     "@babel/preset-react": "^7.9.4",
     "@reach/dialog": "^0.10.5",
     "@types/react": "^16.1.0",
+    "@vitejs/plugin-legacy": "^1.8.0",
     "@vitejs/plugin-react": "^1.3.0",
     "babel-jest": "^24.1.0",
     "classnames": "^2.2.6",
@@ -50,7 +51,8 @@
   },
   "scripts": {
     "build": "vite build",
-    "prepublishOnly": "vite build",
+    "build-all": "vite build && NO_MINIFY=true vite build",
+    "prepublishOnly": "npm run build-all",
     "size-check": "npm run build && gzip dist/index.js && stat dist/index.js.gz && rm -f dist/index.js.gz",
     "test": "jest --runInBand --bail --detectOpenHandles && codecov",
     "test-local": "jest --runInBand",
