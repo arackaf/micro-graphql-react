@@ -8,9 +8,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reach/dialog": "^0.10.5",
+    "classnames": "^2.2.6",
+    "history": "^4.6.1",
     "node-sass": "^7.0.1",
+    "query-string": "^6.13.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-spring": "^9.0.0-rc.3",
     "sass": "^1.50.0"
   },
   "devDependencies": {
