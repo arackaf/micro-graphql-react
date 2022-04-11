@@ -58,7 +58,10 @@
     "test-local": "jest --runInBand",
     "test-local-codecov": "jest --runInBand && dotenv codecov",
     "testw": "jest --runInBand --watchAll",
-    "heroku-postbuild": "cd demo && npm i && npm run build && cd ../graphql-texas-slides && npm i && npm run build"
+    "heroku-postbuild": "cd demo && npm i && npm run build && cd ../graphql-texas-slides && npm i && npm run build",
+    "clear-docs-folders": "rm -rf ./docs/demo && rm -rf ./docs/slides && mkdir ./docs/slides && mkdir ./docs/demo",
+    "build-all-docs": "cd demo && npm run build && cd ../graphql-texas-slides && npm run build && cd ..",
+    "update-docs": "npm run clear-docs-folders && npm run build-all-docs && cp -R ./demo/dist/. ./docs/demo && cp -R ./graphql-texas-slides/dist/. ./docs/slides"
   },
   "typings": "index.d.ts"
 }
