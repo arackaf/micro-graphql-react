@@ -572,13 +572,5 @@ It's entirely possible some pieces of data may need to be loaded from, and store
 
 ## Use in old browsers
 
-By default this library ships modern, standard JavaScript, which should work in all decent browsers. If you have to support older browsers like IE, then just add the following alias to your webpack's resolve section
+This project ships standard, modern JavaScript (ES6, object spread, etc) that works in all evergreen browsers. If you need to support ES5 environments like IE11, run this code through a transpiler, but were you probably already doing that for all of node_modules.
 
-```javascript
-  resolve: {
-    alias: {
-      "micro-graphql-react": "node_modules/micro-graphql-react/index-es5.js"
-    },
-    modules: [path.resolve("./"), path.resolve("./node_modules")]
-  }
-```
