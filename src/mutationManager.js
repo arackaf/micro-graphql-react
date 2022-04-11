@@ -19,16 +19,16 @@ export default class MutationManager {
     running: false,
     finished: false
   };
-  currentState = {
-    ...MutationManager.initialState,
-    runMutation: this.runMutation
-  };
 
   constructor({ client, setState }, mutation, options) {
     this.client = client;
     this.setState = setState;
     this.mutation = mutation;
 
+    this.currentState = {
+      ...MutationManager.initialState,
+      runMutation: this.runMutation
+    };
     this.setState(this.currentState);
   }
 }
