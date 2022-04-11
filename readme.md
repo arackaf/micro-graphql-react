@@ -16,8 +16,6 @@ Like any other GraphQL React client, there are simple hooks which query and muta
 
 Full docs are [here](https://arackaf.github.io/micro-graphql-react/docs)
 
-A live Suspense-based demo of this library is [here](https://arackaf.github.io/micro-graphql-react/demo)
-
 The slides for the GraphQL Texas talk I gave are [here](https://arackaf.github.io/micro-graphql-react/slides)
 
 The rest of this README describes in better detail the kind of cache management problems this project attempts to avoid.
