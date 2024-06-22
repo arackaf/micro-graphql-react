@@ -87,7 +87,18 @@ export default class Client {
     this.caches.set(query, cache);
   }
   runQuery(query, variables) {
-    return this.runUri(this.getGraphqlQuery({ query, variables }));
+    if ((this.fetchOptions?.method || '').toUpperCase() === 'POST') {
+      return fetch(this.endpoint, {
+        ...this.fetchOptions,
+        headers: {
+          ...this.fetchOptions?.headers,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({ query, variables })
+      }).then(resp => resp.json())
+    } else {
+      return this.runUri(this.getGraphqlQuery({ query, variables }));
+    }
   }
   runUri(uri) {
     return fetch(uri, this.fetchOptions || void 0).then(resp => resp.json());
